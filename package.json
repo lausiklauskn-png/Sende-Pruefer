@@ -1,0 +1,7 @@
+{
+  "name": "sende-pruefer",
+  "private": true,
+  "description": "Sende-Prüfer: Kundendaten verdecken, bevor eine KI sie sieht",
+  "scripts": { "test": "node tests/smoke.mjs", "gegenprobe": "bash tests/gegenprobe.sh" },
+  "devDependencies": { "playwright-core": "^1.62.1" }
+}

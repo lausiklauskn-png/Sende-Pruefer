@@ -1,0 +1,47 @@
+# Köder für den Sende-Prüfer — erfundene Werte, keiner davon echt.
+# Vor jedem Fall steht, was erwartet wird. Die Seite liest diese Marken im Selbsttest.
+# BEFUNDE: 10
+# NAMEN: Erika Musterfrau
+
+Guten Tag, ich brauche Hilfe bei einer Antwort an eine Kundin.
+
+# ERWARTET: NAME
+Frau Erika Musterfrau hat heute angerufen.
+
+# ERWARTET: MAIL
+Ihre Nachricht kam von kontakt@beispiel.test herein.
+
+# ERWARTET: TELEFON
+Rückruf erbeten unter +49 30 1234567.
+
+# ERWARTET: kein Befund
+Die Durchwahl im Haus ist 030 1234567.
+
+# ERWARTET: IBAN
+Überwiesen hat sie von DE89 3704 0044 0532 0130 00.
+
+# ERWARTET: kein Befund
+Im Brief stand dagegen DE89 3704 0044 0532 0130 01, das ist verschrieben.
+
+# ERWARTET: BETRAG
+Die offene Summe beträgt 1.248,50 EUR.
+
+# ERWARTET: BETRAG
+Angezahlt hat sie 89,90 €.
+
+# ERWARTET: BETRAG
+Der Gesamtwert des Auftrags liegt bei 1.234.567,89 €.
+
+# ERWARTET: RECHNUNG
+Rechnungsnummer: 2026-0415
+
+# ERWARTET: RECHNUNG
+Sie bezieht sich auf RE-2026-04871 vom letzten Monat.
+
+# ERWARTET: SCHLUESSEL
+Im Anhang lag versehentlich sk-ant-api03-KOEDERnichtEchtKOEDERnichtEcht00.
+
+# ERWARTET: kein Befund
+Das Angebot steht unter https://www.beispiel.test/angebot?nr=12 bereit.
+
+Wie antworte ich höflich und kurz?
