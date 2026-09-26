@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sende-Prüfer — Kundendaten verdecken, bevor eine KI sie sieht</title>
+<meta name="description" content="Prüft einen Text, bevor er an eine KI geht, und ersetzt Schlüssel, Mailadressen, Telefonnummern, Kontonummern, Beträge, Rechnungsnummern und Namen durch Platzhalter. Die Antwort kommt im Klartext zurück. Läuft im Browser.">
+<meta name="theme-color" content="#0c1016">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--grund:#0c1016;--grund2:#151b24;--karte:rgba(27,35,48,.55);--linie:rgba(255,255,255,.10);--schrift:#e9eff5;--gedaempft:#9aa8b6;--akzent:#f2b544;--akzent2:#7fb2e8;--akzent3:#b98ce0;--knopfschrift:#1a1204;--gut:#46d27f;--warn:#e0b341}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--grund);color:var(--schrift);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{max-width:60rem;margin:0 auto;padding:0 16px}
+header{display:flex;align-items:center;gap:.6rem;padding-top:14px;padding-bottom:6px}
+.mark{width:28px;height:28px;border-radius:7px;background:var(--akzent);display:inline-block}
+.brand{font-weight:700;letter-spacing:.02em}
+h1{font-size:1.5rem;margin:.4rem 0 .3rem}
+h2{font-size:1.05rem;margin:0 0 .4rem;color:var(--akzent)}
+h2 .nr{font-family:ui-monospace,monospace;color:var(--gedaempft);font-weight:400;margin-right:.35rem}
+p{margin:.35rem 0}
+.zweck{font-size:1.08rem}
+.gedaempft,small{color:var(--gedaempft)}
+section{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:14px 16px;margin:12px 0}
+textarea,input,select{width:100%;background:var(--grund2);color:var(--schrift);border:1px solid var(--linie);border-radius:8px;padding:10px;font:inherit}
+textarea{min-height:9rem;resize:vertical;font-family:ui-monospace,monospace;font-size:.92rem}
+label{display:block;font-weight:600;margin:.6rem 0 .2rem}
+.btn{appearance:none;border:0;border-radius:9px;padding:10px 16px;min-height:44px;font:inherit;font-weight:700;background:var(--akzent);color:var(--knopfschrift);cursor:pointer}
+.btn.leise{background:transparent;color:var(--schrift);border:1px solid var(--linie);font-weight:600}
+.reihe{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.5rem}
+.zwei{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.zwei>section{margin:0}
+@media (max-width:640px){.zwei{grid-template-columns:minmax(0,1fr)}}
+code{overflow-wrap:anywhere}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--grund2);border:1px solid var(--linie);border-radius:8px;padding:10px;margin:.4rem 0;font-size:.92rem;min-height:2.5rem}
+.zahl{font-family:ui-monospace,monospace;font-weight:700;color:var(--akzent)}
+ul.befunde{list-style:none;padding:0;margin:.4rem 0}
+ul.befunde li{padding:6px 0;border-top:1px solid var(--linie)}
+.sorte{font-family:ui-monospace,monospace;font-size:.8rem;padding:1px 6px;border-radius:5px;background:var(--grund2);color:var(--akzent2);margin-right:.4rem}
+.ph{color:var(--akzent3)}
+.zusage{border-left:3px solid var(--gut);padding-left:10px}
+.meldung{min-height:1.4em}
+.meldung.warn{color:var(--warn)}
+.meldung.gut{color:var(--gut)}
+details summary{cursor:pointer;color:var(--gedaempft);min-height:32px;padding:4px 0}
+footer{padding-bottom:30px;color:var(--gedaempft);font-size:.9rem}
+a{color:var(--akzent2)}
+</style>
+</head>
+<body>
+<header><span class="mark" aria-hidden="true"></span><span class="brand">Sende-Prüfer</span></header>
+<main>
+<h1>Kundendaten verdecken, bevor eine KI sie sieht</h1>
+<p class="zweck" data-zweck>Damit die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen: Sie stellen Ihre Frage hier, die Seite ersetzt jede solche Angabe durch einen Platzhalter, und die Antwort kommt mit den echten Angaben zurück.</p>
+<p class="zusage" data-zusage="1">Hinaus geht nur die verdeckte Fassung, nur auf Knopfdruck und nur an die Adresse, die neben dem Senden-Knopf steht. Gespeichert wird außer Ihrem Schlüssel nichts.</p>
+
+<section id="s-eingabe">
+<h2><span class="nr">1</span>Ihr Text</h2>
+<p>Schreiben oder fügen Sie hier ein, was Sie die KI fragen wollen, samt der Unterlagen, um die es geht.</p>
+<textarea id="eingabe" spellcheck="false" aria-label="Ihr Text"></textarea>
+<div class="reihe">
+<label class="btn leise" style="margin:0">Datei wählen<input id="datei" type="file" accept=".txt,.md,.json,.csv,.html,.htm,text/*" hidden></label>
+<small>Text-Dateien (.txt .md .json .csv .html). Bilder und PDF liest diese Seite nicht.</small>
+</div>
+<label for="namen">Namen, die nicht hinausgehen sollen</label>
+<p class="gedaempft" data-namen-zweck>Tragen Sie die Personen- und Firmennamen ein, die in Ihrem Text vorkommen (einer je Zeile oder durch Komma getrennt): sie werden dann ebenfalls verdeckt.</p>
+<textarea id="namen" style="min-height:3.5rem" spellcheck="false"></textarea>
+<p class="meldung warn" id="namen-hinweis" data-ohne-namen>Es sind keine Namen eingetragen, deshalb wird kein Name verdeckt.</p>
+<details><summary>Warum die Seite Namen nicht selbst findet</summary>
+<p>Ein Muster kann „Müller“ den Familiennamen nicht von „Müller-Thurgau“ der Rebsorte unterscheiden. Eine Seite, die behauptet, Namen zu finden, würde Sie in falscher Sicherheit wiegen. Deshalb verdeckt sie genau die Namen, die Sie hier nennen, und keine anderen. Die Liste bleibt nur in diesem Fenster und wird nicht gespeichert.</p>
+</details>
+</section>
+
+<section id="s-befund">
+<h2><span class="nr">2</span>Was gefunden wurde</h2>
+<p>Das hier würde die KI sehen, wenn Sie den Text so abschickten: <span class="zahl" id="anzahl">0</span> Angabe(n).</p>
+<ul class="befunde" id="befunde"></ul>
+<details><summary>Welche Angaben erkannt werden</summary>
+<p>Zugangsschlüssel und Tokens (Anthropic, OpenAI, GitHub, Google, Amazon, Slack, Nostr, private Schlüssel, Bearer-Kopfzeilen, Felder wie <code>api_key</code> oder <code>password</code> mit Wert) · Mailadressen · Telefonnummern mit Ländervorwahl · Kontonummern (IBAN, nur mit stimmender Prüfziffer) · Beträge mit Währung, auch mit Tausenderpunkt · Rechnungs- und Kundennummern · die Namen aus Ihrer Liste.</p>
+<p>Nicht gemeldet werden eine Telefonnummer ohne Ländervorwahl, eine Zahl, die nur wie eine IBAN aussieht, und gewöhnliche Links. Eine Warnung, die bei jedem Text erscheint, liest nach dem dritten Mal niemand mehr.</p>
+</details>
+</section>
+
+<section id="s-verdeckt">
+<h2><span class="nr">3</span>Was hinausgeht</h2>
+<p>Das ist die Fassung, die die KI bekommt. Jede Angabe steht als Platzhalter da, und derselbe Wert trägt überall denselben Platzhalter, damit die KI die Bezüge versteht.</p>
+<pre id="verdeckt"></pre>
+</section>
+
+<div class="zwei">
+<section id="s-kopieren">
+<h2><span class="nr">4a</span>Kopieren</h2>
+<p data-weg-zweck="kopieren">Für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten.</p>
+<div class="reihe"><button class="btn" id="kopieren" type="button">Verdeckte Fassung kopieren</button></div>
+<p class="meldung" id="kopier-meldung"></p>
+<label for="antwort-ein">Antwort der KI hier einfügen</label>
+<textarea id="antwort-ein" style="min-height:5rem" spellcheck="false"></textarea>
+</section>
+
+<section id="s-senden">
+<h2><span class="nr">4b</span>Senden</h2>
+<p data-weg-zweck="senden">Ohne Fenster zu wechseln; es kostet, was Ihr Schlüssel kostet.</p>
+<label for="anbieter">Anbieter</label>
+<select id="anbieter"></select>
+<label for="schluessel">Ihr Schlüssel für diesen Anbieter</label>
+<p class="gedaempft" data-schluessel-zweck>Damit die Seite die verdeckte Fassung selbst abschickt und Sie nichts kopieren müssen. Er bleibt in diesem Browser und geht nur an den gewählten Anbieter.</p>
+<input id="schluessel" type="password" autocomplete="off" spellcheck="false">
+<div class="reihe"><button class="btn" id="senden" type="button">Senden</button><button class="btn leise" id="schluessel-weg" type="button">Schlüssel löschen</button></div>
+<p class="gedaempft">Geht an: <code id="ziel-adresse"></code></p>
+<p class="meldung" id="sende-meldung"></p>
+<details><summary>Wo der Schlüssel liegt</summary>
+<p>Im Speicher dieses Browsers (localStorage), je Anbieter unter einem eigenen Namen, der mit <code>sendepruefer_</code> beginnt. Er kommt nie auf einen Server außer dem des gewählten Anbieters. „Schlüssel löschen“ entfernt ihn. Wer das Gerät mit anderen teilt, trägt ihn nach Gebrauch wieder aus.</p>
+</details>
+</section>
+</div>
+
+<section id="s-antwort">
+<h2><span class="nr">5</span>Die Antwort, mit Ihren Angaben</h2>
+<p>Hier steht die Antwort der KI mit den echten Namen, Nummern und Beträgen, eingesetzt auf diesem Gerät.</p>
+<pre id="antwort-klar"></pre>
+<details id="ki-sah-auf"><summary>Was die KI stattdessen sah und schrieb</summary>
+<p class="gedaempft">Gesendet wurde genau dieser Text:</p><pre id="gesendet"></pre>
+<p class="gedaempft">Zurück kam:</p><pre id="antwort-roh"></pre>
+</details>
+<div class="reihe"><button class="btn leise" id="verwerfen" type="button">Zuordnung verwerfen</button><small id="zuordnung-stand"></small></div>
+<p class="gedaempft">Die Zuordnung von Platzhalter zu echtem Wert lebt nur in diesem Fenster. Sie ist das Empfindlichste auf der Seite und verschwindet, wenn Sie den Tab schließen.</p>
+</section>
+
+<details id="selbsttest"><summary>Selbsttest: prüft den Prüfer an einem Köder</summary>
+<section>
+<p>Damit Sie sehen, dass die Seite erkennt, was sie verspricht: der Köder enthält jede Sorte genau einmal und drei Zeilen, die nicht gemeldet werden dürfen.</p>
+<div class="reihe"><button class="btn" id="test-start" type="button">Selbsttest starten</button><label class="btn leise" style="margin:0">Köder-Datei wählen<input id="test-datei" type="file" accept=".txt" hidden></label></div>
+<ul class="befunde" id="test-ergebnis"></ul>
+<p class="meldung" id="test-summe"></p>
+</section>
+</details>
+</main>
+<footer><p>Sende-Prüfer · läuft vollständig in diesem Browser · <a href="LIESMICH.md">Anleitung und Grenzen</a></p></footer>
+
+<script>
+"use strict";
+/* ══ DIE GESCHLOSSENE LISTE DER ANBIETER ═══════════════════════════════════
+   Abgeschrieben aus dem Auftrag (Kimhub/auftraege/sende-pruefer.json,
+   `_anbieter`, Stand 2026-09-21). Ein freies Adressfeld gibt es nicht: wer eine
+   Adresse eintippen kann, kann den Text irgendwohin schicken. Wer einen
+   Anbieter ergänzt, trägt ihn HIER ein, mit Beleg. */
+const ANBIETER = Object.freeze({
+  anthropic: Object.freeze({ name: "Claude (Anthropic)", adresse: "https://api.anthropic.com/v1/messages",
+    modell: "claude-opus-5", beginnt: "sk-ant-", protokoll: "messages" }),
+  mistral: Object.freeze({ name: "Mistral (EU)", adresse: "https://api.mistral.ai/v1/chat/completions",
+    modell: "mistral-large-latest", beginnt: null, protokoll: "openai" })
+});
+const SCHLUESSEL_PREFIX = "sendepruefer_key_";
+
+/* ══ DIE MUSTER ══════════════════════════════════════════════════════════════
+   Übernommen aus dem Auslieferungsprüfer (pruefe-datei.py und die
+   Browser-Fassung assets/pruefer-formate.js). Wer eines ändert, zieht das
+   andere nach. Zwei bewusste Abweichungen, beide weil hier VERDECKT wird statt
+   nur gemeldet: Beträge erfassen den Tausenderpunkt (sonst bliebe „1.“ im
+   Klartext stehen), und bei Feldern wird nur der WERT verdeckt. */
+const SCHLUESSEL_MUSTER = [
+  /-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:[A-Z ]+ )?PRIVATE KEY-----|$)/g,
+  /sk-ant-[A-Za-z0-9_\-]{16,}/g,
+  /\bsk-(?!ant-)[A-Za-z0-9_\-]{20,}/g,
+  /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}/g,
+  /\bgithub_pat_[A-Za-z0-9_]{20,}/g,
+  /\bAIza[A-Za-z0-9_\-]{30,}/g,
+  /\bAKIA[0-9A-Z]{16}\b/g,
+  /\bxox[baprs]-[A-Za-z0-9\-]{10,}/g,
+  /\bnsec1[02-9ac-hj-np-z]{50,}/g
+];
+/* Nur der Wert wird verdeckt, der Feldname bleibt: die KI soll wissen, dass
+   dort ein Schlüssel stand. Gruppe 1 ist der Wert. */
+const SCHLUESSEL_FELD = /\b(?:api[_\-]?key|apikey|secret|client[_\-]?secret|passwort|password|passwd)\b["']?\s*[:=]\s*["']?([^\s"',}]{12,})/gi;
+const BEARER = /Authorization\s*:\s*Bearer\s+([A-Za-z0-9._\-]{16,})/gi;
+/* RFC 5321: 64 vor dem @, 255 danach. Ohne die Grenzen ist der Ausdruck auf
+   einer langen Zeile quadratisch (gemessen in PWA Toolpoint: 23 s für 200 000
+   Zeichen). */
+const MAIL = /[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,255}\.[A-Za-z]{2,}/g;
+/* Nur mit Ländervorwahl oder tel: — eine blosse Ziffernfolge ist oft eine
+   Kennung oder ein Zeitstempel. */
+const TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)\d[\d\s\-/()]{6,}\d/g;
+const IBAN_FORM = /\b[A-Z]{2}\d{2}(?:[ \-]?[A-Z0-9]{2,4}){3,8}\b/g;
+/* ⚠ DER TAUSENDERPUNKT (Prüfmerkmal 10). `\d+[.,]\d{2}` aus dem
+   Auslieferungsprüfer trifft in „1.248,50 EUR“ nur „248,50 EUR“. Hier zuerst
+   die Form mit Tausendertrennern, dann die einfache. */
+const ZAHL = "(?:\\d{1,3}(?:\\.\\d{3})+(?:,\\d{2})?|\\d{1,3}(?:,\\d{3})+(?:\\.\\d{2})?|\\d+[.,]\\d{2})";
+const WAEHRUNG = "(?:€|EUR|\\$|USD|CHF)";
+const BETRAG = new RegExp("(?<![\\d.,])" + ZAHL + "\\s?" + WAEHRUNG + "(?![A-Za-z])|" +
+  "(?<![A-Za-z])" + WAEHRUNG + "\\s?" + ZAHL + "(?![\\d.,]*\\d)", "g");
+/* Rechnungs- und Kundennummern: in einem Feld (Wert wird verdeckt) oder
+   freistehend in der Form RE-2026-04871 (Prüfmerkmal 10: Klaus' Text trug eine
+   solche, gemeldet wurde sie nicht — jetzt ist sie ein Befund). */
+const BELEG_FELD = /["']?(?:rechnung(?:s?nummer|s?nr)?|kundennummer|kundennr|kunden_?nr|invoice(?:_id|_number)?|beleg(?:nummer)?|receipt(?:_number)?|customer_id)["']?\s*[:=]\s*["']?([A-Za-z0-9][A-Za-z0-9\-\/]{2,})/gi;
+const BELEG_FREI = /\b(?:RE|RG|INV|KD|KDNR|AN)-\d{2,4}-\d{3,}\b/g;
+
+function istIban(roh) {
+  const s = String(roh).replace(/[\s\-]/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s)) return false;
+  const um = s.slice(4) + s.slice(0, 4);
+  let rest = 0;
+  for (const z of um) {
+    const teil = /[A-Z]/.test(z) ? String(z.charCodeAt(0) - 55) : z;
+    for (const d of teil) rest = (rest * 10 + Number(d)) % 97;
+  }
+  return rest === 1;
+}
+
+function namenListe(roh) {
+  return String(roh || "").split(/[\n,;]/).map((n) => n.trim()).filter((n) => n.length >= 2);
+}
+function regexFlucht(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+/* Findet alle Angaben. Gibt [{start, ende, wert, sorte}] zurück, nach Lage
+   sortiert und ohne Überlappung: bei zwei Treffern an derselben Stelle gewinnt
+   der frühere, bei gleichem Anfang der längere. */
+function finde(text, namen) {
+  const roh = [];
+  const nimm = (re, sorte, gruppe, pruef) => {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m[0].length === 0) { re.lastIndex++; continue; }
+      const wert = gruppe ? m[gruppe] : m[0];
+      if (!wert) continue;
+      if (pruef && !pruef(wert)) continue;
+      const start = m.index + (gruppe ? m[0].lastIndexOf(wert) : 0);
+      roh.push({ start, ende: start + wert.length, wert, sorte });
+    }
+  };
+  for (const re of SCHLUESSEL_MUSTER) nimm(re, "SCHLUESSEL");
+  nimm(SCHLUESSEL_FELD, "SCHLUESSEL", 1);
+  nimm(BEARER, "SCHLUESSEL", 1);
+  nimm(MAIL, "MAIL");
+  nimm(IBAN_FORM, "IBAN", 0, istIban);
+  nimm(BETRAG, "BETRAG");
+  nimm(BELEG_FELD, "RECHNUNG", 1, (w) => /\d/.test(w));
+  nimm(BELEG_FREI, "RECHNUNG");
+  nimm(TELEFON, "TELEFON");
+  for (const n of namen) {
+    nimm(new RegExp("(?<![\\p{L}\\p{N}])" + regexFlucht(n) + "(?![\\p{L}\\p{N}])", "giu"), "NAME");
+  }
+  roh.sort((a, b) => a.start - b.start || (b.ende - b.start) - (a.ende - a.start));
+  const aus = [];
+  let bis = -1;
+  for (const t of roh) { if (t.start >= bis) { aus.push(t); bis = t.ende; } }
+  for (const t of aus) t.zeile = text.slice(0, t.start).split("\n").length;
+  return aus;
+}
+
+/* Ersetzt jeden Treffer durch einen Platzhalter. Derselbe Wert derselben Sorte
+   bekommt überall denselben. Die Zuordnung geht zurück, sie wird nicht
+   gespeichert. */
+function verdecke(text, treffer) {
+  const zuordnung = new Map();          // Platzhalter → Wert
+  const vergeben = new Map();           // Sorte + Wert → Platzhalter
+  const zaehler = {};
+  let aus = "", pos = 0;
+  for (const t of treffer) {
+    const schl = t.sorte + "\u0000" + t.wert;
+    let ph = vergeben.get(schl);
+    if (!ph) {
+      zaehler[t.sorte] = (zaehler[t.sorte] || 0) + 1;
+      ph = "⟦" + t.sorte + "-" + zaehler[t.sorte] + "⟧";
+      vergeben.set(schl, ph);
+      zuordnung.set(ph, t.wert);
+    }
+    t.platzhalter = ph;
+    aus += text.slice(pos, t.start) + ph;
+    pos = t.ende;
+  }
+  return { text: aus + text.slice(pos), zuordnung };
+}
+
+function aufdecken(text, zuordnung) {
+  if (!zuordnung || zuordnung.size === 0) return String(text || "");
+  return String(text || "").replace(/⟦[A-Z]+-\d+⟧/g, (ph) => (zuordnung.has(ph) ? zuordnung.get(ph) : ph));
+}
+
+/* ══ DIE BAHN ═════════════════════════════════════════════════════════════ */
+const $ = (id) => document.getElementById(id);
+let stand = { treffer: [], verdeckt: "", zuordnung: new Map() };
+let letzteAntwort = "";
+
+function zeichne() {
+  const text = $("eingabe").value;
+  const namen = namenListe($("namen").value);
+  $("namen-hinweis").hidden = namen.length > 0;
+  const treffer = finde(text, namen);
+  const v = verdecke(text, treffer);
+  stand = { treffer, verdeckt: v.text, zuordnung: v.zuordnung };
+  $("anzahl").textContent = String(treffer.length);
+  const ul = $("befunde");
+  ul.textContent = "";
+  for (const t of treffer) {
+    const li = document.createElement("li");
+    li.dataset.sorte = t.sorte;
+    li.dataset.zeile = String(t.zeile);
+    const s = document.createElement("span"); s.className = "sorte"; s.textContent = t.sorte;
+    li.append(s, "Zeile " + t.zeile + ": ");
+    const w = document.createElement("span"); w.textContent = t.wert;
+    const p = document.createElement("span"); p.className = "ph"; p.textContent = " → " + t.platzhalter;
+    li.append(w, p);
+    ul.append(li);
+  }
+  $("verdeckt").textContent = v.text;
+  $("zuordnung-stand").textContent = v.zuordnung.size + " Platzhalter in der Zuordnung";
+  antwortZeigen();
+}
+
+function antwortZeigen() {
+  const roh = letzteAntwort || $("antwort-ein").value;
+  $("antwort-roh").textContent = roh;
+  $("antwort-klar").textContent = aufdecken(roh, stand.zuordnung);
+}
+
+/* Die letzte Sicherung vor dem Hinausgehen: steht in dem, was gesendet oder
+   kopiert würde, noch ein gefundener Wert, geht nichts hinaus. */
+function enthaeltWert(text) {
+  for (const w of stand.zuordnung.values()) if (w && text.includes(w)) return w;
+  return null;
+}
+
+$("eingabe").addEventListener("input", () => { letzteAntwort = ""; zeichne(); });
+$("namen").addEventListener("input", zeichne);
+$("antwort-ein").addEventListener("input", () => { letzteAntwort = ""; antwortZeigen(); });
+$("datei").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  $("eingabe").value = await f.text();
+  zeichne();
+});
+
+$("kopieren").addEventListener("click", async () => {
+  const m = $("kopier-meldung");
+  const text = stand.verdeckt;
+  if (!text.trim()) { m.className = "meldung warn"; m.textContent = "Es steht noch kein Text in Feld 1."; return; }
+  if (enthaeltWert(text)) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: die Fassung enthält noch einen gefundenen Wert."; return; }
+  try {
+    await navigator.clipboard.writeText(text);
+    m.className = "meldung gut"; m.textContent = "Kopiert: die verdeckte Fassung, " + stand.treffer.length + " Angabe(n) ersetzt.";
+    $("gesendet").textContent = text;
+  } catch (_e) {
+    m.className = "meldung warn"; m.textContent = "Der Browser hat das Kopieren verweigert. Markieren Sie den Text in Feld 3 und kopieren Sie ihn von Hand.";
+  }
+});
+
+function anbieterJetzt() { return ANBIETER[$("anbieter").value] || ANBIETER.anthropic; }
+function schluesselName() { return SCHLUESSEL_PREFIX + $("anbieter").value; }
+function lies(k) { try { return localStorage.getItem(k) || ""; } catch (_e) { return ""; } }
+function schreib(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (_e) {} }
+
+for (const [k, a] of Object.entries(ANBIETER)) {
+  const o = document.createElement("option"); o.value = k; o.textContent = a.name; $("anbieter").append(o);
+}
+function anbieterZeigen() {
+  const a = anbieterJetzt();
+  $("ziel-adresse").textContent = a.adresse + " · " + a.modell;
+  $("schluessel").value = lies(schluesselName());
+  $("sende-meldung").textContent = "";
+}
+$("anbieter").addEventListener("change", anbieterZeigen);
+$("schluessel").addEventListener("change", () => schreib(schluesselName(), $("schluessel").value.trim()));
+$("schluessel-weg").addEventListener("click", () => {
+  schreib(schluesselName(), ""); $("schluessel").value = "";
+  $("sende-meldung").className = "meldung gut"; $("sende-meldung").textContent = "Der Schlüssel für " + anbieterJetzt().name + " ist gelöscht.";
+});
+
+function anfrage(a, schluessel, text) {
+  if (a.protokoll === "messages") {
+    return { headers: { "content-type": "application/json", "x-api-key": schluessel,
+        "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: { model: a.modell, max_tokens: 4096, messages: [{ role: "user", content: text }] } };
+  }
+  return { headers: { "content-type": "application/json", "authorization": "Bearer " + schluessel },
+    body: { model: a.modell, messages: [{ role: "user", content: text }] } };
+}
+function antwortText(a, j) {
+  if (a.protokoll === "messages") return (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n");
+  return (((j.choices || [])[0] || {}).message || {}).content || "";
+}
+
+$("senden").addEventListener("click", async () => {
+  const m = $("sende-meldung");
+  const a = anbieterJetzt();
+  const schluessel = $("schluessel").value.trim();
+  schreib(schluesselName(), schluessel);
+  const text = stand.verdeckt;
+  m.className = "meldung warn";
+  if (!text.trim()) { m.textContent = "Es steht noch kein Text in Feld 1."; return; }
+  if (!schluessel) { m.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }
+  if (a.beginnt && !schluessel.startsWith(a.beginnt)) { m.textContent = "Ein Schlüssel für " + a.name + " beginnt mit " + a.beginnt + ". Der eingetragene tut das nicht."; return; }
+  if (enthaeltWert(text)) { m.textContent = "Nicht gesendet: die Fassung enthält noch einen gefundenen Wert."; return; }
+  const q = anfrage(a, schluessel, text);
+  m.className = "meldung"; m.textContent = "Wird gesendet an " + a.adresse + " …";
+  $("gesendet").textContent = text;
+  try {
+    const r = await fetch(a.adresse, { method: "POST", headers: q.headers, body: JSON.stringify(q.body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + r.status);
+      m.className = "meldung warn"; m.textContent = "Der Anbieter hat abgelehnt (" + r.status + "): " + grund; return;
+    }
+    letzteAntwort = antwortText(a, j);
+    antwortZeigen();
+    m.className = "meldung gut"; m.textContent = "Antwort erhalten. Gesendet wurde die verdeckte Fassung mit " + stand.treffer.length + " Platzhalter(n).";
+  } catch (e) {
+    m.className = "meldung warn"; m.textContent = "Keine Verbindung zu " + a.adresse + " (" + (e && e.message || e) + ").";
+  }
+});
+
+$("verwerfen").addEventListener("click", () => {
+  stand.zuordnung = new Map();
+  $("zuordnung-stand").textContent = "Zuordnung verworfen. Platzhalter werden nicht mehr zurückgesetzt, bis Sie den Text ändern.";
+  antwortZeigen();
+});
+
+/* ══ SELBSTTEST ═══════════════════════════════════════════════════════════
+   Liest den Köder (koeder.txt): vor jedem Fall steht `# ERWARTET: <Sorte>`
+   oder `# ERWARTET: kein Befund`; im Kopf `# BEFUNDE: <Zahl>` und
+   `# NAMEN: …`. Zwei Vorbedingungen werden mitgemessen: der Köder ist
+   überhaupt geladen, und es gab Marken zu prüfen — sonst wäre ein grünes
+   Ergebnis ein grünes Nichts. */
+function selbsttest(koeder) {
+  const erg = [];
+  const ok = (bed, satz) => erg.push({ ok: !!bed, satz });
+  const zeilen = koeder.split("\n");
+  ok(koeder.length > 200, "der Köder ist geladen (" + koeder.length + " Zeichen, " + zeilen.length + " Zeilen)");
+  const kopfZahl = Number((koeder.match(/^# BEFUNDE: (\d+)/m) || [])[1]);
+  const namen = namenListe((koeder.match(/^# NAMEN: (.+)$/m) || [])[1]);
+  /* Die Kommentarzeilen tragen die Marken und die Namen-Liste. Sie werden mit
+     Leerzeichen GLEICHER Länge überschrieben: so bleiben alle Stellen gleich,
+     und die Namen-Liste im Kopf zählt nicht als Befund. */
+  const inhalt = zeilen.map((z) => (z.startsWith("#") ? " ".repeat(z.length) : z)).join("\n");
+  const treffer = finde(inhalt, namen);
+  const jeZeile = new Map();
+  for (const t of treffer) { if (!jeZeile.has(t.zeile)) jeZeile.set(t.zeile, []); jeZeile.get(t.zeile).push(t); }
+  let marken = 0; const erwartetZeilen = new Set(); let erwartetBefunde = 0;
+  zeilen.forEach((z, i) => {
+    const m = z.match(/^# ERWARTET: (.+)$/);
+    if (!m) return;
+    let j = i + 1; while (j < zeilen.length && /^#|^\s*$/.test(zeilen[j])) j++;
+    const nr = j + 1; erwartetZeilen.add(nr); marken++;
+    const hier = jeZeile.get(nr) || [];
+    const soll = m[1].trim();
+    if (soll === "kein Befund") ok(hier.length === 0, "Zeile " + nr + ": kein Befund erwartet, gemeldet " + hier.length);
+    else { erwartetBefunde++; ok(hier.length === 1 && hier[0].sorte === soll, "Zeile " + nr + ": " + soll + " genau einmal (gemeldet: " + (hier.map((t) => t.sorte).join(", ") || "nichts") + ")"); }
+  });
+  ok(marken >= 10, "es gab Marken zu prüfen (" + marken + ")");
+  const ausserhalb = treffer.filter((t) => !erwartetZeilen.has(t.zeile));
+  ok(ausserhalb.length === 0, "außerhalb der Marken nichts gemeldet (" + ausserhalb.length + ")");
+  ok(kopfZahl === treffer.length && kopfZahl === erwartetBefunde, "Kopfzahl " + kopfZahl + " = gemeldet " + treffer.length);
+  const v = verdecke(inhalt, treffer);
+  const drin = treffer.filter((t) => v.text.includes(t.wert));
+  ok(treffer.length > 0 && drin.length === 0, "die verdeckte Fassung enthält keinen der " + treffer.length + " Werte");
+  ok(aufdecken(v.text, v.zuordnung) === inhalt, "hin und zurück ergibt Zeichen für Zeichen den Köder");
+  const betraege = treffer.filter((t) => t.sorte === "BETRAG");
+  const rest = betraege.filter((t) => {
+    const i = v.text.indexOf(t.platzhalter);
+    const vor = v.text[i - 1] || "", nach = v.text[i + t.platzhalter.length] || "";
+    return /[\d.,]/.test(vor) || /\d/.test(nach);
+  });
+  ok(betraege.length >= 3 && rest.length === 0, betraege.length + " Beträge ganz verdeckt, keine Ziffer und kein Punkt daneben stehen geblieben");
+  const doppelt = verdecke("a@b.de und a@b.de", finde("a@b.de und a@b.de", []));
+  ok(doppelt.zuordnung.size === 1 && doppelt.text === "⟦MAIL-1⟧ und ⟦MAIL-1⟧", "derselbe Wert trägt überall denselben Platzhalter");
+  ok(finde("Frau Müller ruft an", []).length === 0, "ohne Namen-Liste wird kein Name gemeldet");
+  return erg;
+}
+function testZeigen(erg) {
+  const ul = $("test-ergebnis"); ul.textContent = "";
+  for (const e of erg) { const li = document.createElement("li"); li.dataset.ok = String(e.ok); li.textContent = (e.ok ? "✓ " : "✗ ") + e.satz; ul.append(li); }
+  const gut = erg.filter((e) => e.ok).length;
+  $("test-summe").className = "meldung " + (gut === erg.length ? "gut" : "warn");
+  $("test-summe").textContent = gut + " von " + erg.length + " bestanden · " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC · " + navigator.userAgent;
+  window.__selbsttest = { gut, gesamt: erg.length, erg };
+}
+$("test-start").addEventListener("click", async () => {
+  try {
+    const r = await fetch("koeder.txt", { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    testZeigen(selbsttest(await r.text()));
+  } catch (_e) {
+    $("test-summe").className = "meldung warn";
+    $("test-summe").textContent = "Der Köder ließ sich nicht laden (bei einer direkt geöffneten Datei sperrt der Browser das). Wählen Sie koeder.txt daneben aus.";
+  }
+});
+$("test-datei").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0]; if (f) testZeigen(selbsttest(await f.text()));
+});
+
+window.SendePruefer = { finde, verdecke, aufdecken, istIban, selbsttest, ANBIETER };
+anbieterZeigen();
+zeichne();
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
