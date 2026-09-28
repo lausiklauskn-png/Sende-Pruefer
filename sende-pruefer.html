@@ -63,9 +63,10 @@ a{color:var(--akzent2)}
 <p>Schreiben oder fügen Sie hier ein, was Sie die KI fragen wollen, samt der Unterlagen, um die es geht.</p>
 <textarea id="eingabe" spellcheck="false" aria-label="Ihr Text"></textarea>
 <div class="reihe">
-<label class="btn leise" style="margin:0">Datei wählen<input id="datei" type="file" accept=".txt,.md,.json,.csv,.html,.htm,text/*" hidden></label>
+<button class="btn leise" id="beispiel" type="button">Beispiel-E-Mail laden</button><label class="btn leise" style="margin:0">Datei wählen<input id="datei" type="file" accept=".txt,.md,.json,.csv,.html,.htm,text/*" hidden></label>
 <small>Text-Dateien (.txt .md .json .csv .html). Bilder und PDF liest diese Seite nicht.</small>
 </div>
+<p class="meldung" id="beispiel-meldung" data-beispiel-meldung hidden>Eine erfundene E-Mail samt Namen ist eingetragen. Unter 4a steht eine erfundene Antwort, wie eine KI sie schreiben könnte: darunter sehen Sie, wie die echten Angaben zurückkommen. Sie können alles überschreiben.</p>
 <label for="namen">Namen, die nicht hinausgehen sollen</label>
 <p class="gedaempft" data-namen-zweck>Tragen Sie die Personen- und Firmennamen ein, die in Ihrem Text vorkommen (einer je Zeile oder durch Komma getrennt): sie werden dann ebenfalls verdeckt.</p>
 <textarea id="namen" style="min-height:3.5rem" spellcheck="false"></textarea>
@@ -245,6 +246,22 @@ $("datei").addEventListener("change", async (e) => {
   if (!f) return;
   $("eingabe").value = await f.text();
   zeichne();
+});
+
+/* Ein erfundenes Beispiel zum Ausprobieren (Klaus 2026-09-28): eine E-Mail mit
+   Kopfzeilen, die Namen dazu und eine mögliche Antwort der KI. Alle Werte sind
+   erfunden; .example-Adressen gibt es nicht, die IBAN ist das Lehrbuch-Beispiel. */
+const BEISPIEL_TEXT = "Von: Petra Beispiel <petra.beispiel@musterbau.example>\nAn: buchhaltung@beispiel-firma.example\nBetreff: Rechnung RE-2026-04871 noch offen\n\nHallo zusammen,\n\ndie Musterbau GmbH hat unsere Rechnung RE-2026-04871 über 1.248,50 EUR noch nicht bezahlt. Überwiesen werden soll auf DE89 3704 0044 0532 0130 00. Frau Beispiel ist unter +49 170 1234567 erreichbar.\n\nBitte schreib mir eine freundliche Zahlungserinnerung an Frau Beispiel.";
+const BEISPIEL_NAMEN = "Petra Beispiel\nMusterbau GmbH\nBeispiel";
+const BEISPIEL_ANTWORT = "Sehr geehrte Frau ⟦NAME-3⟧,\n\nunsere Rechnung ⟦RECHNUNG-1⟧ über ⟦BETRAG-1⟧ ist noch offen. Bitte überweisen Sie den Betrag auf ⟦IBAN-1⟧. Bei Fragen erreichen Sie uns unter ⟦MAIL-2⟧.\n\nMit freundlichen Grüßen";
+$("beispiel").addEventListener("click", () => {
+  $("eingabe").value = BEISPIEL_TEXT;
+  $("namen").value = BEISPIEL_NAMEN;
+  $("antwort-ein").value = BEISPIEL_ANTWORT;
+  letzteAntwort = "";
+  zeichne();
+  antwortZeigen();
+  $("beispiel-meldung").hidden = false;
 });
 
 $("kopieren").addEventListener("click", async () => {

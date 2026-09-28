@@ -42,11 +42,13 @@ Die Muster stehen weiter ein zweites Mal im Auslieferungsprüfer (LIESMICH Grenz
 
 ```bash
 npm install         # playwright-core
-npm test            # tests/smoke.mjs — echter Browser, 62 Zusicherungen
-npm run gegenprobe  # 22 eingebaute Fehler, jeder muss seine rote Zeile werfen
+npm test            # tests/smoke.mjs — echter Browser, 68 Zusicherungen
+npm run gegenprobe  # 26 eingebaute Fehler, jeder muss seine rote Zeile werfen
 ```
 
-Zuletzt gemessen (2026-09-28, nach dem Umzug auf Modul 25): **62 grün · 0 ROT** ·
+Zuletzt gemessen (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
+**26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
+(2026-09-28, nach dem Umzug auf Modul 25): **62 grün · 0 ROT** ·
 Gegenprobe **22 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Beim
 ersten Lauf war die letzte Sicherung vor dem Hinausgehen **blind** — sie hatte nie
 einen Wächter. Jetzt misst die Probe sie mit einem gestellten Prüfkern, der nichts
@@ -56,6 +58,11 @@ Raster am Handy hält zwei Riegel (`minmax` und `overflow-wrap`), und nur beide
 zusammen wegzunehmen misst etwas.
 
 ## Was hier leicht kaputtgeht
+
+- **Die Beispiel-E-Mail** (Knopf „Beispiel-E-Mail laden“, Klaus 2026-09-28) füllt
+  Text, Namen und eine erfundene KI-Antwort ein. Die Antwort nennt Platzhalter mit
+  Nummern (⟦NAME-3⟧, ⟦MAIL-2⟧) — wer den Beispieltext oder die Namen ändert, prüft,
+  ob die Nummern noch stimmen. Alles erfunden, `.example`-Adressen.
 
 - **Die vier Dateien** (`sende-pruefer.html`, `koeder.txt`, `LIESMICH.md`,
   `PROBE.md`) müssen **zusammen unter 48 KB** bleiben — die Probe misst es.
