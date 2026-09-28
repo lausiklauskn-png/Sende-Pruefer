@@ -25,8 +25,39 @@ code{font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}
 header.kopf{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--fl);border-bottom:1px solid var(--linie)}
 .marke{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;white-space:nowrap}
 .marke svg{flex:none}
-.suche{flex:1;min-width:0;max-width:560px;display:flex;align-items:center;gap:8px;background:var(--fl2);border:1px solid var(--linie);border-radius:999px;padding:7px 14px;color:var(--leise)}
-.suche input{border:0;background:transparent;color:var(--schrift);font:inherit;width:100%;outline:0;min-width:0}
+/* ── Netz-Leiste: Lampen, Siegel, Mycel-Blase — fest im Kopf ── */
+.netzleiste{position:relative;display:flex;align-items:center;gap:6px;flex:none}
+.lampen{display:flex;align-items:center;gap:8px;height:40px;box-sizing:border-box;padding:0 10px;border:1px solid var(--linie);border-radius:999px;background:var(--fl2);color:var(--leise);font:inherit;font-size:.72rem;cursor:pointer}
+.lamp{display:inline-flex;align-items:center;gap:4px}
+.lamp::before{content:"";width:9px;height:9px;border-radius:50%;background:color-mix(in srgb,var(--leise) 45%,transparent)}
+.lamp.on::before{background:#2fbf71;box-shadow:0 0 7px #2fbf71}
+.lamp.warn::before{background:#e8b33a;box-shadow:0 0 7px #e8b33a}
+.lamp.bad::before{background:#e5484d;box-shadow:0 0 7px #e5484d}
+.lamp.puls::before{animation:lampenpuls .9s ease-out}
+@keyframes lampenpuls{0%{transform:scale(1.8)}100%{transform:scale(1)}}
+.netz-mehr{display:flex;align-items:center;gap:6px}
+.siegel-platz{display:inline-flex;align-items:center;min-width:34px;min-height:34px}
+.siegel-platz:empty{min-width:0}
+.mycel-platz{display:inline-flex;align-items:center}
+.lampen-legende{display:none}
+/* Modul 16 liefert das Wappen als SVG ohne Maße — im Flex-Kasten wäre es
+   0 px breit (Befund Toolpoint 2026-08-09, hier nachgemessen: 0×0). */
+#sbkim-siegel-badge{width:28px;height:28px;flex:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+#sbkim-siegel-badge svg{width:100%;height:100%;display:block}
+@media (max-width:900px){
+ .lamp-t{display:none}
+ .lampen{gap:5px;padding:0 9px}
+ .netz-mehr{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:40;padding:8px 10px;gap:10px;background:var(--fl);border:1px solid var(--linie);border-radius:12px;box-shadow:0 10px 26px rgb(0 0 0/.22)}
+ .netzleiste[data-offen="1"] .netz-mehr{display:flex}
+ .netzleiste[data-offen="1"] .lampen{border-color:var(--akzent)}
+ .lampen-legende{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--schrift);white-space:nowrap}
+}
+/* Zwischen Handy und breitem Schirm tragen die Kopf-Knöpfe nur ihr Zeichen —
+   sonst bleibt der Suche neben der Netz-Leiste kein Platz (gemessen 760 px: 30 px). */
+@media (max-width:1200px){.kopf .rund .t{display:none}}
+@media (max-width:400px){.marke{display:none}}
+.suche{flex:1;min-width:0;max-width:560px;height:40px;box-sizing:border-box;display:flex;align-items:center;gap:8px;background:var(--fl2);border:1px solid var(--linie);border-radius:999px;padding:0 14px;color:var(--leise)}
+.suche input{border:0;background:transparent;color:var(--schrift);font:inherit;width:100%;outline:0;min-width:0;height:100%;padding:0;margin:0;box-shadow:none}
 .kopf .rund{flex:none;min-width:40px;height:40px;padding:0 12px;border-radius:999px}
 #schild[data-an="1"]{background:linear-gradient(180deg,var(--h1),var(--h2));color:#fff}
 #schild .zahl{display:inline-block;min-width:1.4em;margin-left:4px;padding:0 5px;border-radius:999px;background:#c62828;color:#fff;font-size:.78rem}
@@ -133,6 +164,13 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
  .app:not([data-ansicht="lesen"]) main.lesen{display:none}
  main.lesen{padding:12px 14px 30px}
  .knopf.zurueck{display:inline-flex}
+ /* Kopfleiste am Handy: sie lief schon vor der Netz-Leiste ~50 px über den
+    Rand (gemessen 2026-09-29 auf main, 380 px). Schmalere Abstände und runde
+    Knöpfe geben dem Suchfeld seinen Platz zurück. */
+ header.kopf{gap:6px;padding:10px 12px}
+ .kopf .rund{min-width:36px;height:36px;padding:0 8px}
+ .lampen{padding:0 8px;gap:4px;height:36px}
+ .suche{height:36px;padding:0 10px}
  .bottomnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--fl);border-top:1px solid var(--linie);padding-bottom:env(safe-area-inset-bottom,0px)}
  .bottomnav button{border:0;background:transparent;padding:8px 2px;font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--leise)}
  .bottomnav button[aria-current="true"]{color:var(--akzent);font-weight:700}
@@ -142,11 +180,30 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 }
 .fab{border-radius:16px;padding:14px 18px;font-weight:700;align-items:center;gap:8px}
 </style>
+<!-- DIE EIGENE SBKIM-SCHUBLADE — muss vor jedem Modul stehen: Modul 01 liest
+     den Wert BEIM LADEN. Fehlt er, landet der Knoten in der geteilten
+     Schublade `sbkim` (Sage LEHREN § 4, Falle 1). -->
+<script>window.SBKIM_DB_SUFFIX = "sendepruefer";</script>
 </head>
 <body>
 <div class="app" id="app" data-ansicht="liste">
  <header class="kopf">
   <div class="marke"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="6" width="26" height="18" rx="4" fill="var(--akzent)"/><path d="M4 9l11 8 11-8" stroke="var(--fl)" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="11" y="16" width="8" height="3" rx="1.5" fill="var(--schutz-rand)"/></svg><span>Sende-Prüfer</span></div>
+  <!-- Netz-Leiste (Klaus 2026-09-29): fest in der Kopfzeile, nichts fliegt.
+       Breit: Lampen mit Namen, Siegel und Mycel-Blase daneben. Am Handy nur
+       die drei Punkte; ein Tipp klappt den Rest unter der Leiste auf. -->
+  <div class="netzleiste" id="netzleiste" data-offen="0">
+   <button class="lampen" id="lampen" type="button" aria-expanded="false" aria-controls="netz-mehr" title="SBKIM-Knoten: lebt · verkehr · fremd — tippen zeigt Siegel und Netz">
+    <span class="lamp" id="lamp-alive" title="lebt — eigene Identität geladen"><span class="lamp-t">lebt</span></span>
+    <span class="lamp" id="lamp-traffic" title="verkehr — grün, solange am Relais gelauscht wird"><span class="lamp-t">verkehr</span></span>
+    <span class="lamp" id="lamp-fremd" title="fremd — rot nur bei echtem Fremdzugriff"><span class="lamp-t">fremd</span></span>
+   </button>
+   <span class="netz-mehr" id="netz-mehr">
+    <span class="lampen-legende" aria-hidden="true"><span class="lamp" data-lampe-kopie="lamp-alive">lebt</span><span class="lamp" data-lampe-kopie="lamp-traffic">verkehr</span><span class="lamp" data-lampe-kopie="lamp-fremd">fremd</span></span>
+    <span class="siegel-platz" id="siegel-platz"></span>
+    <span class="mycel-platz" data-sbkim-mycel-platz></span>
+   </span>
+  </div>
   <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="In E-Mails suchen" aria-label="In E-Mails suchen"></label>
   <button class="rund" id="einfuegen" type="button" title="Eine empfangene Mail einfügen (Text oder .eml)">📥<span class="t"> Mail einfügen</span></button>
   <button class="rund" id="schild" type="button" data-an="0" title="Schreib-Helfer und KI-Schreibhilfe des Browsers von den Schreibfeldern fernhalten"><span aria-hidden="true">🛡</span><span class="t" id="schild-text"> Abschirmen</span><span class="zahl" id="schild-zahl" hidden></span></button>
@@ -209,9 +266,8 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 </dialog>
 
 <script src="modules/25_pseudonym.js"></script>
-<script src="modules/17_floating_widget.js"></script>
-<script src="modules/15_membran.js"></script>
 <script src="assets/abschirmung.js"></script>
+<script src="assets/sbkim-init.js"></script>
 <script>
 "use strict";
 /* ══ DIE GESCHLOSSENE LISTE DER ANBIETER ═══════════════════════════════════
@@ -952,16 +1008,6 @@ if (AB) {
   $("fremd-schirmen").addEventListener("click", () => AB.setze(true));
   $("fremd-mehr").addEventListener("click", () => { $("menue-dialog").showModal(); $("abschirm-kasten").scrollIntoView(); });
 }
-/* Widget und Membran starten NACH dem ersten Zeichnen: erst dann hat die
-   Ordner-Leiste am Handy ihre Höhe, und das Widget sitzt darüber statt darauf
-   (sonst schluckt es den Tipp auf „Eingefügt“). Unten links, weil rechts der
-   ✏️-Knopf steht. Modul 17 vor Modul 15 — sonst fehlt der FREMD-Platz. */
-async function widgetStarten() {
-  try { if (window.SbkimWidget) { const bn = $("bottomnav"); const unten = bn && bn.offsetHeight ? bn.offsetHeight + 12 : 16;
-    await window.SbkimWidget.init({ defaultCorner: "bottom-left", defaultOffset: { x: 12, y: unten } }); } } catch (_e) { /* fail-soft */ }
-  try { if (window.SbkimMembrane) await window.SbkimMembrane.init({ allowedOrigins: [] }); } catch (_e) { /* fail-soft */ }
-  if (AB) AB.melde();   /* was vor dem Widget gefunden wurde, soll die Lampe auch zeigen */
-}
 if (AB) { AB.start(); abschirmZeichnen(); }
 
 /* ══ START ════════════════════════════════════════════════════════════════ */
@@ -977,7 +1023,6 @@ if (!P) $("modul-fehlt").hidden = false;
   }
   $("speicher-stand").textContent = DB ? "" : "Speichern ist in diesem Fenster nicht möglich: die Mails gehen beim Schließen verloren.";
   alles();
-  await widgetStarten();
   window.SendePruefer.bereit = true;
 })();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});

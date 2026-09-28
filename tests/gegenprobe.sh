@@ -171,14 +171,44 @@ fall "der zweite Klick stellt die alten Werte nicht her" $A \
   'if (vorher) for (var a in vorher) { if (vorher[a] === null) feld.removeAttribute(a); else feld.setAttribute(a, vorher[a]); }' '' 'alten Werte'
 fall "die Lampe erfährt nichts vom Fund" $A \
   'try { g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'try { if (0) g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'Lampe'
-fall "ein Fund vor dem Widget zündet die Lampe nicht" $H \
-  '  if (AB) AB.melde();' '' 'schon beim Laden'
-fall "das Widget sitzt am Handy auf der Ordner-Leiste" $H \
-  '    await window.SbkimWidget.init({ defaultCorner: "bottom-left", defaultOffset: { x: 12, y: unten } });' '    await window.SbkimWidget.init();' 'verdeckt das Widget'
-fall "die Membran erlaubt eine fremde Herkunft" $H \
-  'SbkimMembrane.init({ allowedOrigins: [] })' 'SbkimMembrane.init({ allowedOrigins: ["*"] })' 'fremde Herkunft'
-fall "Modul 17 wird hier abgewandelt" modules/17_floating_widget.js \
-  '  var DEFAULT_CORNER = "bottom-right";' '  var DEFAULT_CORNER = "bottom-left";' '17_floating_widget.js ist unverändert'
+G=assets/sbkim-init.js
+fall "ein Fund vor dem Knoten zündet die Lampe nicht" $G \
+  '  try { if (window.SendeAbschirmung) window.SendeAbschirmung.melde(); } catch (_e) {}' '' 'schon beim Laden'
+fall "die Membran erlaubt eine fremde Herkunft" $G \
+  '    allowedOrigins: []' '    allowedOrigins: ["*"]' 'fremde Herkunft'
+fall "Modul 16 wird hier abgewandelt" modules/16_siegel.js \
+  '"use strict";' '"use strict"; ' '16_siegel.js ist unverändert'
+fall "ein Modul fehlt in der Kette" $G \
+  '    ["",       "modules/07_apoptose.js"],
+' '' 'alle 13 Pflicht-Module'
+fall "05b läuft als klassisches Skript" $G \
+  '["module", "modules/05b_nostr_relay.js"]' '["", "modules/05b_nostr_relay.js"]' 'ES-Modul'
+fall "ein Komma in der Kette fehlt" $G \
+  '    ["",       "modules/04_match.js"],' '    ["",       "modules/04_match.js"]' 'Komma'
+fall "die Schublade fehlt im Kopf" $H \
+  '<script>window.SBKIM_DB_SUFFIX = "sendepruefer";</script>' '' 'Schublade'
+fall "das Siegel hängt nicht mehr in der Kopfleiste" $G \
+  'badgeSelector: "#siegel-platz"' 'badgeSelector: "#nirgends"' 'Siegel'
+fall "das Siegel bekommt keine Maße (0 px)" $H \
+  '#sbkim-siegel-badge{width:28px;height:28px;' '#sbkim-siegel-badge{' '28'
+fall "die Mycel-Blase hat keinen Platz mehr" $H \
+  '<span class="mycel-platz" data-sbkim-mycel-platz></span>' '<span class="mycel-platz"></span>' 'angedockt'
+fall "am Handy steht wieder alles ausgeklappt" $H \
+  ' .netz-mehr{display:none;position:absolute;' ' .netz-mehr{position:absolute;' 'zugeklappt'
+fall "der Lampen-Knopf klappt nicht auf" $G \
+  '    knopf.addEventListener("click", function () { setze(leiste.getAttribute("data-offen") !== "1"); });' '' 'klappt Siegel'
+fall "ein Tipp daneben klappt nicht zu" $G \
+  '      setze(false);
+    });' '    });' 'daneben'
+fall "die Lampen-Namen stehen aufgeklappt im Knopf (die Leiste läuft über)" $H \
+  '.lampen-legende{display:none}' '.lampen-legende{display:none} .netzleiste[data-offen="1"] .lamp-t{display:inline}' 'sprengen'
+fall "das Suchfeld ist wieder höher als die Knöpfe" $H \
+  'max-width:560px;height:40px;box-sizing:border-box;' 'max-width:560px;' 'gleich hoch'
+fall "die Kopfleiste läuft am Handy wieder über" $H \
+  ' header.kopf{gap:6px;padding:10px 12px}
+ .kopf .rund{min-width:36px;height:36px;padding:0 8px}' '' 'Suchfeld|über den Rand'
+fall "der Knoten ruft beim Laden schon ins Netz" $G \
+  '      geraetenameFeldEinhaengen();' '      geraetenameFeldEinhaengen(); try { fetch("https://relay.family-projekt.de/ping").catch(() => {}); } catch (_e) {}' 'keine einzige Anfrage'
 fall "die Grenze der Abschirmung verschwindet aus dem Menü" $H \
   'eine Erweiterung kann das Signal übergehen, und Programme auf dem Gerät' 'Programme' 'Grenzen stehen im Menü'
 
