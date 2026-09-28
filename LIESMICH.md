@@ -1,22 +1,24 @@
 # Sende-Prüfer — Anleitung
 
-Der Sende-Prüfer sorgt dafür, dass die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen, wenn Sie eine KI um Hilfe bitten. Sie stellen Ihre Frage in der Seite, die Seite ersetzt jede solche Angabe durch einen Platzhalter, und die Antwort bekommen Sie mit den echten Angaben zurück.
+Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen, wenn Sie eine KI um Hilfe bei einer E-Mail bitten. Jede Angabe wird durch einen Platzhalter ersetzt, und die Antwort bekommen Sie mit den echten Angaben zurück. Ihre Mails bleiben auf diesem Gerät.
 
 ## Wann man dazu greift
 
 **1 · Eine Antwort an eine Kundin formulieren lassen.** Sie haben eine verärgerte Mail samt Rechnungsnummer, Betrag und Telefonnummer vor sich und wollen einen freundlichen Entwurf. Ohne den Sende-Prüfer lägen diese Angaben danach auf dem Server des Anbieters, im Verlauf Ihres Kontos und womöglich in dessen Protokollen.
 
-**2 · Eine Tabelle oder einen Export erklären lassen.** Sie fügen eine CSV aus der Buchhaltung ein und fragen, warum eine Summe nicht stimmt. Mitten darin stehen Kontonummern und Mailadressen, die mit der Frage nichts zu tun haben. Wenn sie hinausgehen, ist das ein Datenabfluss, den Sie nicht wollten und niemandem erklären können.
+**2 · Einen eigenen Entwurf glätten lassen.** Sie schreiben einem Lieferanten eine neue Lieferadresse samt Telefonnummer und wollen den Ton verbessern lassen. Die Adresse und die Nummer haben mit dem Ton nichts zu tun; wenn sie hinausgehen, ist das ein Datenabfluss, den Sie nicht wollten und niemandem erklären können.
 
 ## So geht es
 
-1. Text in **Feld 1** schreiben oder einfügen, alternativ eine Text-Datei wählen.
-2. Die **Namen** der beteiligten Personen und Firmen darunter eintragen.
-3. **Feld 2** zeigt, was gefunden wurde, mit Zeile und Sorte. **Feld 3** zeigt genau den Text, der hinausgeht.
-4. Einen der beiden Wege wählen:
+1. **📥 Mail einfügen:** eine empfangene Mail samt Kopfzeilen (Von, An, Betreff) aus Ihrem Mail-Programm hineinkopieren oder eine gespeicherte `.eml` öffnen. Sie landet in **Eingefügt**. Oder **Verfassen** für einen eigenen Entwurf (Ordner **Entwürfe**).
+2. Die Namen aus Von und An werden von selbst verdeckt. Weitere Personen- und Firmennamen tragen Sie unter **„Weitere Namen“** ein.
+3. **Original** zeigt die Mail mit jedem Fund markiert, **Was die KI sieht** zeigt genau den Text, der hinausgeht: Ihre Mail, darunter Ihre Bitte, jede Angabe als Platzhalter.
+4. **✦ Mit KI beantworten** (bzw. überarbeiten) und einen der beiden Wege wählen:
    - **Kopieren**, für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten. Die Antwort fügen Sie danach in das Feld darunter ein.
    - **Senden**, ohne Fenster zu wechseln. Sie wählen den Anbieter und tragen Ihren Schlüssel ein. Es kostet, was Ihr Schlüssel kostet.
-5. **Feld 5** zeigt die Antwort mit Ihren echten Angaben.
+5. Die Antwort steht mit Ihren echten Angaben da. **In KI-Antworten ablegen**, **⤓ Als .eml speichern** oder **📤 Teilen**: die `.eml` öffnet Ihr Mail-Programm als Entwurf. Gespeicherte und geteilte Mails liegen danach in **Exportiert**.
+
+Unter **⚙** stehen die Beispiel-Mail und der Selbsttest, oben **◐** schaltet hell und dunkel um.
 
 ## Was erkannt wird
 
@@ -28,22 +30,23 @@ Der Sende-Prüfer sorgt dafür, dass die Namen, Nummern und Beträge Ihrer Kunde
 | IBAN | nur mit stimmender Prüfziffer |
 | BETRAG | `89,90 €`, `1.248,50 EUR`, `EUR 1.234.567,89` — auch mit Tausenderpunkt ganz |
 | RECHNUNG | `Rechnungsnummer: …`, `Kundennummer: …`, freistehend `RE-2026-04871` |
-| NAME | nur die Namen aus Ihrer Liste |
+| NAME | die Namen aus Von und An und aus Ihrer Liste |
 
 ## Grenzen — was die Seite nicht kann
 
-1. **Namen findet sie nicht selbst.** Ein Muster unterscheidet „Müller“ die Person nicht von „Müller-Thurgau“ der Rebsorte. Verdeckt werden nur die Namen, die Sie eintragen. Ein vergessener Name geht hinaus.
-2. **Was kein Muster hat, erkennt sie nicht:** Adressen, Geburtsdaten, Kennzeichen, Gesundheitsangaben, Beschreibungen, an denen man jemanden erkennt („die Filialleiterin in Kiel“). Lesen Sie Feld 3, bevor Sie senden.
-3. **Eine Telefonnummer ohne Ländervorwahl bleibt stehen**, weil eine bloße Ziffernfolge meist eine Kennung oder ein Datum ist. Wer `030 1234567` verdecken will, schreibt `+49 30 1234567` oder trägt die Nummer in die Namen-Liste ein.
+1. **Namen findet sie nicht selbst.** Ein Muster unterscheidet „Müller“ die Person nicht von „Müller-Thurgau“ der Rebsorte. Verdeckt werden die Namen aus Von und An und die, die Sie eintragen. Ein vergessener Name geht hinaus.
+2. **Was kein Muster hat, erkennt sie nicht:** Adressen, Geburtsdaten, Kennzeichen, Gesundheitsangaben, Beschreibungen, an denen man jemanden erkennt („die Filialleiterin in Kiel“). Lesen Sie „Was die KI sieht“, bevor Sie senden.
+3. **Eine Telefonnummer ohne Ländervorwahl bleibt stehen**, weil eine bloße Ziffernfolge meist eine Kennung oder ein Datum ist. Wer `030 1234567` verdecken will, schreibt `+49 30 1234567` oder trägt die Nummer unter „Weitere Namen“ ein.
 4. **Rechnungsnummern erkennt sie nur mit Feldname** oder in der Form `RE-/RG-/INV-/KD-/AN-Jahr-Nummer`. Eine Nummer wie `A17/33` im Fließtext bleibt stehen.
 5. **Die KI kann aus dem Zusammenhang raten.** Platzhalter verbergen den Wert, nicht die Lage: „die einzige Bäckerei am Marktplatz“ ist auch ohne Namen erkennbar.
-6. **Bilder und PDF liest die Seite nicht.** Nur Text; ein eingefügtes Foto einer Rechnung wird nicht geprüft.
-7. **Die Muster stehen zweimal:** seit dem 28.09.2026 in Sage-Modul 25 (`modules/25_pseudonym.js`, von dort unverändert übernommen) und weiter im Auslieferungsprüfer (`pruefe-datei.py` und die Browser-Fassung). Wer eines ändert, zieht das andere nach. Beträge mit Tausenderpunkt werden hier schon ganz erfasst, dort noch nicht. Fehlt die Datei `modules/25_pseudonym.js`, sagt die Seite das und lässt nichts hinaus.
+6. **Anhänge prüft die Seite (noch) nicht.** Nur der Text einer Mail; Bilder, PDF und Office-Dateien einer `.eml` werden nicht gelesen. Das ist der nächste Bauschritt. Auch dann: der Sende-Prüfer ist **kein Virenscanner**.
+7. **Die Muster stehen zweimal:** in Sage-Modul 25 (`modules/25_pseudonym.js`, von dort unverändert übernommen) und im Auslieferungsprüfer. Fehlt die Datei `modules/25_pseudonym.js`, sagt die Seite das und lässt nichts hinaus.
 8. **Die Anbieter-Adressen stammen aus dem Auftrag**, nicht aus einem Aufruf, den diese Seite gemacht hat. Ob der erste Senden-Aufruf durchgeht, zeigt erst ein echter Schlüssel.
-9. **Der Schlüssel liegt im Browser-Speicher** dieses Geräts. Wer das Gerät teilt, löscht ihn nach Gebrauch mit „Schlüssel löschen“.
+9. **Mails, Zuordnung und Schlüssel liegen im Browser-Speicher** dieses Geräts. Wer Browserdaten löscht, löscht auch das Postfach. Wer das Gerät teilt, löscht den Schlüssel nach Gebrauch mit „Schlüssel löschen“ und die Mails mit 🗑.
+10. **Eine eingefügte Mail wird nur als Text gelesen.** Aus einer HTML-Mail bleibt der Text ohne Gestaltung; Kopfzeilen außer Von, An und Betreff fallen weg.
 
 ## Selbsttest
 
-Unten auf der Seite: **Selbsttest starten**. Der Köder `koeder.txt` enthält jede Sorte genau einmal, drei Beträge und drei Zeilen, die nicht gemeldet werden dürfen. Geprüft wird auch, dass der Köder überhaupt geladen wurde und es Marken zu prüfen gab; bei 0 Zeichen oder 0 Marken wäre ein grünes Ergebnis ein grünes Nichts. Wer die Seite als Datei öffnet, wählt `koeder.txt` von Hand, weil der Browser das Nachladen dort sperrt.
+Unter **⚙ → Selbsttest starten**. Der Köder `koeder.txt` enthält jede Sorte genau einmal, drei Beträge und drei Zeilen, die nicht gemeldet werden dürfen. Geprüft wird auch, dass der Köder überhaupt geladen wurde und es Marken zu prüfen gab; bei 0 Zeichen oder 0 Marken wäre ein grünes Ergebnis ein grünes Nichts. Wer die Seite als Datei öffnet, wählt `koeder.txt` von Hand, weil der Browser das Nachladen dort sperrt.
 
 Das zuletzt gemessene Ergebnis steht in `PROBE.md`.

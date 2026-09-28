@@ -1,6 +1,6 @@
 # PROBE — Selbsttest des Sende-Prüfers
 
-**Gefahren:** 2026-09-26, 07:10 UTC · headless Chromium 141 (Playwright), Linux x86_64 · über den Knopf „Selbsttest starten“, gesteuert von `tests/smoke.mjs`.
+**Gefahren:** 2026-09-28, 22:11 UTC · headless Chromium 141 (Playwright), Linux x86_64 · über ⚙ → „Selbsttest starten“ im neuen Postfach, gesteuert von `tests/smoke.mjs`. (Davor 2026-09-26 an der alten Seite, dasselbe Ergebnis.)
 
 **Ergebnis: 22 von 22 bestanden.**
 

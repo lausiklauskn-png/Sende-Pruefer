@@ -1,7 +1,7 @@
 /* Offline-Vorrat des Sende-Prüfers. Wer eine Datei aus CORE ändert, erhöht
    CACHE_VERSION — sonst liefert der Worker die alte Fassung weiter.
    Anfragen an fremde Adressen (die KI-Anbieter) fasst er NICHT an. */
-const CACHE_VERSION = "sende-pruefer-v3";
+const CACHE_VERSION = "sende-pruefer-v4";
 const CORE = ["./", "index.html", "sende-pruefer.html", "koeder.txt", "LIESMICH.md", "manifest.json", "icon.svg", "modules/25_pseudonym.js"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_VERSION).then((c) =>
