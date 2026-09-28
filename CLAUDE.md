@@ -7,6 +7,12 @@ Build-Schritt, läuft im Browser, auch direkt als Datei geöffnet.
 
 Adresse: https://lausiklauskn-png.github.io/Sende-Pruefer/
 
+## Nächste Arbeit (Stand 2026-09-28)
+
+Klaus: der Sende-Prüfer wird als eigene App weitergebaut. Brief:
+`docs/BRIEF_2026-09-28_neue-sitzung.md` — erst die Ziel-Frage prüfen und Klaus
+vorlegen, dann Gestaltung, dann Impressum/Datenschutz und Marktplatz-Eintrag.
+
 ## Herkunft
 
 Gebaut am 2026-09-26 nach dem Auftrag `Kimhub/auftraege/sende-pruefer.json`
