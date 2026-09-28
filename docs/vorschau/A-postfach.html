@@ -110,6 +110,7 @@ dialog pre{background:var(--flaeche2);border:1px solid var(--linie);border-radiu
     </div>
     <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="In E-Mails suchen" aria-label="In E-Mails suchen"></label>
     <span class="hinweis-vorschau">Vorschau A · erfundene Daten</span>
+    <button class="knopf" id="thema" type="button" aria-label="Hell oder dunkel" style="padding:6px 12px">◐ Hell / Dunkel</button>
   </header>
 
   <nav class="ordner" id="ordner" aria-label="Ordner">
@@ -252,6 +253,11 @@ function neueMail() {
 }
 $("neu").addEventListener("click", neueMail); $("fab").addEventListener("click", neueMail);
 function alles() { zeichneOrdner(); zeichneListe(); zeichneLesen(); }
+$("thema").addEventListener("click", () => {
+  const r = document.documentElement;
+  const dunkel = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dunkel ? "light" : "dark";
+});
 alles();
 </script>
 </body></html>

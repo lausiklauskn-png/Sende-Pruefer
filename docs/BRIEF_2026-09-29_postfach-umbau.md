@@ -42,6 +42,12 @@ als Entwurf mit echten Angaben · **Als .eml speichern** · **Teilen** ·
 Kopieren. Am Handy eine Spalte nach der anderen, Ordnerleiste unten,
 Verfassen-Knopf.
 
+**Hell und dunkel** (Klaus 2026-09-28, nach der dunklen Ansicht am Tablet:
+*„wenn es in zwei Designarten gemacht wird, also hell und dunkel“*): beide
+Themen gleich sorgfältig, Vorgabe folgt dem Gerät, ein Knopf schaltet um, die
+Wahl bleibt gespeichert (app-eigener Schlüssel). Die Vorschau hat den Knopf
+„◐ Hell / Dunkel“ schon.
+
 **Was aus der heutigen Seite mitmuss (nichts davon darf still wegfallen):**
 
 1. **Zwei Wege, gleichrangig:** Kopieren (für das eigene KI-Abo) und Senden
