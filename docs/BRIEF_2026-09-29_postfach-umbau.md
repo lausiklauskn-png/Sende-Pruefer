@@ -87,6 +87,40 @@ Wahl bleibt gespeichert (app-eigener Schlüssel). Die Vorschau hat den Knopf
   „separate Baustelle“ (Klaus) — in Sage, eigene Sitzung.
 - `CACHE_VERSION` erhöhen, `manifest.json` prüfen.
 
+## Anhänge prüfen — hin und zurück (Klaus 2026-09-28)
+
+> *„Es sollen auch Dokumente, die ich senden kann, ob Bilder oder andere
+> Sachen, geprüft werden können, ob irgendwo Textfragmente drin sind oder
+> vielleicht sogar im Code irgendetwas versteckt ist … auch auf dem Rückweg,
+> ob Bilder, die zu mir gekommen sind, Code enthalten statt reines Bild."*
+
+**Eigene Stufe nach dem Postfach**, nicht in denselben Bau mischen. Eine Mail
+bekommt Anhänge (📎); jeder Anhang wird geprüft, **bevor** er an eine KI geht
+(hin) und wenn er von außen kommt (zurück, `.eml` mit Anhang).
+
+Was sich messen lässt — und nur das wird versprochen:
+
+| Art | was gesucht wird |
+|---|---|
+| **Bild** (JPEG, PNG, WebP, GIF) | Daten **hinter** dem Bildende (JPEG nach `FFD9`, PNG nach `IEND`) · Text in EXIF/XMP/PNG-Textblöcken (Kamera, GPS, Kommentar) · Dateiendung ⟷ echter Dateikopf · sichtbarer Text im Bild über Texterkennung (Tesseract liegt in Workflow-PDF unter `/Workflow-PDF/vendor/`, gleiche Adresse) — der Text geht dann durch Modul 25 |
+| **SVG** | Skripte, `on…`-Handler, fremde Adressen — ein SVG ist Code, kein Bild |
+| **PDF** | JavaScript, eingebettete Dateien, Formular-Aktionen, Text der Seiten durch Modul 25 |
+| **Office** (docx/xlsx) | Makros (`vbaProject.bin`), Text durch Modul 25 |
+
+**Die sichere Fassung für die KI:** ein Bild wird über eine Leinwand **neu
+gezeichnet** und nur das geht hinaus — das wirft Metadaten und angehängte
+Daten weg. Gezeigt wird, was entfernt wurde.
+
+Vorlage ist der Auslieferungsprüfer (`assets/pruefer-formate.js`, u. a.
+`pruefePdf`, `/JavaScript`) — **kopieren und hier weiterbauen, dort nichts
+ändern.** Jede Befundart bekommt einen Fall im Köder und einen
+Gegenprobe-Fall.
+
+⚠ **BENANNTE GRENZE, auf der Seite und im Datenschutz:** das ist kein
+Virenscanner. Text, der nur als Muster in Pixeln steckt (Steganografie), findet
+keine dieser Prüfungen; die Texterkennung liest nur, was lesbar ist. Die Seite
+sagt, was geprüft wurde — nicht, dass eine Datei „sauber" ist.
+
 ## Danach (eigene Schritte, nicht in dieser Sitzung vermischen)
 
 Impressum + Datenschutz (echte Angaben wie beim Auslieferungsprüfer, § 5 DDG;
