@@ -121,9 +121,19 @@ fall "der Absendername wird nicht mehr von selbst verdeckt" $H \
 fall "die Suche filtert nicht mehr" $H \
   'm.ordner === st.ordner && (!q || ganzeMail(m).toLowerCase().includes(q))' 'm.ordner === st.ordner' 'Suche findet'
 fall "die Wahl hell/dunkel wird nicht gemerkt" $H \
-  'r.dataset.theme = dunkel ? "light" : "dark"; schreib(THEMA_KEY, r.dataset.theme);' 'r.dataset.theme = dunkel ? "light" : "dark";' 'übersteht das Neuladen'
+  'schreib(THEMA_KEY, document.documentElement.dataset.theme);' '' 'übersteht das Neuladen'
 fall "am Handy stehen Liste und Mail übereinander" $H \
   '.app[data-ansicht="lesen"] section.liste{display:none}' '' 'zeigt sie allein'
+fall "das Postfach füllt große Schirme nicht mehr (Breite gedeckelt)" $H \
+  'height:100vh;height:100dvh;width:100%}' 'height:100vh;height:100dvh;width:100%;max-width:1400px;margin:0 auto}' 'ganze Bildfläche'
+fall "das Postfach füllt die Höhe nicht mehr" $H \
+  'height:100vh;height:100dvh;width:100%}' 'width:100%}' 'ganze Bildfläche'
+fall "installiert öffnet es im Vollbild ohne Fensterknöpfe" manifest.json \
+  '"display": "standalone",' '"display": "fullscreen",' 'standalone'
+fall "der Themen-Knopf sagt nicht mehr, wohin er schaltet" $H \
+  '$("thema-zeichen").textContent = d ? "☀" : "🌙"; $("thema-text").textContent = d ? " Hell" : " Dunkel";' '' 'wohin er schaltet'
+fall "die Knöpfe verlieren den Glas-Stil" $H \
+  'box-shadow:inset 0 2px 1px rgb(255 255 255/.45),inset 0 -5px 9px rgb(0 0 0/.35),inset 0 0 0 1px rgb(255 255 255/.12),0 10px 22px rgb(0 0 0/.22),0 3px 6px rgb(0 0 0/.18)}' 'box-shadow:none}' 'Glas-Stil'
 
 # .eml und Teilen
 fall "die .eml verliert Zeichensatz und X-Unsent" $H \
