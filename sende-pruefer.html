@@ -4,143 +4,174 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sende-Prüfer — Kundendaten verdecken, bevor eine KI sie sieht</title>
-<meta name="description" content="Prüft einen Text, bevor er an eine KI geht, und ersetzt Schlüssel, Mailadressen, Telefonnummern, Kontonummern, Beträge, Rechnungsnummern und Namen durch Platzhalter. Die Antwort kommt im Klartext zurück. Läuft im Browser.">
-<meta name="theme-color" content="#0c1016">
+<meta name="description" content="Ein Postfach, das jede Mail prüft, bevor sie an eine KI geht: Schlüssel, Mailadressen, Telefonnummern, Kontonummern, Beträge, Rechnungsnummern und Namen werden durch Platzhalter ersetzt. Die Antwort kommt im Klartext zurück und lässt sich als .eml speichern oder teilen. Läuft im Browser, die Mails bleiben auf dem Gerät.">
+<meta name="theme-color" content="#0e6b72">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("sendepruefer_thema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
-:root{--grund:#0c1016;--grund2:#151b24;--karte:rgba(27,35,48,.55);--linie:rgba(255,255,255,.10);--schrift:#e9eff5;--gedaempft:#9aa8b6;--akzent:#f2b544;--akzent2:#7fb2e8;--akzent3:#b98ce0;--knopfschrift:#1a1204;--gut:#46d27f;--warn:#e0b341}
+:root{--bg:#eef1f4;--fl:#fff;--fl2:#f6f8fa;--linie:#dde3e9;--schrift:#1b232c;--leise:#5c6975;--akzent:#0e6b72;--akzent-hell:#d7eeef;--schutz:#8a5000;--schutz-grund:#fff1d6;--schutz-rand:#e0b25e;--ok:#1f7a45;--ok-grund:#dff3e6;--warn:#a3321f;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--grund);color:var(--schrift);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-header,main,footer{max-width:60rem;margin:0 auto;padding:0 16px}
-header{display:flex;align-items:center;gap:.6rem;padding-top:14px;padding-bottom:6px}
-.mark{width:28px;height:28px;border-radius:7px;background:var(--akzent);display:inline-block}
-.brand{font-weight:700;letter-spacing:.02em}
-h1{font-size:1.5rem;margin:.4rem 0 .3rem}
-h2{font-size:1.05rem;margin:0 0 .4rem;color:var(--akzent)}
-h2 .nr{font-family:ui-monospace,monospace;color:var(--gedaempft);font-weight:400;margin-right:.35rem}
-p{margin:.35rem 0}
-.zweck{font-size:1.08rem}
-.gedaempft,small{color:var(--gedaempft)}
-section{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:14px 16px;margin:12px 0}
-textarea,input,select{width:100%;background:var(--grund2);color:var(--schrift);border:1px solid var(--linie);border-radius:8px;padding:10px;font:inherit}
-textarea{min-height:9rem;resize:vertical;font-family:ui-monospace,monospace;font-size:.92rem}
-label{display:block;font-weight:600;margin:.6rem 0 .2rem}
-.btn{appearance:none;border:0;border-radius:9px;padding:10px 16px;min-height:44px;font:inherit;font-weight:700;background:var(--akzent);color:var(--knopfschrift);cursor:pointer}
-.btn.leise{background:transparent;color:var(--schrift);border:1px solid var(--linie);font-weight:600}
-.reihe{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.5rem}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--schrift);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--akzent);outline-offset:2px}
+a{color:var(--akzent)}
+code{font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}
+.app{display:grid;grid-template-columns:220px 340px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);height:100%;max-width:1400px;margin:0 auto}
+header.kopf{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--fl);border-bottom:1px solid var(--linie)}
+.marke{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;white-space:nowrap}
+.marke svg{flex:none}
+.suche{flex:1;min-width:0;max-width:560px;display:flex;align-items:center;gap:8px;background:var(--fl2);border:1px solid var(--linie);border-radius:999px;padding:7px 14px;color:var(--leise)}
+.suche input{border:0;background:transparent;color:var(--schrift);font:inherit;width:100%;outline:0;min-width:0}
+.kopf .rund{flex:none;border:1px solid var(--linie);background:var(--fl);border-radius:999px;min-width:40px;height:40px;padding:0 12px;font-weight:600}
+.banner{grid-column:1/-1;margin:0;padding:10px 16px;background:var(--schutz-grund);color:var(--schutz);border-bottom:1px solid var(--schutz-rand);font-weight:600}
+nav.ordner{padding:14px 10px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--linie);background:var(--fl);overflow:auto}
+.neu{display:flex;align-items:center;gap:10px;margin:0 4px 14px;padding:12px 18px;border:0;border-radius:16px;background:var(--akzent-hell);color:var(--akzent);font-weight:600}
+.ord{display:flex;align-items:center;gap:12px;padding:9px 14px;border:0;background:transparent;border-radius:0 999px 999px 0;text-align:left;width:100%}
+.ord .zahl{margin-left:auto;font-size:.8rem;color:var(--leise)}
+.ord[aria-current="true"]{background:var(--akzent-hell);color:var(--akzent);font-weight:600}
+.schutzbox{margin:auto 6px 4px;padding:12px;border-radius:12px;background:var(--fl2);font-size:.8rem;color:var(--leise)}
+.schutzbox b{color:var(--schrift);display:block;margin-bottom:2px}
+section.liste{background:var(--fl);border-right:1px solid var(--linie);overflow:auto;min-width:0}
+.zweck{margin:0;padding:12px 16px;font-size:.84rem;color:var(--leise);border-bottom:1px solid var(--linie)}
+.liste h2{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--leise);margin:0;padding:14px 16px 6px}
+.unter{padding:0 16px 10px;font-size:.82rem;color:var(--leise);margin:0}
+.zeile{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:4px 12px;padding:12px 16px;border:0;border-top:1px solid var(--linie);background:transparent;text-align:left;width:100%}
+.zeile[aria-current="true"]{background:var(--akzent-hell)}
+.av{grid-row:span 2;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.85rem;color:#fff}
+.zeile .wer{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zeile.ungelesen .wer::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--akzent);margin-left:6px;vertical-align:middle}
+.zeile .zeit{font-size:.78rem;color:var(--leise)}
+.zeile .betr{grid-column:2/4;font-size:.88rem;color:var(--leise);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zeile .chips{grid-column:2/4;display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--schutz-rand);background:var(--schutz-grund);color:var(--schutz);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
+.chip.gut{border-color:transparent;background:var(--ok-grund);color:var(--ok)}
+.chip.leise{border-color:var(--linie);background:var(--fl2);color:var(--leise)}
+main.lesen{overflow:auto;min-width:0;padding:18px 28px 40px;container-type:inline-size}
+.leer{color:var(--leise);text-align:center;margin-top:18vh}
+.knopf.zurueck{display:none}
+.werkzeug{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.knopf{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--linie);background:var(--fl);border-radius:999px;padding:8px 16px;min-height:40px;font-weight:600;font-size:.9rem}
+.knopf.haupt{background:var(--akzent);border-color:var(--akzent);color:var(--fl)}
+.knopf.klein{padding:4px 12px;min-height:34px}
+h1.betreff{font-size:1.4rem;line-height:1.25;margin:4px 0 12px;overflow-wrap:anywhere}
+.absender{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.absender .av{grid-row:auto}
+.adr{color:var(--leise);font-size:.85rem;overflow-wrap:anywhere}
+.umschalter{display:inline-flex;border:1px solid var(--linie);border-radius:999px;padding:3px;background:var(--fl2)}
+.umschalter button{border:0;background:transparent;border-radius:999px;padding:5px 14px;font-size:.85rem;font-weight:600;color:var(--leise)}
+.umschalter button[aria-pressed="true"]{background:var(--fl);color:var(--schrift);box-shadow:0 1px 2px rgb(0 0 0/.15)}
+.blatt{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:18px 20px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:72ch;margin:0;font:inherit}
+.blatt.ki{border-color:var(--schutz-rand)}
+.fund{background:var(--schutz-grund);color:inherit;border-bottom:2px solid var(--schutz-rand);border-radius:3px;padding:0 2px}
+.tok{font-family:var(--mono);font-size:.82em;background:var(--schutz-grund);color:var(--schutz);border:1px solid var(--schutz-rand);border-radius:6px;padding:0 5px;white-space:nowrap}
+textarea,input,select{background:var(--fl);color:var(--schrift);border:1px solid var(--linie);border-radius:10px;padding:9px 11px;font:inherit;width:100%}
+textarea.blatt{display:block;min-height:14rem;resize:vertical}
+.feldzeile{display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--linie);padding:6px 2px;max-width:72ch}
+.feldzeile label{color:var(--leise);width:64px;flex:none;font-size:.88rem}
+.feldzeile input{flex:1;min-width:0;border:0;background:transparent;padding:6px 0;border-radius:0}
+.feldzeile+textarea{margin-top:12px}
+.namen{max-width:72ch;margin:14px 0 0;font-size:.88rem}
+.namen label{display:block;font-weight:600;margin-bottom:2px}
+.gedaempft,small{color:var(--leise)}
+.funde{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;max-width:72ch}
+.funde span{font-size:.78rem;background:var(--fl2);border:1px solid var(--linie);border-radius:6px;padding:2px 8px;color:var(--leise)}
+ul.befunde{list-style:none;padding:0;margin:.4rem 0;max-width:72ch}
+ul.befunde li{padding:5px 0;border-top:1px solid var(--linie);font-size:.88rem;overflow-wrap:anywhere}
+.sorte{font-family:var(--mono);font-size:.75rem;padding:1px 6px;border-radius:5px;background:var(--fl2);color:var(--akzent);margin-right:.4rem}
+details summary{cursor:pointer;color:var(--leise);min-height:32px;padding:4px 0}
+.kasten{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:14px 16px;margin:14px 0;max-width:80ch}
+.kasten h2{font-size:1rem;margin:0 0 6px}
+.kasten label{display:block;font-weight:600;margin:.6rem 0 .2rem;font-size:.9rem}
 .zwei{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-.zwei>section{margin:0}
-@media (max-width:640px){.zwei{grid-template-columns:minmax(0,1fr)}}
-code{overflow-wrap:anywhere}
-pre{white-space:pre-wrap;word-break:break-word;background:var(--grund2);border:1px solid var(--linie);border-radius:8px;padding:10px;margin:.4rem 0;font-size:.92rem;min-height:2.5rem}
-.zahl{font-family:ui-monospace,monospace;font-weight:700;color:var(--akzent)}
-ul.befunde{list-style:none;padding:0;margin:.4rem 0}
-ul.befunde li{padding:6px 0;border-top:1px solid var(--linie)}
-.sorte{font-family:ui-monospace,monospace;font-size:.8rem;padding:1px 6px;border-radius:5px;background:var(--grund2);color:var(--akzent2);margin-right:.4rem}
-.ph{color:var(--akzent3)}
-.zusage{border-left:3px solid var(--gut);padding-left:10px}
-.meldung{min-height:1.4em}
+.zwei>.kasten{margin:0}
+@container (max-width:560px){.zwei{grid-template-columns:minmax(0,1fr)}}
+.meldung{min-height:1.2em;margin:.4rem 0}
 .meldung.warn{color:var(--warn)}
-.meldung.gut{color:var(--gut)}
-details summary{cursor:pointer;color:var(--gedaempft);min-height:32px;padding:4px 0}
-footer{padding-bottom:30px;color:var(--gedaempft);font-size:.9rem}
-a{color:var(--akzent2)}
+.meldung.gut{color:var(--ok)}
+.antwort{border-color:var(--akzent)}
+.beispiel-hin{max-width:72ch;background:var(--akzent-hell);color:var(--akzent);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:.88rem}
+dialog{border:1px solid var(--linie);border-radius:16px;background:var(--fl);color:var(--schrift);width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px}
+dialog::backdrop{background:rgb(0 0 0/.45)}
+dialog h2{margin:0 0 8px;font-size:1.1rem}
+.fuss{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.bottomnav,.fab{display:none}
+@media (max-width:1000px){.app{grid-template-columns:72px 300px minmax(0,1fr)} .ord .t,.ord .zahl,.schutzbox,.neu span{display:none} .neu{padding:12px;justify-content:center} .ord{justify-content:center;border-radius:12px}}
+@media (max-width:720px){
+ .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto}
+ nav.ordner{display:none}
+ section.liste,main.lesen{grid-column:1;grid-row:3}
+ .app[data-ansicht="lesen"] section.liste{display:none}
+ .app:not([data-ansicht="lesen"]) main.lesen{display:none}
+ main.lesen{padding:12px 14px 30px}
+ .knopf.zurueck{display:inline-flex}
+ .bottomnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--fl);border-top:1px solid var(--linie);padding-bottom:env(safe-area-inset-bottom,0px)}
+ .bottomnav button{border:0;background:transparent;padding:8px 2px;font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--leise)}
+ .bottomnav button[aria-current="true"]{color:var(--akzent);font-weight:700}
+ .marke span,.kopf .rund .t{display:none}
+ .kopf{gap:6px;padding:8px 10px}
+ .app:not([data-ansicht="lesen"]) .fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px));display:flex}
+}
+.fab{border:0;border-radius:16px;background:var(--akzent);color:var(--fl);padding:14px 18px;font-weight:700;box-shadow:0 4px 14px rgb(0 0 0/.25);align-items:center;gap:8px}
 </style>
 </head>
 <body>
-<header><span class="mark" aria-hidden="true"></span><span class="brand">Sende-Prüfer</span></header>
-<main>
-<h1>Kundendaten verdecken, bevor eine KI sie sieht</h1>
-<p class="zweck" data-zweck>Damit die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen: Sie stellen Ihre Frage hier, die Seite ersetzt jede solche Angabe durch einen Platzhalter, und die Antwort kommt mit den echten Angaben zurück.</p>
-<p class="zusage" data-zusage="1">Hinaus geht nur die verdeckte Fassung, nur auf Knopfdruck und nur an die Adresse, die neben dem Senden-Knopf steht. Gespeichert wird außer Ihrem Schlüssel nichts.</p>
-
-<p class="meldung warn" id="modul-fehlt" data-modul-fehlt hidden>Der Prüfkern (modules/25_pseudonym.js) wurde nicht geladen. Deshalb wird nichts erkannt, nichts kopiert und nichts gesendet. Laden Sie die Seite neu; liegt sie als Datei vor, muss der Ordner „modules“ daneben liegen.</p>
-
-<section id="s-eingabe">
-<h2><span class="nr">1</span>Ihr Text</h2>
-<p>Schreiben oder fügen Sie hier ein, was Sie die KI fragen wollen, samt der Unterlagen, um die es geht.</p>
-<textarea id="eingabe" spellcheck="false" aria-label="Ihr Text"></textarea>
-<div class="reihe">
-<button class="btn leise" id="beispiel" type="button">Beispiel-E-Mail laden</button><label class="btn leise" style="margin:0">Datei wählen<input id="datei" type="file" accept=".txt,.md,.json,.csv,.html,.htm,text/*" hidden></label>
-<small>Text-Dateien (.txt .md .json .csv .html). Bilder und PDF liest diese Seite nicht.</small>
-</div>
-<p class="meldung" id="beispiel-meldung" data-beispiel-meldung hidden>Eine erfundene E-Mail samt Namen ist eingetragen. Unter 4a steht eine erfundene Antwort, wie eine KI sie schreiben könnte: darunter sehen Sie, wie die echten Angaben zurückkommen. Sie können alles überschreiben.</p>
-<label for="namen">Namen, die nicht hinausgehen sollen</label>
-<p class="gedaempft" data-namen-zweck>Tragen Sie die Personen- und Firmennamen ein, die in Ihrem Text vorkommen (einer je Zeile oder durch Komma getrennt): sie werden dann ebenfalls verdeckt.</p>
-<textarea id="namen" style="min-height:3.5rem" spellcheck="false"></textarea>
-<p class="meldung warn" id="namen-hinweis" data-ohne-namen>Es sind keine Namen eingetragen, deshalb wird kein Name verdeckt.</p>
-<details><summary>Warum die Seite Namen nicht selbst findet</summary>
-<p>Ein Muster kann „Müller“ den Familiennamen nicht von „Müller-Thurgau“ der Rebsorte unterscheiden. Eine Seite, die behauptet, Namen zu finden, würde Sie in falscher Sicherheit wiegen. Deshalb verdeckt sie genau die Namen, die Sie hier nennen, und keine anderen. Die Liste bleibt nur in diesem Fenster und wird nicht gespeichert.</p>
-</details>
-</section>
-
-<section id="s-befund">
-<h2><span class="nr">2</span>Was gefunden wurde</h2>
-<p>Das hier würde die KI sehen, wenn Sie den Text so abschickten: <span class="zahl" id="anzahl">0</span> Angabe(n).</p>
-<ul class="befunde" id="befunde"></ul>
-<details><summary>Welche Angaben erkannt werden</summary>
-<p>Zugangsschlüssel und Tokens (Anthropic, OpenAI, GitHub, Google, Amazon, Slack, Nostr, private Schlüssel, Bearer-Kopfzeilen, Felder wie <code>api_key</code> oder <code>password</code> mit Wert) · Mailadressen · Telefonnummern mit Ländervorwahl · Kontonummern (IBAN, nur mit stimmender Prüfziffer) · Beträge mit Währung, auch mit Tausenderpunkt · Rechnungs- und Kundennummern · die Namen aus Ihrer Liste.</p>
-<p>Nicht gemeldet werden eine Telefonnummer ohne Ländervorwahl, eine Zahl, die nur wie eine IBAN aussieht, und gewöhnliche Links. Eine Warnung, die bei jedem Text erscheint, liest nach dem dritten Mal niemand mehr.</p>
-</details>
-</section>
-
-<section id="s-verdeckt">
-<h2><span class="nr">3</span>Was hinausgeht</h2>
-<p>Das ist die Fassung, die die KI bekommt. Jede Angabe steht als Platzhalter da, und derselbe Wert trägt überall denselben Platzhalter, damit die KI die Bezüge versteht.</p>
-<pre id="verdeckt"></pre>
-</section>
-
-<div class="zwei">
-<section id="s-kopieren">
-<h2><span class="nr">4a</span>Kopieren</h2>
-<p data-weg-zweck="kopieren">Für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten.</p>
-<div class="reihe"><button class="btn" id="kopieren" type="button">Verdeckte Fassung kopieren</button></div>
-<p class="meldung" id="kopier-meldung"></p>
-<label for="antwort-ein">Antwort der KI hier einfügen</label>
-<textarea id="antwort-ein" style="min-height:5rem" spellcheck="false"></textarea>
-</section>
-
-<section id="s-senden">
-<h2><span class="nr">4b</span>Senden</h2>
-<p data-weg-zweck="senden">Ohne Fenster zu wechseln; es kostet, was Ihr Schlüssel kostet.</p>
-<label for="anbieter">Anbieter</label>
-<select id="anbieter"></select>
-<label for="schluessel">Ihr Schlüssel für diesen Anbieter</label>
-<p class="gedaempft" data-schluessel-zweck>Damit die Seite die verdeckte Fassung selbst abschickt und Sie nichts kopieren müssen. Er bleibt in diesem Browser und geht nur an den gewählten Anbieter.</p>
-<input id="schluessel" type="password" autocomplete="off" spellcheck="false">
-<div class="reihe"><button class="btn" id="senden" type="button">Senden</button><button class="btn leise" id="schluessel-weg" type="button">Schlüssel löschen</button></div>
-<p class="gedaempft">Geht an: <code id="ziel-adresse"></code></p>
-<p class="meldung" id="sende-meldung"></p>
-<details><summary>Wo der Schlüssel liegt</summary>
-<p>Im Speicher dieses Browsers (localStorage), je Anbieter unter einem eigenen Namen, der mit <code>sendepruefer_</code> beginnt. Er kommt nie auf einen Server außer dem des gewählten Anbieters. „Schlüssel löschen“ entfernt ihn. Wer das Gerät mit anderen teilt, trägt ihn nach Gebrauch wieder aus.</p>
-</details>
-</section>
+<div class="app" id="app" data-ansicht="liste">
+ <header class="kopf">
+  <div class="marke"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="6" width="26" height="18" rx="4" fill="var(--akzent)"/><path d="M4 9l11 8 11-8" stroke="var(--fl)" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="11" y="16" width="8" height="3" rx="1.5" fill="var(--schutz-rand)"/></svg><span>Sende-Prüfer</span></div>
+  <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="In E-Mails suchen" aria-label="In E-Mails suchen"></label>
+  <button class="rund" id="einfuegen" type="button" title="Eine empfangene Mail einfügen (Text oder .eml)">📥<span class="t"> Mail einfügen</span></button>
+  <button class="rund" id="thema" type="button" aria-label="Hell oder dunkel" title="Hell oder dunkel">◐</button>
+  <button class="rund" id="menue" type="button" aria-label="Menü: Beispiele, Selbsttest, Anleitung" title="Beispiele, Selbsttest, Anleitung">⚙</button>
+ </header>
+ <p class="banner" id="modul-fehlt" data-modul-fehlt hidden>Der Prüfkern (modules/25_pseudonym.js) wurde nicht geladen. Deshalb wird nichts erkannt, nichts kopiert und nichts gesendet. Laden Sie die Seite neu; liegt sie als Datei vor, muss der Ordner „modules“ daneben liegen.</p>
+ <nav class="ordner" aria-label="Ordner">
+  <button class="neu" id="neu" type="button"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 15l1-4 8-8 3 3-8 8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg><span>Verfassen</span></button>
+  <div id="ordnerliste"></div>
+  <div class="schutzbox"><b>Ihre Mails bleiben auf diesem Gerät</b>An eine KI geht nur, was Sie unter „Was die KI sieht“ lesen, und nur auf Knopfdruck. <span id="speicher-stand"></span></div>
+ </nav>
+ <section class="liste" aria-label="E-Mails">
+  <p class="zweck" data-zweck>Damit die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen: jede Mail wird vor dem Senden geprüft, jede solche Angabe durch einen Platzhalter ersetzt, und die Antwort kommt mit den echten Angaben zurück.</p>
+  <div id="liste"></div>
+ </section>
+ <main class="lesen" id="lesen"></main>
+ <nav class="bottomnav" id="bottomnav" aria-label="Ordner"></nav>
+ <button class="fab" id="fab" type="button">✎ Verfassen</button>
 </div>
 
-<section id="s-antwort">
-<h2><span class="nr">5</span>Die Antwort, mit Ihren Angaben</h2>
-<p>Hier steht die Antwort der KI mit den echten Namen, Nummern und Beträgen, eingesetzt auf diesem Gerät.</p>
-<pre id="antwort-klar"></pre>
-<details id="ki-sah-auf"><summary>Was die KI stattdessen sah und schrieb</summary>
-<p class="gedaempft">Gesendet wurde genau dieser Text:</p><pre id="gesendet"></pre>
-<p class="gedaempft">Zurück kam:</p><pre id="antwort-roh"></pre>
-</details>
-<div class="reihe"><button class="btn leise" id="verwerfen" type="button">Zuordnung verwerfen</button><small id="zuordnung-stand"></small></div>
-<p class="gedaempft">Die Zuordnung von Platzhalter zu echtem Wert lebt nur in diesem Fenster. Sie ist das Empfindlichste auf der Seite und verschwindet, wenn Sie den Tab schließen.</p>
-</section>
+<dialog id="einfuegen-dialog" aria-labelledby="einf-titel">
+ <h2 id="einf-titel">Eine empfangene Mail einfügen</h2>
+ <p class="gedaempft">Damit Sie auf eine Mail mit KI-Hilfe antworten können, ohne die Angaben darin preiszugeben. Kopieren Sie die ganze Mail samt Kopfzeilen (Von, An, Betreff) aus Ihrem Mail-Programm hierher, oder öffnen Sie eine gespeicherte .eml-Datei. Sie bleibt auf diesem Gerät.</p>
+ <textarea id="einfuegen-text" rows="9" spellcheck="false" aria-label="Text der Mail"></textarea>
+ <p class="meldung" id="einfuegen-meldung"></p>
+ <div class="fuss">
+  <button class="knopf" id="einfuegen-ablage" type="button">Aus der Zwischenablage</button>
+  <label class="knopf">.eml öffnen<input id="einfuegen-datei" type="file" accept=".eml,.txt,message/rfc822,text/plain" hidden></label>
+  <button class="knopf" id="einfuegen-zu" type="button">Abbrechen</button>
+  <button class="knopf haupt" id="einfuegen-ok" type="button">Einfügen</button>
+ </div>
+</dialog>
 
-<details id="selbsttest"><summary>Selbsttest: prüft den Prüfer an einem Köder</summary>
-<section>
-<p>Damit Sie sehen, dass die Seite erkennt, was sie verspricht: der Köder enthält jede Sorte genau einmal und drei Zeilen, die nicht gemeldet werden dürfen.</p>
-<div class="reihe"><button class="btn" id="test-start" type="button">Selbsttest starten</button><label class="btn leise" style="margin:0">Köder-Datei wählen<input id="test-datei" type="file" accept=".txt" hidden></label></div>
-<ul class="befunde" id="test-ergebnis"></ul>
-<p class="meldung" id="test-summe"></p>
-</section>
-</details>
-</main>
-<footer><p>Sende-Prüfer · läuft vollständig in diesem Browser · <a href="LIESMICH.md">Anleitung und Grenzen</a></p></footer>
+<dialog id="menue-dialog" aria-labelledby="menue-titel">
+ <h2 id="menue-titel">Menü</h2>
+ <div class="kasten">
+  <h2>Beispiele</h2>
+  <p>Eine erfundene Mail mit Namen, Betrag, Kontonummer und einer möglichen KI-Antwort: so sehen Sie den ganzen Weg, ohne eigene Daten zu nehmen.</p>
+  <button class="knopf" id="beispiel" type="button">Beispiel-E-Mail laden</button>
+ </div>
+ <details class="kasten" id="selbsttest"><summary>Selbsttest: prüft den Prüfer an einem Köder</summary>
+  <p>Damit Sie sehen, dass die Seite erkennt, was sie verspricht: der Köder enthält jede Sorte genau einmal und drei Zeilen, die nicht gemeldet werden dürfen.</p>
+  <div class="werkzeug"><button class="knopf haupt" id="test-start" type="button">Selbsttest starten</button><label class="knopf">Köder-Datei wählen<input id="test-datei" type="file" accept=".txt" hidden></label></div>
+  <ul class="befunde" id="test-ergebnis"></ul>
+  <p class="meldung" id="test-summe"></p>
+ </details>
+ <p><a href="LIESMICH.md">Anleitung und Grenzen</a> · Der Sende-Prüfer läuft vollständig in diesem Browser.</p>
+ <div class="fuss"><button class="knopf haupt" id="menue-zu" type="button">Schließen</button></div>
+</dialog>
 
 <script src="modules/25_pseudonym.js"></script>
 <script>
@@ -157,149 +188,479 @@ const ANBIETER = Object.freeze({
     modell: "mistral-large-latest", beginnt: null, protokoll: "openai" })
 });
 const SCHLUESSEL_PREFIX = "sendepruefer_key_";
+const THEMA_KEY = "sendepruefer_thema";
+const SAAT_KEY = "sendepruefer_beispiele_v1";
+const DB_NAME = "SendePruefer1";
 
 /* ══ DIE ERKENNUNG KOMMT AUS SAGE-MODUL 25 ═════════════════════════════════
    modules/25_pseudonym.js ist eine byte-1:1-Kopie aus
-   Sage-Protokol/src/modules/ (Generation 2, 2026-09-28), gepinnt in
-   tests/modul25.mjs. Bis dahin standen die Muster hier; dieselben Muster
-   liegen jetzt dort, und nur dort werden sie gepflegt. Vor dem Umzug wurden
-   alte Fassung und Modul auf 30 015 Texten gegeneinander gefahren:
-   0 Abweichungen. Fehlt das Modul, sagt die Seite das und lässt nichts
-   hinaus (siehe `modulFehlt`). */
+   Sage-Protokol/src/modules/ (Generation 2), SHA-gepinnt in tests/smoke.mjs.
+   Nur dort werden die Muster gepflegt. Fehlt das Modul, sagt die Seite das
+   und lässt nichts hinaus. */
 const P = window.SbkimPseudonym || null;
 const istIban = (s) => !!P && P.isIban(s);
-
 function namenListe(roh) {
   return String(roh || "").split(/[\n,;]/).map((n) => n.trim()).filter((n) => n.length >= 2);
 }
-
-/* Findet alle Angaben: [{start, ende, wert, sorte, zeile}], nach Lage sortiert,
-   ohne Überlappung. */
 function finde(text, namen) {
   if (!P) return [];
   return P.find(text, { values: namen }).map((f) => ({ start: f.start, ende: f.end, wert: f.value, sorte: f.type, zeile: f.line }));
 }
-
-/* Verdeckt den Text: derselbe Wert derselben Sorte bekommt überall denselben
-   Platzhalter. Die Zuordnung (Platzhalter → Wert) bleibt auf dem Gerät. */
 function verdecke(text, namen) {
   if (!P) return { text: "", zuordnung: new Map(), treffer: [] };
   const r = P.pseudonymize(text, { values: namen });
   const treffer = r.findings.map((f) => ({ start: f.start, ende: f.end, wert: f.value, sorte: f.type, zeile: f.line, platzhalter: f.token }));
   return { text: r.text, zuordnung: new Map(Object.entries(r.map)), treffer };
 }
-
+const alsObjekt = (z) => (z instanceof Map ? Object.fromEntries(z) : (z || {}));
 function aufdecken(text, zuordnung) {
-  if (!P || !zuordnung || zuordnung.size === 0) return String(text || "");
-  return P.rehydrate(String(text || ""), Object.fromEntries(zuordnung));
+  const o = alsObjekt(zuordnung);
+  if (!P || !Object.keys(o).length) return String(text || "");
+  return P.rehydrate(String(text || ""), o);
 }
-
-/* ══ DIE BAHN ═════════════════════════════════════════════════════════════ */
-const $ = (id) => document.getElementById(id);
-let stand = { treffer: [], verdeckt: "", zuordnung: new Map() };
-let letzteAntwort = "";
-
-function zeichne() {
-  const text = $("eingabe").value;
-  const namen = namenListe($("namen").value);
-  $("namen-hinweis").hidden = namen.length > 0;
-  const v = verdecke(text, namen);
-  const treffer = v.treffer;
-  stand = { treffer, verdeckt: v.text, zuordnung: v.zuordnung };
-  $("anzahl").textContent = String(treffer.length);
-  const ul = $("befunde");
-  ul.textContent = "";
-  for (const t of treffer) {
-    const li = document.createElement("li");
-    li.dataset.sorte = t.sorte;
-    li.dataset.zeile = String(t.zeile);
-    const s = document.createElement("span"); s.className = "sorte"; s.textContent = t.sorte;
-    li.append(s, "Zeile " + t.zeile + ": ");
-    const w = document.createElement("span"); w.textContent = t.wert;
-    const p = document.createElement("span"); p.className = "ph"; p.textContent = " → " + t.platzhalter;
-    li.append(w, p);
-    ul.append(li);
-  }
-  $("verdeckt").textContent = v.text;
-  $("zuordnung-stand").textContent = v.zuordnung.size + " Platzhalter in der Zuordnung";
-  antwortZeigen();
-}
-
-function antwortZeigen() {
-  const roh = letzteAntwort || $("antwort-ein").value;
-  $("antwort-roh").textContent = roh;
-  $("antwort-klar").textContent = aufdecken(roh, stand.zuordnung);
-}
-
 /* Die letzte Sicherung vor dem Hinausgehen: steht in dem, was gesendet oder
    kopiert würde, noch ein gefundener Wert, geht nichts hinaus. */
-function enthaeltWert(text) {
+function enthaeltWert(text, zuordnung) {
   if (!P) return "(Modul 25 fehlt)";
-  return P.findLeak(text, Object.fromEntries(stand.zuordnung));
+  return P.findLeak(text, alsObjekt(zuordnung));
 }
 
-$("eingabe").addEventListener("input", () => { letzteAntwort = ""; zeichne(); });
-$("namen").addEventListener("input", zeichne);
-$("antwort-ein").addEventListener("input", () => { letzteAntwort = ""; antwortZeigen(); });
-$("datei").addEventListener("change", async (e) => {
-  const f = e.target.files && e.target.files[0];
-  if (!f) return;
-  $("eingabe").value = await f.text();
-  zeichne();
-});
+/* ══ EINE MAIL ═════════════════════════════════════════════════════════════
+   {id, ordner, vonName, vonAdr, anName, anAdr, betreff, text, namenExtra,
+    bitte, zeit, ungelesen, beispiel, antwortRoh, zuordnung, verworfen,
+    gesendet, antwortId, bezug}
+   Die KI bekommt: die Mail (Kopfzeilen + Text), darunter Ihre Bitte. Die Mail
+   steht vorn, damit die Zeilennummern der Befunde die der Mail sind. */
+const ORDNER = [
+  { id: "eingang", name: "Eingefügt", hin: "Mails, die Sie beantworten wollen" },
+  { id: "entwurf", name: "Entwürfe", hin: "Was Sie selbst schreiben" },
+  { id: "antwort", name: "KI-Antworten", hin: "Zurück, mit echten Angaben" },
+  { id: "export", name: "Exportiert", hin: "Als .eml gespeichert oder geteilt" },
+];
+const ICON = { eingang: "📥", entwurf: "📝", antwort: "↩", export: "📤" };
+const BITTE = { eingang: "Schreiben Sie eine kurze, freundliche Antwort auf diese E-Mail.",
+  sonst: "Überarbeiten Sie diesen E-Mail-Entwurf: freundlich, klar und kurz." };
+const SORTE_NAME = { NAME: "Name", MAIL: "E-Mail", TELEFON: "Telefon", IBAN: "IBAN", BETRAG: "Betrag", RECHNUNG: "Rechnung", SCHLUESSEL: "Schlüssel" };
 
-/* Ein erfundenes Beispiel zum Ausprobieren (Klaus 2026-09-28): eine E-Mail mit
-   Kopfzeilen, die Namen dazu und eine mögliche Antwort der KI. Alle Werte sind
-   erfunden; .example-Adressen gibt es nicht, die IBAN ist das Lehrbuch-Beispiel. */
-const BEISPIEL_TEXT = "Von: Petra Beispiel <petra.beispiel@musterbau.example>\nAn: buchhaltung@beispiel-firma.example\nBetreff: Rechnung RE-2026-04871 noch offen\n\nHallo zusammen,\n\ndie Musterbau GmbH hat unsere Rechnung RE-2026-04871 über 1.248,50 EUR noch nicht bezahlt. Überwiesen werden soll auf DE89 3704 0044 0532 0130 00. Frau Beispiel ist unter +49 170 1234567 erreichbar.\n\nBitte schreib mir eine freundliche Zahlungserinnerung an Frau Beispiel.";
-const BEISPIEL_NAMEN = "Petra Beispiel\nMusterbau GmbH\nBeispiel";
-const BEISPIEL_ANTWORT = "Sehr geehrte Frau ⟦NAME-3⟧,\n\nunsere Rechnung ⟦RECHNUNG-1⟧ über ⟦BETRAG-1⟧ ist noch offen. Bitte überweisen Sie den Betrag auf ⟦IBAN-1⟧. Bei Fragen erreichen Sie uns unter ⟦MAIL-2⟧.\n\nMit freundlichen Grüßen";
-$("beispiel").addEventListener("click", () => {
-  $("eingabe").value = BEISPIEL_TEXT;
-  $("namen").value = BEISPIEL_NAMEN;
-  $("antwort-ein").value = BEISPIEL_ANTWORT;
-  letzteAntwort = "";
-  zeichne();
-  antwortZeigen();
-  $("beispiel-meldung").hidden = false;
-});
+function adrZeile(name, adr) { return name && adr ? name + " <" + adr + ">" : (name || adr || ""); }
+function zerlegeAdresse(s) {
+  s = String(s || "").trim();
+  const m = s.match(/^"?([^"<]*?)"?\s*<([^>]*)>$/);
+  if (m) return { name: m[1].trim(), adr: m[2].trim() };
+  return /^\S+@\S+$/.test(s) ? { name: "", adr: s } : { name: s, adr: "" };
+}
+function ganzeMail(m) {
+  const k = [], v = adrZeile(m.vonName, m.vonAdr), a = adrZeile(m.anName, m.anAdr);
+  if (v) k.push("Von: " + v);
+  if (a) k.push("An: " + a);
+  if (m.betreff) k.push("Betreff: " + m.betreff);
+  return (k.length ? k.join("\n") + "\n\n" : "") + (m.text || "");
+}
+function hinaus(m) { const b = String(m.bitte || "").trim(); return ganzeMail(m) + (b ? "\n\n---\n" + b : ""); }
+function mailNamen(m) {
+  return [...new Set([m.vonName, m.anName, ...namenListe(m.namenExtra)].map((n) => String(n || "").trim()).filter((n) => n.length >= 2))];
+}
+function pruefung(m) { return verdecke(hinaus(m), mailNamen(m)); }
+function klarAntwort(m) {
+  if (!m.antwortRoh) return "";
+  if (m.verworfen) return m.antwortRoh;
+  return aufdecken(m.antwortRoh, m.zuordnung || pruefung(m).zuordnung);
+}
+const bearbeitbar = (m) => m.ordner !== "eingang";
+const neueId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const re = (b) => (/^(re|aw):/i.test(b || "") ? b : "Re: " + (b || ""));
 
-$("kopieren").addEventListener("click", async () => {
-  const m = $("kopier-meldung");
-  const text = stand.verdeckt;
-  if (!P) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: der Prüfkern fehlt (siehe Hinweis oben)."; return; }
-  if (!text.trim()) { m.className = "meldung warn"; m.textContent = "Es steht noch kein Text in Feld 1."; return; }
-  if (enthaeltWert(text)) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: die Fassung enthält noch einen gefundenen Wert."; return; }
-  try {
-    await navigator.clipboard.writeText(text);
-    m.className = "meldung gut"; m.textContent = "Kopiert: die verdeckte Fassung, " + stand.treffer.length + " Angabe(n) ersetzt.";
-    $("gesendet").textContent = text;
-  } catch (_e) {
-    m.className = "meldung warn"; m.textContent = "Der Browser hat das Kopieren verweigert. Markieren Sie den Text in Feld 3 und kopieren Sie ihn von Hand.";
-  }
-});
+/* ══ BEISPIELE — alle Namen, Adressen, Nummern erfunden (.example gibt es
+   nicht, die IBAN ist das Lehrbuch-Beispiel). Sie erscheinen, wenn das
+   Postfach zum ersten Mal leer ist, und tragen die Marke „Beispiel“. */
+const BEISPIELE = [
+  { bid: "petra", ordner: "eingang", vonName: "Petra Beispiel", vonAdr: "petra.beispiel@musterbau.example", anAdr: "buchhaltung@beispiel-firma.example",
+    betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH\nBeispiel",
+    text: "Hallo zusammen,\n\ndie Musterbau GmbH hat unsere Rechnung RE-2026-04871 über 1.248,50 EUR noch nicht bezahlt. Überwiesen werden soll auf DE89 3704 0044 0532 0130 00. Frau Beispiel ist unter +49 170 1234567 erreichbar.\n\nBitte schreib mir eine freundliche Zahlungserinnerung an Frau Beispiel.",
+    antwortRoh: "Sehr geehrte Frau ⟦NAME-3⟧,\n\nunsere Rechnung ⟦RECHNUNG-1⟧ über ⟦BETRAG-1⟧ ist noch offen. Bitte überweisen Sie den Betrag auf ⟦IBAN-1⟧. Bei Fragen erreichen Sie uns unter ⟦MAIL-2⟧.\n\nMit freundlichen Grüßen" },
+  { bid: "jonas", ordner: "eingang", vonName: "Jonas Beispielmann", vonAdr: "j.beispielmann@holzwurm.example",
+    betreff: "Anfrage Beschriftung Transporter", namenExtra: "Tischlerei Holzwurm",
+    text: "Guten Tag,\n\nwir von der Tischlerei Holzwurm möchten zwei Transporter beschriften lassen, Logo und Telefonnummer auf beiden Seiten. Ihr letztes Angebot lag bei 2.380,00 EUR. Geht das bis Ende Oktober?\n\nRückruf gern unter +49 151 7654321.\n\nViele Grüße\nJonas Beispielmann",
+    antwortRoh: "Guten Tag ⟦NAME-1⟧,\n\nvielen Dank für Ihre Anfrage. Die Beschriftung beider Transporter schaffen wir bis Ende Oktober. Der Preis von ⟦BETRAG-1⟧ gilt weiterhin.\n\nIch rufe Sie morgen unter ⟦TELEFON-1⟧ an, um einen Termin zu vereinbaren.\n\nMit freundlichen Grüßen" },
+  { bid: "eva", ordner: "entwurf", anName: "Druckerei Mustermann", anAdr: "info@druck-mustermann.example",
+    betreff: "Lieferadresse für Auftrag A-7781", namenExtra: "Eva Muster",
+    text: "Hallo,\n\nbitte liefern Sie Auftrag A-7781 nicht an uns, sondern direkt an Eva Muster, Tel. +49 30 1234567, eva.muster@beispiel.example.\n\nDanke und Gruß", antwortRoh: "" },
+];
+function beispielMail(b) {
+  const m = Object.assign({ vonName: "", vonAdr: "", anName: "", anAdr: "" }, b, { id: neueId(), beispiel: true, ungelesen: b.ordner === "eingang", zeit: new Date().toISOString() });
+  m.bitte = m.ordner === "eingang" ? BITTE.eingang : BITTE.sonst;
+  return m;
+}
 
-function anbieterJetzt() { return ANBIETER[$("anbieter").value] || ANBIETER.anthropic; }
-function schluesselName() { return SCHLUESSEL_PREFIX + $("anbieter").value; }
+/* ══ SPEICHER — nur auf diesem Gerät (IndexedDB). Geht es nicht (privates
+   Fenster, gesperrt), lebt das Postfach im Fenster weiter und die Seite sagt
+   das. Nichts davon geht ins Netz. */
+let DB = null, MAILS = [];
+function dbAuf() {
+  return new Promise((res) => {
+    try {
+      const q = indexedDB.open(DB_NAME, 1);
+      q.onupgradeneeded = () => q.result.createObjectStore("mails", { keyPath: "id" });
+      q.onsuccess = () => res(q.result); q.onerror = () => res(null); q.onblocked = () => res(null);
+    } catch (_e) { res(null); }
+  });
+}
+function dbTx(art, f) {
+  return new Promise((res) => {
+    if (!DB) return res(null);
+    try { const t = DB.transaction("mails", art); const r = f(t.objectStore("mails")); t.oncomplete = () => res(r && r.result); t.onerror = () => res(null); }
+    catch (_e) { res(null); }
+  });
+}
+const merke = new Map();
+function speichern(m) {
+  clearTimeout(merke.get(m.id));
+  merke.set(m.id, setTimeout(() => { merke.delete(m.id); dbTx("readwrite", (s) => s.put(m)); }, 250));
+}
+function jetztSpeichern(m) { clearTimeout(merke.get(m.id)); merke.delete(m.id); return dbTx("readwrite", (s) => s.put(m)); }
 function lies(k) { try { return localStorage.getItem(k) || ""; } catch (_e) { return ""; } }
 function schreib(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (_e) {} }
 
-for (const [k, a] of Object.entries(ANBIETER)) {
-  const o = document.createElement("option"); o.value = k; o.textContent = a.name; $("anbieter").append(o);
+/* ══ .eml — ein Entwurf, den Outlook, Gmail oder Samsung-Mail öffnen ═══════ */
+function b64utf8(s) { const b = new TextEncoder().encode(s); let x = ""; for (const c of b) x += String.fromCharCode(c); return btoa(x); }
+function kodiereWort(s) {
+  s = String(s || "");
+  if (/^[\x20-\x7e]*$/.test(s)) return s;
+  const teile = []; let t = "";
+  for (const z of s) { if (new TextEncoder().encode(t + z).length > 42) { teile.push(t); t = ""; } t += z; }
+  if (t) teile.push(t);
+  return teile.map((x) => "=?UTF-8?B?" + b64utf8(x) + "?=").join("\r\n ");
 }
+function emlBauen(m) {
+  const an = m.anName ? (/^[\x20-\x7e]*$/.test(m.anName) ? '"' + m.anName.replace(/["\\]/g, "") + '"' : kodiereWort(m.anName)) + " <" + (m.anAdr || "") + ">" : (m.anAdr || "");
+  const koerper = String(m.text || "").replace(/\r?\n/g, "\r\n");
+  return ["To: " + an, "Subject: " + kodiereWort(m.betreff || ""), "Date: " + new Date().toUTCString().replace("GMT", "+0000"),
+    "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: 8bit", "X-Unsent: 1", "", koerper].join("\r\n");
+}
+function emlName(m) { return (String(m.betreff || "E-Mail").replace(/[^\w\-äöüÄÖÜß ]+/g, "").trim().replace(/\s+/g, "_").slice(0, 60) || "E-Mail") + ".eml"; }
+
+/* ══ .eml LESEN — Kopfzeilen, kodierte Wörter, Quoted-Printable, Base64,
+   multipart (der erste text/plain-Teil, sonst text/html ohne Tags). ══════ */
+function dekodBytes(bytes, cs) { try { return new TextDecoder(cs || "utf-8").decode(bytes); } catch (_e) { return new TextDecoder("utf-8").decode(bytes); } }
+function vonB64(s) { const b = atob(String(s).replace(/[^A-Za-z0-9+/=]/g, "")); return Uint8Array.from(b, (c) => c.charCodeAt(0)); }
+function vonQP(s, wort) {
+  if (wort) s = s.replace(/_/g, " ");
+  s = s.replace(/=\r?\n/g, "");
+  const out = []; for (let i = 0; i < s.length; i++) {
+    if (s[i] === "=" && /^[0-9A-F]{2}$/i.test(s.substr(i + 1, 2))) { out.push(parseInt(s.substr(i + 1, 2), 16)); i += 2; }
+    else { const b = new TextEncoder().encode(s[i]); out.push(...b); }
+  }
+  return Uint8Array.from(out);
+}
+function kopfWort(s) {
+  return String(s || "").replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=(\s+(?==\?))?/g, (_a, cs, art, t) =>
+    dekodBytes(/b/i.test(art) ? vonB64(t) : vonQP(t, true), cs));
+}
+function kopfTeilen(roh) {
+  const i = roh.search(/\r?\n\r?\n/);
+  const kopf = (i < 0 ? roh : roh.slice(0, i)).replace(/\r?\n[ \t]+/g, " ");
+  const k = {};
+  for (const z of kopf.split(/\r?\n/)) { const m = z.match(/^([A-Za-z\-]+):\s*(.*)$/); if (m) k[m[1].toLowerCase()] = m[2]; }
+  return { k, rumpf: i < 0 ? "" : roh.slice(i).replace(/^\r?\n\r?\n/, "") };
+}
+function teilText(k, rumpf) {
+  const typ = (k["content-type"] || "text/plain").toLowerCase();
+  const grenze = (k["content-type"] || "").match(/boundary="?([^";]+)"?/i);
+  if (/^multipart\//.test(typ) && grenze) {
+    const teile = rumpf.split("--" + grenze[1]).slice(1).filter((t) => !/^--/.test(t)).map((t) => kopfTeilen(t.replace(/^\r?\n/, "")));
+    let html = "";
+    for (const t of teile) {
+      const x = teilText(t.k, t.rumpf);
+      if (x.art === "plain" && x.text.trim()) return x;
+      if (x.art === "html" && !html) html = x.text;
+    }
+    return { art: "plain", text: html };
+  }
+  const cte = (k["content-transfer-encoding"] || "").toLowerCase();
+  const cs = ((k["content-type"] || "").match(/charset="?([^";]+)"?/i) || [])[1];
+  let text = cte === "base64" ? dekodBytes(vonB64(rumpf), cs) : cte === "quoted-printable" ? dekodBytes(vonQP(rumpf), cs) : rumpf;
+  if (/text\/html/.test(typ)) {
+    const d = new DOMParser().parseFromString(text, "text/html");
+    d.querySelectorAll("script,style").forEach((e) => e.remove());
+    d.querySelectorAll("br").forEach((e) => e.replaceWith("\n"));
+    d.querySelectorAll("p,div,tr").forEach((e) => e.append("\n"));
+    return { art: "html", text: (d.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim() };
+  }
+  return { art: /text\/plain/.test(typ) ? "plain" : "anders", text };
+}
+/* Liest eine rohe .eml ODER einen eingefügten Text. Eingefügt wird oft ohne
+   Kopfzeilen oder mit deutschen (Von/An/Betreff) — beides geht. */
+function mailLesen(roh) {
+  roh = String(roh || "").replace(/^\uFEFF/, "");
+  const erste = roh.split(/\r?\n/, 1)[0];
+  if (/^(from|to|subject|date|received|return-path|message-id|mime-version|delivered-to|x-[\w-]+):/i.test(erste)) {
+    const { k, rumpf } = kopfTeilen(roh);
+    const v = zerlegeAdresse(kopfWort(k.from)), a = zerlegeAdresse(kopfWort((k.to || "").split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0]));
+    return { vonName: v.name, vonAdr: v.adr, anName: a.name, anAdr: a.adr, betreff: kopfWort(k.subject || ""), text: teilText(k, rumpf).text.replace(/\r\n/g, "\n").trim() };
+  }
+  const m = { vonName: "", vonAdr: "", anName: "", anAdr: "", betreff: "", text: "" };
+  const zeilen = roh.replace(/\r\n/g, "\n").split("\n");
+  let i = 0;
+  for (; i < zeilen.length; i++) {
+    const z = zeilen[i].match(/^(Von|An|Betreff|Datum|Gesendet|Cc):\s*(.*)$/i);
+    if (!z) break;
+    const w = z[1].toLowerCase();
+    if (w === "von") { const a = zerlegeAdresse(z[2]); m.vonName = a.name; m.vonAdr = a.adr; }
+    else if (w === "an") { const a = zerlegeAdresse(z[2]); m.anName = a.name; m.anAdr = a.adr; }
+    else if (w === "betreff") m.betreff = z[2].trim();
+  }
+  m.text = zeilen.slice(i).join("\n").trim();
+  return m;
+}
+
+/* ══ DIE OBERFLÄCHE ═══════════════════════════════════════════════════════ */
+const $ = (id) => document.getElementById(id);
+function el(tag, attrs, ...kinder) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k]; if (v == null || v === false) continue;
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kinder) if (c != null) e.append(c);   // Text ist immer Text, nie HTML
+  return e;
+}
+const FARBEN = ["#0e6b72", "#8a4fb5", "#b5533c", "#3c6fb5", "#4f8a3a"];
+function avatar(name, id) {
+  let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return el("span", { class: "av", style: "background:" + FARBEN[h % FARBEN.length], "aria-hidden": "true" }, (String(name || "?").trim().charAt(0) || "?").toUpperCase());
+}
+function zeitText(iso) {
+  const d = new Date(iso), h = new Date();
+  if (isNaN(d)) return "";
+  return d.toDateString() === h.toDateString() ? d.toTimeString().slice(0, 5) : d.getDate() + "." + (d.getMonth() + 1) + ".";
+}
+const wer = (m) => (m.ordner === "eingang" ? (m.vonName || m.vonAdr) : "An: " + (m.anName || m.anAdr || "…")) || "(ohne Absender)";
+let st = { ordner: "eingang", id: null, sicht: "original", ki: false };
+const aktuell = () => MAILS.find((m) => m.id === st.id) || null;
+
+function zeichneOrdner() {
+  const box = $("ordnerliste"), bn = $("bottomnav");
+  box.replaceChildren(); bn.replaceChildren();
+  for (const o of ORDNER) {
+    const n = MAILS.filter((m) => m.ordner === o.id).length;
+    const geh = () => { st.ordner = o.id; st.id = null; $("app").dataset.ansicht = "liste"; alles(); };
+    box.append(el("button", { class: "ord", type: "button", "data-ordner": o.id, "aria-current": String(st.ordner === o.id), title: o.hin, onclick: geh },
+      el("span", { "aria-hidden": "true" }, ICON[o.id]), el("span", { class: "t" }, o.name), el("span", { class: "zahl" }, String(n))));
+    bn.append(el("button", { type: "button", "data-ordner": o.id, "aria-current": String(st.ordner === o.id), onclick: geh },
+      el("span", { "aria-hidden": "true" }, ICON[o.id]), o.name));
+  }
+}
+function schutzChip(n) {
+  return n ? el("span", { class: "chip", "data-anzahl-chip": n }, "🛡 " + n + " Angabe(n) werden verdeckt")
+    : el("span", { class: "chip gut", "data-anzahl-chip": 0 }, "✓ keine Angabe erkannt");
+}
+function zeichneListe() {
+  const o = ORDNER.find((x) => x.id === st.ordner);
+  const q = $("suche").value.trim().toLowerCase();
+  const box = $("liste");
+  box.replaceChildren(el("h2", null, o.name), el("p", { class: "unter" }, o.hin));
+  const mails = MAILS.filter((m) => m.ordner === st.ordner && (!q || ganzeMail(m).toLowerCase().includes(q)))
+    .sort((a, b) => String(b.zeit).localeCompare(String(a.zeit)));
+  if (!mails.length) box.append(el("p", { class: "unter" }, q ? "Keine Mail passt zur Suche." : "Keine E-Mails in diesem Ordner."));
+  for (const m of mails) {
+    box.append(el("button", { class: "zeile" + (m.ungelesen ? " ungelesen" : ""), type: "button", "data-id": m.id, "aria-current": String(st.id === m.id),
+      onclick: () => oeffne(m.id) },
+      avatar(wer(m).replace(/^An: /, ""), m.id), el("span", { class: "wer" }, wer(m)), el("span", { class: "zeit" }, zeitText(m.zeit)),
+      el("span", { class: "betr" }, m.betreff || "(ohne Betreff)"),
+      el("span", { class: "chips" }, schutzChip(pruefung(m).treffer.length), m.beispiel ? el("span", { class: "chip leise" }, "Beispiel · erfunden") : null)));
+  }
+}
+function oeffne(id) {
+  const m = MAILS.find((x) => x.id === id); if (!m) return;
+  st.id = id; st.sicht = "original"; st.ki = !!m.antwortRoh;
+  if (m.ungelesen) { m.ungelesen = false; speichern(m); }
+  $("app").dataset.ansicht = "lesen";
+  alles();
+}
+
+/* Text in Stücke: normal · Fund (Original) · Platzhalter (KI-Fassung). */
+function stueckeOriginal(text, funde) {
+  const f = document.createDocumentFragment(); let pos = 0;
+  for (const t of funde) {
+    if (t.start >= text.length) break;
+    if (t.start > pos) f.append(text.slice(pos, t.start));
+    f.append(el("mark", { class: "fund", title: (SORTE_NAME[t.sorte] || t.sorte) + " → " + t.platzhalter }, t.wert)); pos = t.ende;
+  }
+  if (pos < text.length) f.append(text.slice(pos));
+  return f;
+}
+function stueckeVerdeckt(text) {
+  const f = document.createDocumentFragment(), rx = /⟦([A-ZÄÖÜ]+)-(\d+)⟧/g; let pos = 0, m;
+  while ((m = rx.exec(text))) { if (m.index > pos) f.append(text.slice(pos, m.index)); f.append(el("span", { class: "tok", title: SORTE_NAME[m[1]] || m[1] }, m[0])); pos = rx.lastIndex; }
+  if (pos < text.length) f.append(text.slice(pos));
+  return f;
+}
+
+function zeichneLesen() {
+  const box = $("lesen"); box.replaceChildren();
+  const m = aktuell();
+  if (!m) { box.append(el("p", { class: "leer" }, MAILS.length ? "Wählen Sie eine E-Mail." : "Das Postfach ist leer. Fügen Sie eine Mail ein (📥) oder verfassen Sie eine.")); return; }
+  const r = pruefung(m);
+  box.append(el("div", { class: "werkzeug" },
+    el("button", { class: "knopf zurueck", type: "button", onclick: () => { $("app").dataset.ansicht = "liste"; } }, "← Zurück"),
+    el("div", { class: "umschalter", role: "group", "aria-label": "Ansicht" },
+      el("button", { type: "button", "data-sicht": "original", "aria-pressed": String(st.sicht === "original"), onclick: () => { st.sicht = "original"; zeichneLesen(); } }, "Original"),
+      el("button", { type: "button", "data-sicht": "ki", "aria-pressed": String(st.sicht === "ki"), onclick: () => { st.sicht = "ki"; zeichneLesen(); } }, "Was die KI sieht")),
+    el("span", { id: "chip-ort" }, schutzChip(r.treffer.length)),
+    el("button", { class: "knopf klein", id: "loeschen", type: "button", title: "Diese Mail löschen", onclick: () => loeschen(m) }, "🗑")));
+  if (m.beispiel) box.append(el("p", { class: "beispiel-hin", id: "beispiel-meldung", "data-beispiel-meldung": true },
+    "Beispiel: diese Mail samt Namen und KI-Antwort ist erfunden. So sehen Sie, was verdeckt wird und wie die echten Angaben zurückkommen. Sie können alles überschreiben oder die Mail löschen."));
+  if (st.sicht === "ki") {
+    box.append(el("p", { class: "gedaempft" }, "Genau dieser Text geht hinaus: Ihre Mail und darunter Ihre Bitte, jede erkannte Angabe als Platzhalter. Derselbe Wert trägt überall denselben Platzhalter."),
+      el("pre", { class: "blatt ki", id: "verdeckt" }, stueckeVerdeckt(r.text)));
+  } else if (bearbeitbar(m)) {
+    const feld = (id, name, wert, beim) => el("div", { class: "feldzeile" }, el("label", { for: id }, name),
+      el("input", { id, value: wert, autocomplete: "off", spellcheck: "false", oninput: (e) => { beim(e.target.value); geaendert(m); } }));
+    const ta = el("textarea", { class: "blatt", id: "text", "aria-label": "Text der E-Mail", spellcheck: "true", oninput: (e) => { m.text = e.target.value; geaendert(m); } });
+    ta.value = m.text || "";
+    box.append(feld("an", "An", adrZeile(m.anName, m.anAdr), (v) => { const a = zerlegeAdresse(v); m.anName = a.name; m.anAdr = a.adr; }),
+      feld("betreff", "Betreff", m.betreff || "", (v) => { m.betreff = v; }), ta);
+  } else {
+    box.append(el("h1", { class: "betreff" }, m.betreff || "(ohne Betreff)"),
+      el("div", { class: "absender" }, avatar(m.vonName || m.vonAdr, m.id),
+        el("div", null, el("div", { style: "font-weight:600" }, m.vonName || m.vonAdr || "(ohne Absender)"),
+          el("div", { class: "adr" }, [m.vonAdr, m.anAdr ? "an " + adrZeile(m.anName, m.anAdr) : "", zeitText(m.zeit)].filter(Boolean).join(" · ")))),
+      el("div", { class: "blatt" }, stueckeOriginal(ganzeMail(m), r.treffer)));
+  }
+  const nx = el("input", { id: "namen", value: m.namenExtra || "", autocomplete: "off", spellcheck: "false", oninput: (e) => { m.namenExtra = e.target.value; geaendert(m); } });
+  box.append(el("div", { class: "namen" }, el("label", { for: "namen" }, "Weitere Namen, die nicht hinausgehen sollen"),
+    el("p", { class: "gedaempft", style: "margin:0 0 4px", "data-namen-zweck": true }, "Tragen Sie Personen- und Firmennamen ein, die im Text vorkommen (durch Komma getrennt): sie werden dann ebenfalls verdeckt. Die Namen aus Von und An sind schon dabei."),
+    nx, el("p", { class: "meldung warn", id: "namen-hinweis", "data-ohne-namen": true }, "Es sind keine Namen bekannt, deshalb wird kein Name verdeckt."),
+    el("p", { class: "gedaempft", id: "namen-auto" })));
+  box.append(el("div", { class: "funde", id: "funde" }),
+    el("details", null, el("summary", null, "Was gefunden wurde: ", el("b", { id: "anzahl" }, "0"), " Angabe(n), mit Zeile"),
+      el("ul", { class: "befunde", id: "befunde" }),
+      el("p", { class: "gedaempft" }, "Erkannt werden Zugangsschlüssel, Mailadressen, Telefonnummern mit Ländervorwahl, Kontonummern (IBAN mit stimmender Prüfziffer), Beträge mit Währung, Rechnungs- und Kundennummern und die Namen oben. Eine Telefonnummer ohne Ländervorwahl und gewöhnliche Links bleiben stehen.")));
+  const akt = el("div", { class: "werkzeug", style: "margin-top:16px" },
+    el("button", { class: "knopf haupt", id: "ki-oeffnen", type: "button", onclick: () => { st.ki = true; zeichneLesen(); $("s-ki").scrollIntoView({ block: "start" }); } },
+      m.ordner === "eingang" ? "✦ Mit KI beantworten" : "✦ Mit KI überarbeiten"));
+  if (m.ordner !== "eingang") akt.append(el("button", { class: "knopf", id: "eml", type: "button", onclick: () => emlSpeichern(m) }, "⤓ Als .eml speichern"),
+    el("button", { class: "knopf", id: "teilen", type: "button", onclick: () => teilen(m) }, "📤 Teilen"));
+  box.append(akt, el("p", { class: "meldung", id: "aktion-meldung", "aria-live": "polite" }));
+  if (st.ki) box.append(kiKasten(m));
+  aktualisiere(m);
+}
+
+function kiKasten(m) {
+  const bitte = el("textarea", { id: "bitte", rows: "2", spellcheck: "true", oninput: (e) => { m.bitte = e.target.value; geaendert(m); } });
+  bitte.value = m.bitte || "";
+  const auswahl = el("select", { id: "anbieter", onchange: () => { schreib(SCHLUESSEL_PREFIX + "wahl", auswahl.value); anbieterZeigen(); } });
+  for (const [k, a] of Object.entries(ANBIETER)) auswahl.append(el("option", { value: k }, a.name));
+  auswahl.value = ANBIETER[lies(SCHLUESSEL_PREFIX + "wahl")] ? lies(SCHLUESSEL_PREFIX + "wahl") : "anthropic";
+  const ein = el("textarea", { id: "antwort-ein", rows: "4", spellcheck: "false", oninput: (e) => { m.antwortRoh = e.target.value; geaendert(m, true); } });
+  ein.value = m.antwortRoh || "";
+  const schl = el("input", { id: "schluessel", type: "password", autocomplete: "off", spellcheck: "false", onchange: (e) => schreib(schluesselName(), e.target.value.trim()) });
+  const k = el("section", { class: "kasten", id: "s-ki" },
+    el("h2", null, "Mit KI"),
+    el("label", { for: "bitte" }, "Ihre Bitte an die KI"), bitte,
+    el("p", { class: "gedaempft" }, "Hinaus geht nur die verdeckte Fassung (siehe „Was die KI sieht“), nur auf Knopfdruck und nur an die Adresse neben dem Senden-Knopf."),
+    el("div", { class: "zwei" },
+      el("section", { class: "kasten", id: "s-kopieren" }, el("h2", null, "Kopieren"),
+        el("p", { "data-weg-zweck": "kopieren" }, "Für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten."),
+        el("button", { class: "knopf haupt", id: "kopieren", type: "button", onclick: () => kopieren(m) }, "Verdeckte Fassung kopieren"),
+        el("p", { class: "meldung", id: "kopier-meldung" }),
+        el("label", { for: "antwort-ein" }, "Antwort der KI hier einfügen"), ein),
+      el("section", { class: "kasten", id: "s-senden" }, el("h2", null, "Senden"),
+        el("p", { "data-weg-zweck": "senden" }, "Ohne Fenster zu wechseln; es kostet, was Ihr Schlüssel kostet."),
+        el("label", { for: "anbieter" }, "Anbieter"), auswahl,
+        el("label", { for: "schluessel" }, "Ihr Schlüssel für diesen Anbieter"),
+        el("p", { class: "gedaempft", "data-schluessel-zweck": true }, "Damit die Seite die verdeckte Fassung selbst abschickt und Sie nichts kopieren müssen. Er bleibt in diesem Browser und geht nur an den gewählten Anbieter."),
+        schl,
+        el("div", { class: "werkzeug", style: "margin:8px 0 0" },
+          el("button", { class: "knopf haupt", id: "senden", type: "button", onclick: () => senden(m) }, "Senden"),
+          el("button", { class: "knopf", id: "schluessel-weg", type: "button", onclick: schluesselLoeschen }, "Schlüssel löschen")),
+        el("p", { class: "gedaempft" }, "Geht an: ", el("code", { id: "ziel-adresse" })),
+        el("p", { class: "meldung", id: "sende-meldung" }))),
+    el("section", { class: "kasten antwort", id: "s-antwort" },
+      el("h2", null, "Die Antwort, mit Ihren Angaben"),
+      el("p", { class: "gedaempft" }, "Die Platzhalter sind auf diesem Gerät wieder durch die echten Namen, Nummern und Beträge ersetzt."),
+      el("pre", { class: "blatt", id: "antwort-klar" }),
+      el("div", { class: "werkzeug", style: "margin-top:10px" },
+        el("button", { class: "knopf haupt", id: "antwort-ablegen", type: "button", onclick: () => { const a = antwortMail(m); st.ordner = a.ordner; oeffne(a.id); } }, "In KI-Antworten ablegen"),
+        el("button", { class: "knopf", id: "antwort-eml", type: "button", onclick: () => emlSpeichern(antwortMail(m)) }, "⤓ Als .eml speichern"),
+        el("button", { class: "knopf", id: "antwort-teilen", type: "button", onclick: () => teilen(antwortMail(m)) }, "📤 Teilen"),
+        el("button", { class: "knopf", id: "antwort-kopieren", type: "button", onclick: (e) => inAblage(klarAntwort(m), e.currentTarget) }, "Text kopieren")),
+      el("details", null, el("summary", null, "Was die KI sah und schrieb"),
+        el("p", { class: "gedaempft" }, "Gesendet oder kopiert wurde genau dieser Text:"), el("pre", { class: "blatt", id: "gesendet" }),
+        el("p", { class: "gedaempft" }, "Zurück kam:"), el("pre", { class: "blatt", id: "antwort-roh" })),
+      el("div", { class: "werkzeug", style: "margin-top:10px" },
+        el("button", { class: "knopf", id: "verwerfen", type: "button", onclick: () => { m.zuordnung = null; m.verworfen = true; jetztSpeichern(m); aktualisiere(m); } }, "Zuordnung verwerfen"),
+        el("small", { id: "zuordnung-stand" })),
+      el("p", { class: "gedaempft" }, "Die Zuordnung von Platzhalter zu echtem Wert liegt mit der Mail auf diesem Gerät, nirgends sonst. „Zuordnung verwerfen“ löscht sie.")));
+  setTimeout(anbieterZeigen, 0);
+  return k;
+}
+
+/* Nach jeder Änderung: speichern und die abhängigen Stellen nachziehen —
+   ohne das Feld neu zu bauen, in dem gerade getippt wird. */
+function geaendert(m, nurAntwort) {
+  if (!nurAntwort) { m.verworfen = false; m.zuordnung = null; }
+  m.zeit = m.zeit || new Date().toISOString();
+  speichern(m); aktualisiere(m); zeichneListe();
+}
+function aktualisiere(m) {
+  const r = pruefung(m), namen = mailNamen(m), auto = [m.vonName, m.anName].filter((n) => String(n || "").trim().length >= 2);
+  const set = (id, f) => { const e = $(id); if (e) f(e); };
+  set("namen-hinweis", (e) => { e.hidden = namen.length > 0; });
+  set("namen-auto", (e) => { e.textContent = auto.length ? "Aus Von/An: " + auto.join(", ") : ""; });
+  set("chip-ort", (e) => e.replaceChildren(schutzChip(r.treffer.length)));
+  set("anzahl", (e) => { e.textContent = String(r.treffer.length); });
+  set("funde", (e) => {
+    const z = {}; for (const t of r.treffer) z[t.sorte] = (z[t.sorte] || 0) + 1;
+    e.replaceChildren(...Object.keys(z).map((s) => el("span", null, el("b", null, String(z[s])), " " + (SORTE_NAME[s] || s))));
+  });
+  set("befunde", (e) => e.replaceChildren(...r.treffer.map((t) => el("li", { "data-sorte": t.sorte, "data-zeile": t.zeile },
+    el("span", { class: "sorte" }, t.sorte), "Zeile " + t.zeile + ": ", t.wert, el("span", { class: "tok", style: "margin-left:.4rem" }, "→ " + t.platzhalter)))));
+  set("verdeckt", (e) => e.replaceChildren(stueckeVerdeckt(r.text)));
+  set("s-antwort", (e) => { e.hidden = !m.antwortRoh; });
+  set("antwort-klar", (e) => { e.textContent = klarAntwort(m); });
+  set("antwort-roh", (e) => { e.textContent = m.antwortRoh || ""; });
+  set("gesendet", (e) => { e.textContent = m.gesendet || "(noch nichts)"; });
+  set("zuordnung-stand", (e) => {
+    e.textContent = m.verworfen ? "Zuordnung verworfen. Platzhalter werden nicht mehr zurückgesetzt, bis Sie die Mail ändern."
+      : Object.keys(alsObjekt(m.zuordnung || r.zuordnung)).length + " Platzhalter in der Zuordnung";
+  });
+}
+
+/* ══ DIE ZWEI WEGE ════════════════════════════════════════════════════════ */
+function bereit(m, meldung) {
+  const r = pruefung(m);
+  if (!P) { meldung("Der Prüfkern fehlt (siehe Hinweis oben)."); return null; }
+  if (!ganzeMail(m).trim()) { meldung("Es steht noch kein Text in dieser Mail."); return null; }
+  if (enthaeltWert(r.text, r.zuordnung)) { meldung("Die Fassung enthält noch einen gefundenen Wert."); return null; }
+  return r;
+}
+function merkeHinaus(m, r) { m.zuordnung = alsObjekt(r.zuordnung); m.gesendet = r.text; m.verworfen = false; jetztSpeichern(m); }
+async function kopieren(m) {
+  const e = $("kopier-meldung");
+  const r = bereit(m, (t) => { e.className = "meldung warn"; e.textContent = "Nicht kopiert: " + t; });
+  if (!r) return;
+  try {
+    await navigator.clipboard.writeText(r.text);
+    merkeHinaus(m, r); aktualisiere(m);
+    e.className = "meldung gut"; e.textContent = "Kopiert: die verdeckte Fassung, " + r.treffer.length + " Angabe(n) ersetzt. Fügen Sie die Antwort der KI unten ein.";
+  } catch (_e) {
+    e.className = "meldung warn"; e.textContent = "Der Browser hat das Kopieren verweigert. Öffnen Sie „Was die KI sieht“, markieren Sie den Text und kopieren Sie ihn von Hand.";
+  }
+}
+const anbieterJetzt = () => ANBIETER[($("anbieter") || {}).value] || ANBIETER.anthropic;
+const schluesselName = () => SCHLUESSEL_PREFIX + (($("anbieter") || {}).value || "anthropic");
 function anbieterZeigen() {
+  if (!$("anbieter")) return;
   const a = anbieterJetzt();
   $("ziel-adresse").textContent = a.adresse + " · " + a.modell;
   $("schluessel").value = lies(schluesselName());
   $("sende-meldung").textContent = "";
 }
-$("anbieter").addEventListener("change", anbieterZeigen);
-$("schluessel").addEventListener("change", () => schreib(schluesselName(), $("schluessel").value.trim()));
-$("schluessel-weg").addEventListener("click", () => {
+function schluesselLoeschen() {
   schreib(schluesselName(), ""); $("schluessel").value = "";
   $("sende-meldung").className = "meldung gut"; $("sende-meldung").textContent = "Der Schlüssel für " + anbieterJetzt().name + " ist gelöscht.";
-});
-
+}
 function anfrage(a, schluessel, text) {
   if (a.protokoll === "messages") {
     return { headers: { "content-type": "application/json", "x-api-key": schluessel,
@@ -313,49 +674,137 @@ function antwortText(a, j) {
   if (a.protokoll === "messages") return (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n");
   return (((j.choices || [])[0] || {}).message || {}).content || "";
 }
-
-$("senden").addEventListener("click", async () => {
-  const m = $("sende-meldung");
-  const a = anbieterJetzt();
-  const schluessel = $("schluessel").value.trim();
+async function senden(m) {
+  const e = $("sende-meldung"), a = anbieterJetzt(), schluessel = $("schluessel").value.trim();
   schreib(schluesselName(), schluessel);
-  const text = stand.verdeckt;
-  m.className = "meldung warn";
-  if (!P) { m.textContent = "Nicht gesendet: der Prüfkern fehlt (siehe Hinweis oben)."; return; }
-  if (!text.trim()) { m.textContent = "Es steht noch kein Text in Feld 1."; return; }
-  if (!schluessel) { m.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }
-  if (a.beginnt && !schluessel.startsWith(a.beginnt)) { m.textContent = "Ein Schlüssel für " + a.name + " beginnt mit " + a.beginnt + ". Der eingetragene tut das nicht."; return; }
-  if (enthaeltWert(text)) { m.textContent = "Nicht gesendet: die Fassung enthält noch einen gefundenen Wert."; return; }
-  const q = anfrage(a, schluessel, text);
-  m.className = "meldung"; m.textContent = "Wird gesendet an " + a.adresse + " …";
-  $("gesendet").textContent = text;
+  e.className = "meldung warn";
+  const r = bereit(m, (t) => { e.textContent = "Nicht gesendet: " + t; });
+  if (!r) return;
+  if (!schluessel) { e.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }
+  if (a.beginnt && !schluessel.startsWith(a.beginnt)) { e.textContent = "Ein Schlüssel für " + a.name + " beginnt mit " + a.beginnt + ". Der eingetragene tut das nicht."; return; }
+  const q = anfrage(a, schluessel, r.text);
+  merkeHinaus(m, r); aktualisiere(m);
+  e.className = "meldung"; e.textContent = "Wird gesendet an " + a.adresse + " …";
   try {
-    const r = await fetch(a.adresse, { method: "POST", headers: q.headers, body: JSON.stringify(q.body) });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + r.status);
-      m.className = "meldung warn"; m.textContent = "Der Anbieter hat abgelehnt (" + r.status + "): " + grund; return;
+    const antwort = await fetch(a.adresse, { method: "POST", headers: q.headers, body: JSON.stringify(q.body) });
+    const j = await antwort.json().catch(() => ({}));
+    if (!antwort.ok) {
+      const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + antwort.status);
+      e.className = "meldung warn"; e.textContent = "Der Anbieter hat abgelehnt (" + antwort.status + "): " + grund; return;
     }
-    letzteAntwort = antwortText(a, j);
-    antwortZeigen();
-    m.className = "meldung gut"; m.textContent = "Antwort erhalten. Gesendet wurde die verdeckte Fassung mit " + stand.treffer.length + " Platzhalter(n).";
-  } catch (e) {
-    m.className = "meldung warn"; m.textContent = "Keine Verbindung zu " + a.adresse + " (" + (e && e.message || e) + ").";
+    m.antwortRoh = antwortText(a, j);
+    jetztSpeichern(m);
+    if ($("antwort-ein")) $("antwort-ein").value = m.antwortRoh;
+    aktualisiere(m);
+    e.className = "meldung gut"; e.textContent = "Antwort erhalten. Gesendet wurde die verdeckte Fassung mit " + r.treffer.length + " Platzhalter(n).";
+  } catch (x) {
+    e.className = "meldung warn"; e.textContent = "Keine Verbindung zu " + a.adresse + " (" + (x && x.message || x) + ").";
   }
+}
+
+/* ══ ANTWORT ABLEGEN, .eml, TEILEN ════════════════════════════════════════ */
+function antwortMail(m) {
+  let a = MAILS.find((x) => x.id === m.antwortId);
+  const klar = klarAntwort(m);
+  if (!a) {
+    const aus = m.ordner === "eingang";
+    a = { id: neueId(), ordner: "antwort", vonName: "", vonAdr: "", anName: aus ? m.vonName : m.anName, anAdr: aus ? m.vonAdr : m.anAdr,
+      betreff: aus ? re(m.betreff) : m.betreff, text: klar, namenExtra: m.namenExtra || "", bitte: BITTE.sonst, zeit: new Date().toISOString(),
+      bezug: m.id, ausRoh: m.antwortRoh, beispiel: !!m.beispiel };
+    MAILS.push(a); m.antwortId = a.id; jetztSpeichern(m);
+  } else if (a.ausRoh !== m.antwortRoh) { a.text = klar; a.ausRoh = m.antwortRoh; }
+  jetztSpeichern(a);
+  return a;
+}
+function meldeAktion(t, gut) { const e = $("aktion-meldung") || $("sende-meldung"); if (e) { e.className = "meldung " + (gut ? "gut" : "warn"); e.textContent = t; } }
+function exportiert(m) {
+  m.ordner = "export"; m.exportiert = new Date().toISOString(); jetztSpeichern(m);
+  zeichneOrdner(); zeichneListe();
+}
+function emlDatei(m) { return new File([emlBauen(m)], emlName(m), { type: "message/rfc822" }); }
+function emlSpeichern(m) {
+  const f = emlDatei(m), a = document.createElement("a");
+  a.href = URL.createObjectURL(f); a.download = f.name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  window.__letzteEml = { name: f.name, weg: "download" };
+  exportiert(m);
+  meldeAktion("Gespeichert als " + f.name + ". Öffnen Sie die Datei, dann zeigt Ihr Mail-Programm sie als Entwurf.", true);
+}
+async function teilen(m) {
+  const f = emlDatei(m);
+  if (!(navigator.canShare && navigator.canShare({ files: [f] }))) {
+    emlSpeichern(m); meldeAktion("Dieses Gerät kann hier keine Dateien teilen. Die .eml ist stattdessen gespeichert: " + f.name, true); return;
+  }
+  try {
+    await navigator.share({ files: [f], title: m.betreff || "E-Mail" });
+    window.__letzteEml = { name: f.name, weg: "teilen" };
+    exportiert(m); meldeAktion("Geteilt: " + f.name, true);
+  } catch (x) {
+    if (x && x.name === "AbortError") return;
+    meldeAktion("Das Teilen wurde verweigert (" + (x && x.name || x) + "). Tippen Sie noch einmal auf Teilen oder speichern Sie die .eml.", false);
+  }
+}
+async function inAblage(text, knopf) {
+  const alt = knopf.textContent;
+  try { await navigator.clipboard.writeText(text); knopf.textContent = "Kopiert"; } catch (_e) { knopf.textContent = "Bitte markieren und kopieren"; }
+  setTimeout(() => { knopf.textContent = alt; }, 2200);
+}
+function loeschen(m) {
+  if (!confirm("Diese Mail von diesem Gerät löschen?\n\n" + (m.betreff || "(ohne Betreff)"))) return;
+  MAILS = MAILS.filter((x) => x.id !== m.id);
+  dbTx("readwrite", (s) => s.delete(m.id));
+  st.id = null; $("app").dataset.ansicht = "liste"; alles();
+}
+
+/* ══ NEU, EINFÜGEN, BEISPIEL ══════════════════════════════════════════════ */
+function neueMail() {
+  const m = { id: neueId(), ordner: "entwurf", vonName: "", vonAdr: "", anName: "", anAdr: "", betreff: "", text: "", namenExtra: "",
+    bitte: BITTE.sonst, zeit: new Date().toISOString() };
+  MAILS.push(m); jetztSpeichern(m); st.ordner = "entwurf"; oeffne(m.id);
+  const f = $("an"); if (f) f.focus();
+}
+function einfuegen(roh) {
+  const t = String(roh || "").trim();
+  if (!t) { $("einfuegen-meldung").className = "meldung warn"; $("einfuegen-meldung").textContent = "Es steht noch kein Text im Feld."; return; }
+  const m = Object.assign(mailLesen(t), { id: neueId(), ordner: "eingang", namenExtra: "", bitte: BITTE.eingang, zeit: new Date().toISOString() });
+  MAILS.push(m); jetztSpeichern(m);
+  $("einfuegen-dialog").close(); $("einfuegen-text").value = ""; st.ordner = "eingang"; oeffne(m.id);
+}
+$("einfuegen").addEventListener("click", () => { $("einfuegen-meldung").textContent = ""; $("einfuegen-dialog").showModal(); $("einfuegen-text").focus(); });
+$("einfuegen-zu").addEventListener("click", () => $("einfuegen-dialog").close());
+$("einfuegen-ok").addEventListener("click", () => einfuegen($("einfuegen-text").value));
+$("einfuegen-ablage").addEventListener("click", async () => {
+  try { $("einfuegen-text").value = await navigator.clipboard.readText(); }
+  catch (_e) { $("einfuegen-meldung").className = "meldung warn"; $("einfuegen-meldung").textContent = "Der Browser gibt die Zwischenablage nicht her. Tippen Sie lange ins Feld und wählen Sie „Einfügen“."; }
+});
+$("einfuegen-datei").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if (f) einfuegen(await f.text());
+});
+$("neu").addEventListener("click", neueMail);
+$("fab").addEventListener("click", neueMail);
+$("suche").addEventListener("input", zeichneListe);
+$("menue").addEventListener("click", () => $("menue-dialog").showModal());
+$("menue-zu").addEventListener("click", () => $("menue-dialog").close());
+$("thema").addEventListener("click", () => {
+  const r = document.documentElement;
+  const dunkel = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dunkel ? "light" : "dark"; schreib(THEMA_KEY, r.dataset.theme);
+});
+$("beispiel").addEventListener("click", () => {
+  const b = BEISPIELE[0];
+  for (const alt of MAILS.filter((x) => x.bid === b.bid && x.ordner === "eingang")) { MAILS = MAILS.filter((x) => x !== alt); dbTx("readwrite", (s) => s.delete(alt.id)); }
+  const m = beispielMail(b); MAILS.push(m); jetztSpeichern(m);
+  $("menue-dialog").close(); st.ordner = "eingang"; oeffne(m.id);
 });
 
-$("verwerfen").addEventListener("click", () => {
-  stand.zuordnung = new Map();
-  $("zuordnung-stand").textContent = "Zuordnung verworfen. Platzhalter werden nicht mehr zurückgesetzt, bis Sie den Text ändern.";
-  antwortZeigen();
-});
+function alles() { zeichneOrdner(); zeichneListe(); zeichneLesen(); }
 
 /* ══ SELBSTTEST ═══════════════════════════════════════════════════════════
-   Liest den Köder (koeder.txt): vor jedem Fall steht `# ERWARTET: <Sorte>`
-   oder `# ERWARTET: kein Befund`; im Kopf `# BEFUNDE: <Zahl>` und
-   `# NAMEN: …`. Zwei Vorbedingungen werden mitgemessen: der Köder ist
-   überhaupt geladen, und es gab Marken zu prüfen — sonst wäre ein grünes
-   Ergebnis ein grünes Nichts. */
+   Liest den Köder (koeder.txt): vor jedem Fall `# ERWARTET: <Sorte>` oder
+   `# ERWARTET: kein Befund`; im Kopf `# BEFUNDE: <Zahl>` und `# NAMEN: …`.
+   Zwei Vorbedingungen werden mitgemessen: der Köder ist geladen, und es gab
+   Marken zu prüfen — sonst wäre ein grünes Ergebnis ein grünes Nichts. */
 function selbsttest(koeder) {
   const erg = [];
   const ok = (bed, satz) => erg.push({ ok: !!bed, satz });
@@ -363,9 +812,8 @@ function selbsttest(koeder) {
   ok(koeder.length > 200, "der Köder ist geladen (" + koeder.length + " Zeichen, " + zeilen.length + " Zeilen)");
   const kopfZahl = Number((koeder.match(/^# BEFUNDE: (\d+)/m) || [])[1]);
   const namen = namenListe((koeder.match(/^# NAMEN: (.+)$/m) || [])[1]);
-  /* Die Kommentarzeilen tragen die Marken und die Namen-Liste. Sie werden mit
-     Leerzeichen GLEICHER Länge überschrieben: so bleiben alle Stellen gleich,
-     und die Namen-Liste im Kopf zählt nicht als Befund. */
+  /* Kommentarzeilen werden mit Leerzeichen GLEICHER Länge überschrieben: so
+     bleiben alle Stellen gleich, und die Namen-Liste zählt nicht als Befund. */
   const inhalt = zeilen.map((z) => (z.startsWith("#") ? " ".repeat(z.length) : z)).join("\n");
   const v = verdecke(inhalt, namen);
   const treffer = v.treffer;
@@ -403,7 +851,7 @@ function selbsttest(koeder) {
 }
 function testZeigen(erg) {
   const ul = $("test-ergebnis"); ul.textContent = "";
-  for (const e of erg) { const li = document.createElement("li"); li.dataset.ok = String(e.ok); li.textContent = (e.ok ? "✓ " : "✗ ") + e.satz; ul.append(li); }
+  for (const e of erg) ul.append(el("li", { "data-ok": String(e.ok) }, (e.ok ? "✓ " : "✗ ") + e.satz));
   const gut = erg.filter((e) => e.ok).length;
   $("test-summe").className = "meldung " + (gut === erg.length ? "gut" : "warn");
   $("test-summe").textContent = gut + " von " + erg.length + " bestanden · " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC · " + navigator.userAgent;
@@ -423,10 +871,21 @@ $("test-datei").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (f) testZeigen(selbsttest(await f.text()));
 });
 
-window.SendePruefer = { finde, verdecke, aufdecken, istIban, selbsttest, ANBIETER };
+/* ══ START ════════════════════════════════════════════════════════════════ */
+window.SendePruefer = { finde, verdecke, aufdecken, istIban, selbsttest, ANBIETER, emlBauen, mailLesen, mails: () => MAILS, bereit: null };
 if (!P) $("modul-fehlt").hidden = false;
-anbieterZeigen();
-zeichne();
+(async () => {
+  DB = await dbAuf();
+  MAILS = (await dbTx("readonly", (s) => s.getAll())) || [];
+  if (!MAILS.length && !lies(SAAT_KEY)) {
+    MAILS = BEISPIELE.map(beispielMail);
+    for (const m of MAILS) await jetztSpeichern(m);
+    schreib(SAAT_KEY, "1");
+  }
+  $("speicher-stand").textContent = DB ? "" : "Speichern ist in diesem Fenster nicht möglich: die Mails gehen beim Schließen verloren.";
+  alles();
+  window.SendePruefer.bereit = true;
+})();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>

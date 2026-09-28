@@ -4,6 +4,8 @@
 # (Probe grün, obwohl der Fehler drin war) · toter Anker (die Sabotage traf
 # nichts). Eine rote Zeile mit fremdem Namen zählt als „falscher Grund".
 #
+# NUR_ANKER=1 prüft nur, ob jeder Anker genau einmal trifft (Sekunden statt Minuten).
+#
 # Läuft in einer WEGWERF-KOPIE — eine liegengebliebene Sabotage im echten
 # Baum sähe danach wie ein Baufehler aus.
 set -u
@@ -29,6 +31,7 @@ if s.count(a) != 1: sys.exit(1)
 open(p, "w", encoding="utf-8").write(s.replace(a, os.environ["ERSATZ"]))
 PY
   then echo "  ⚠ ANKER TOT: $name"; tot=$((tot+1)); return; fi
+  if [ -n "${NUR_ANKER:-}" ]; then gefangen=$((gefangen+1)); return; fi
   local aus rc
   aus="$(cd "$KOPIE/w" && node tests/smoke.mjs 2>&1)"; rc=$?
   if [ "$rc" -eq 0 ]; then echo "  ✗ BLIND: $name"; blind=$((blind+1)); return; fi
@@ -41,7 +44,7 @@ PY
 }
 
 frisch
-if ! (cd "$KOPIE/w" && node tests/smoke.mjs >/dev/null 2>&1); then
+if [ -z "${NUR_ANKER:-}" ] && ! (cd "$KOPIE/w" && node tests/smoke.mjs >/dev/null 2>&1); then
   echo "✗ Die Probe ist schon ohne Eingriff rot — die Gegenprobe misst so nichts."; exit 1
 fi
 echo "── Gegenprobe Sende-Prüfer ──"
@@ -69,44 +72,72 @@ fall "Modul 25 fehlt im Offline-Vorrat" sw.js \
   ', "modules/25_pseudonym.js"]' ']' 'Offline-Vorrat'
 fall "ohne Modul 25 bleibt der Hinweis verborgen" $H \
   'if (!P) $("modul-fehlt").hidden = false;' '' 'Hinweis sichtbar'
-fall "ohne Modul 25 wird trotzdem kopiert" $H \
-  '  if (!P) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: der Prüfkern fehlt (siehe Hinweis oben)."; return; }' '' 'Kopieren wird verweigert'
-fall "ohne Modul 25 wird trotzdem gesendet" $H \
-  '  if (!P) { m.textContent = "Nicht gesendet: der Prüfkern fehlt (siehe Hinweis oben)."; return; }' '' 'Senden wird verweigert'
+fall "ohne Modul 25 fällt der erste Riegel weg (Kopieren und Senden)" $H \
+  '  if (!P) { meldung("Der Prüfkern fehlt (siehe Hinweis oben)."); return null; }' '' 'Kopieren wird verweigert|Senden wird verweigert'
 fall "die letzte Sicherung vor dem Hinausgehen fehlt" $H \
-  '  return P.findLeak(text, Object.fromEntries(stand.zuordnung));' '  return null;' 'versagt das Verdecken'
+  '  return P.findLeak(text, alsObjekt(zuordnung));' '  return null;' 'versagt das Verdecken'
 fall "Senden schickt den ursprünglichen Text" $H \
-  '  const q = anfrage(a, schluessel, text);' '  const q = anfrage(a, schluessel, $("eingabe").value);' 'KEIN Befund-Wert|verdeckte Fassung'
+  '  const q = anfrage(a, schluessel, r.text);' '  const q = anfrage(a, schluessel, hinaus(m));' 'KEIN Befund-Wert|verdeckte Fassung'
 fall "die Anthropic-Version fehlt in den Kopfzeilen" $H \
   '"anthropic-version": "2023-06-01", ' '' 'Kopfzeilen des Auftrags'
 fall "ein freies Adressfeld kommt dazu" $H \
-  '<select id="anbieter"></select>' '<select id="anbieter"></select><input id="adresse" type="url">' 'Eingabefeld für eine Adresse'
+  '<textarea id="einfuegen-text"' '<input id="adresse" type="url"><textarea id="einfuegen-text"' 'Eingabefeld für eine Adresse'
 fall "alle Anbieter teilen sich einen Schlüssel" $H \
-  'function schluesselName() { return SCHLUESSEL_PREFIX + $("anbieter").value; }' 'function schluesselName() { return SCHLUESSEL_PREFIX + "x"; }' 'nicht übernommen|app-eigenen Namen'
+  'const schluesselName = () => SCHLUESSEL_PREFIX + (($("anbieter") || {}).value || "anthropic");' 'const schluesselName = () => SCHLUESSEL_PREFIX + "x";' 'nicht übernommen|app-eigenen Namen'
 fall "ohne Schlüssel schweigt der Senden-Knopf über das Fehlende" $H \
-  'if (!schluessel) { m.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }' '' 'was fehlt'
+  'if (!schluessel) { e.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }' '' 'was fehlt'
 fall "der Hinweis ohne Namen-Liste verschwindet" $H \
-  '$("namen-hinweis").hidden = namen.length > 0;' '$("namen-hinweis").hidden = true;' 'kein Name verdeckt'
+  'set("namen-hinweis", (e) => { e.hidden = namen.length > 0; });' 'set("namen-hinweis", (e) => { e.hidden = true; });' 'kein Name verdeckt'
 fall "der Kopieren-Weg heißt wieder „stattdessen“" $H \
   'Für Ihr eigenes KI-Abo:' 'Stattdessen für Ihr eigenes KI-Abo:' 'stattdessen'
 fall "die Antwort kommt ohne echte Werte zurück" $H \
-  '  return P.rehydrate(String(text || ""), Object.fromEntries(zuordnung));' '  return String(text || "");' 'echten Werten zurück|Selbsttest'
+  '  return P.rehydrate(String(text || ""), o);' '  return String(text || "");' 'echten Werten zurück|Selbsttest'
 fall "der Selbsttest liest keine Marken mehr (grünes Nichts)" $H \
   '    if (!m) return;' '    if (!m || true) return;' 'Selbsttest'
-# ⚠ Zwei Riegel decken einander (minmax UND overflow-wrap) — nur beide
-#   zusammen wegzunehmen misst etwas. Mit einem allein war der Fall blind.
-fall "das Raster läuft am Handy wieder quer" $H \
-  $'@media (max-width:640px){.zwei{grid-template-columns:minmax(0,1fr)}}\ncode{overflow-wrap:anywhere}' '@media (max-width:640px){.zwei{grid-template-columns:1fr}}' '360 px'
+fall "die zwei Wege stehen am Handy nebeneinander" $H \
+  '@container (max-width:560px){.zwei{grid-template-columns:minmax(0,1fr)}}' '' 'untereinander'
 
-# Beispiel-E-Mail (Klaus 2026-09-28)
-fall "das Beispiel füllt die Namen nicht mehr ein" $H \
-  '  $("namen").value = BEISPIEL_NAMEN;' '' 'kein Wert des Beispiels'
+# Beispiel-E-Mails (Klaus 2026-09-28)
+fall "das Beispiel bringt seine Namen nicht mehr mit" $H \
+  'betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH\nBeispiel",' 'betreff: "Rechnung RE-2026-04871 noch offen",' 'kein Wert des Beispiels'
 fall "das Beispiel bringt keine Antwort mehr mit" $H \
-  '  $("antwort-ein").value = BEISPIEL_ANTWORT;' '' 'echten Angaben zurück'
-fall "der Hinweis „alles erfunden“ bleibt verborgen" $H \
-  '  $("beispiel-meldung").hidden = false;' '' 'alles erfunden'
-fall "das Beispiel verliert seine Kopfzeilen" $H \
-  'const BEISPIEL_TEXT = "Von: Petra Beispiel <petra.beispiel@musterbau.example>\nAn: ' 'const BEISPIEL_TEXT = "Petra Beispiel <petra.beispiel@musterbau.example>\nAn: ' 'Kopfzeilen'
+  'antwortRoh: "Sehr geehrte Frau' 'antwortRoh: "", _alt: "Sehr geehrte Frau' 'echten Angaben zurück'
+fall "der Hinweis „alles erfunden“ fehlt" $H \
+  'if (m.beispiel) box.append(el("p", { class: "beispiel-hin"' 'if (false) box.append(el("p", { class: "beispiel-hin"' 'alles erfunden'
+fall "die Mail verliert ihre Kopfzeilen" $H \
+  '  if (v) k.push("Von: " + v);' '' 'Kopfzeilen'
+fall "ein zweiter Tipp auf „Beispiel“ legt ein Doppel an" $H \
+  'for (const alt of MAILS.filter((x) => x.bid === b.bid && x.ordner === "eingang"))' 'for (const alt of [])' 'kein Doppel'
+fall "beim ersten Öffnen liegen keine Beispiele da" $H \
+  'if (!MAILS.length && !lies(SAAT_KEY)) {' 'if (false) {' 'drei Beispiele'
+
+# Postfach (Klaus 2026-09-28)
+fall "die Mail wird nicht mehr auf dem Gerät gespeichert" $H \
+  'return dbTx("readwrite", (s) => s.put(m)); }' 'return Promise.resolve(); }' 'nach dem Neuladen'
+fall "die Zuordnung wird beim Hinausgehen nicht mitgespeichert" $H \
+  'function merkeHinaus(m, r) { m.zuordnung = alsObjekt(r.zuordnung);' 'function merkeHinaus(m, r) {' 'nach dem Neuladen'
+fall "der Absendername wird nicht mehr von selbst verdeckt" $H \
+  '[m.vonName, m.anName, ...namenListe(m.namenExtra)]' '[...namenListe(m.namenExtra)]' 'ohne Zutun verdeckt'
+fall "die Suche filtert nicht mehr" $H \
+  'm.ordner === st.ordner && (!q || ganzeMail(m).toLowerCase().includes(q))' 'm.ordner === st.ordner' 'Suche findet'
+fall "die Wahl hell/dunkel wird nicht gemerkt" $H \
+  'r.dataset.theme = dunkel ? "light" : "dark"; schreib(THEMA_KEY, r.dataset.theme);' 'r.dataset.theme = dunkel ? "light" : "dark";' 'übersteht das Neuladen'
+fall "am Handy stehen Liste und Mail übereinander" $H \
+  '.app[data-ansicht="lesen"] section.liste{display:none}' '' 'zeigt sie allein'
+
+# .eml und Teilen
+fall "die .eml verliert Zeichensatz und X-Unsent" $H \
+  '"MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8",' '"MIME-Version: 1.0",' 'X-Unsent'
+fall "die abgelegte Antwort trägt Platzhalter statt echter Angaben" $H \
+  'betreff: aus ? re(m.betreff) : m.betreff, text: klar,' 'betreff: aus ? re(m.betreff) : m.betreff, text: m.antwortRoh,' 'ohne Platzhalter'
+fall "Umlaute im Betreff gehen roh in den Kopf" $H \
+  '  if (/^[\x20-\x7e]*$/.test(s)) return s;' '  return s;' 'reines ASCII|hin und zurück'
+fall "eine gespeicherte .eml bleibt in ihrem Ordner" $H \
+  'm.ordner = "export"; m.exportiert' 'm.exportiert' 'Exportiert'
+fall "Teilen lädt immer nur herunter" $H \
+  'if (!(navigator.canShare && navigator.canShare({ files: [f] }))) {' 'if (true) {' 'Teilen reicht'
+fall "eine eingefügte Mail wird nicht entschlüsselt (Quoted-Printable)" $H \
+  'cte === "quoted-printable" ? dekodBytes(vonQP(rumpf), cs) : rumpf' 'cte === "quoted-printable" ? rumpf : rumpf' 'entschlüsselt'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
