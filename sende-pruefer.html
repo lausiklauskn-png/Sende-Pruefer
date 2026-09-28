@@ -10,9 +10,9 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <script>try{var t=localStorage.getItem("sendepruefer_thema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
-:root{--bg:#eef1f4;--fl:#fff;--fl2:#f6f8fa;--linie:#dde3e9;--schrift:#1b232c;--leise:#5c6975;--akzent:#0e6b72;--akzent-hell:#d7eeef;--schutz:#8a5000;--schutz-grund:#fff1d6;--schutz-rand:#e0b25e;--ok:#1f7a45;--ok-grund:#dff3e6;--warn:#a3321f;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}
+:root{--bg:#eef1f4;--fl:#fff;--fl2:#f6f8fa;--linie:#dde3e9;--schrift:#1b232c;--leise:#5c6975;--akzent:#0e6b72;--akzent-hell:#d7eeef;--h1:#15838b;--h2:#0a4a50;--glanz:#7fd8de;--schutz:#8a5000;--schutz-grund:#fff1d6;--schutz-rand:#e0b25e;--ok:#1f7a45;--ok-grund:#dff3e6;--warn:#a3321f;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--h1:#1b7f87;--h2:#0b4046;--glanz:#8fe4ea;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12171c;--fl:#1a2128;--fl2:#202932;--linie:#2e3944;--schrift:#e4eaf0;--leise:#9aa8b5;--akzent:#5cc2c9;--akzent-hell:#173a3d;--h1:#1b7f87;--h2:#0b4046;--glanz:#8fe4ea;--schutz:#f3b54a;--schutz-grund:#3a2c12;--schutz-rand:#7a5a1e;--ok:#6fd49a;--ok-grund:#163826;--warn:#ff9a85;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -21,16 +21,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--akzent);outline-offset:2px}
 a{color:var(--akzent)}
 code{font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}
-.app{display:grid;grid-template-columns:220px 340px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);height:100%;max-width:1400px;margin:0 auto}
+.app{display:grid;grid-template-columns:clamp(200px,15vw,300px) clamp(300px,24vw,460px) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);height:100vh;height:100dvh;width:100%}
 header.kopf{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--fl);border-bottom:1px solid var(--linie)}
 .marke{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;white-space:nowrap}
 .marke svg{flex:none}
 .suche{flex:1;min-width:0;max-width:560px;display:flex;align-items:center;gap:8px;background:var(--fl2);border:1px solid var(--linie);border-radius:999px;padding:7px 14px;color:var(--leise)}
 .suche input{border:0;background:transparent;color:var(--schrift);font:inherit;width:100%;outline:0;min-width:0}
-.kopf .rund{flex:none;border:1px solid var(--linie);background:var(--fl);border-radius:999px;min-width:40px;height:40px;padding:0 12px;font-weight:600}
+.kopf .rund{flex:none;min-width:40px;height:40px;padding:0 12px;border-radius:999px}
 .banner{grid-column:1/-1;margin:0;padding:10px 16px;background:var(--schutz-grund);color:var(--schutz);border-bottom:1px solid var(--schutz-rand);font-weight:600}
 nav.ordner{padding:14px 10px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--linie);background:var(--fl);overflow:auto}
-.neu{display:flex;align-items:center;gap:10px;margin:0 4px 14px;padding:12px 18px;border:0;border-radius:16px;background:var(--akzent-hell);color:var(--akzent);font-weight:600}
+.neu{display:flex;align-items:center;gap:10px;margin:0 4px 14px;padding:12px 18px;border-radius:16px}
 .ord{display:flex;align-items:center;gap:12px;padding:9px 14px;border:0;background:transparent;border-radius:0 999px 999px 0;text-align:left;width:100%}
 .ord .zahl{margin-left:auto;font-size:.8rem;color:var(--leise)}
 .ord[aria-current="true"]{background:var(--akzent-hell);color:var(--akzent);font-weight:600}
@@ -55,8 +55,26 @@ main.lesen{overflow:auto;min-width:0;padding:18px 28px 40px;container-type:inlin
 .leer{color:var(--leise);text-align:center;margin-top:18vh}
 .knopf.zurueck{display:none}
 .werkzeug{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
-.knopf{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--linie);background:var(--fl);border-radius:999px;padding:8px 16px;min-height:40px;font-weight:600;font-size:.9rem}
-.knopf.haupt{background:var(--akzent);border-color:var(--akzent);color:var(--fl)}
+.knopf{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:8px 16px;min-height:40px;font-weight:700;font-size:.9rem}
+/* Glas-Knöpfe nach Tomys Hub (tomy-ui/theme.css, „Glas-Cabochon“): Tiefe aus
+   inneren Schatten, ein Lichtfleck, der dem Zeiger folgt (--mx/--my), beim
+   Drücken gibt der Knopf nach. Zwei Sorten: haupt (Farbe) und sonst (Fläche). */
+.knopf,.kopf .rund,.neu,.fab{position:relative;overflow:hidden;cursor:pointer;border:1px solid var(--linie);
+  background:linear-gradient(180deg,var(--fl),var(--fl2));color:var(--schrift);
+  box-shadow:inset 0 2px 1px rgb(255 255 255/.45),inset 0 -4px 8px rgb(0 0 0/.10),0 6px 14px rgb(0 0 0/.12),0 2px 4px rgb(0 0 0/.10);
+  transition:transform .14s ease,box-shadow .2s ease,border-color .2s}
+.knopf::before,.kopf .rund::before,.neu::before,.fab::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(90px 60px at var(--mx,50%) var(--my,20%),rgb(255 255 255/.55),transparent 60%),linear-gradient(180deg,rgb(255 255 255/.28),transparent 48%);
+  mix-blend-mode:screen;opacity:.35;transition:opacity .22s}
+.knopf:hover::before,.kopf .rund:hover::before,.neu:hover::before,.fab:hover::before,.knopf:focus-visible::before{opacity:1}
+.knopf:hover,.kopf .rund:hover{border-color:var(--akzent);box-shadow:inset 0 2px 1px rgb(255 255 255/.45),inset 0 -4px 8px rgb(0 0 0/.12),0 10px 22px rgb(0 0 0/.16),0 0 18px color-mix(in srgb,var(--akzent) 30%,transparent)}
+.knopf:active,.kopf .rund:active,.neu:active,.fab:active{transform:scale(.97)}
+.knopf.haupt,.neu,.fab{border-color:transparent;color:#fff;background:linear-gradient(135deg,var(--h1),var(--h2) 75%);
+  text-shadow:0 1px 1px rgb(0 0 0/.3);
+  box-shadow:inset 0 2px 1px rgb(255 255 255/.45),inset 0 -5px 9px rgb(0 0 0/.35),inset 0 0 0 1px rgb(255 255 255/.12),0 10px 22px rgb(0 0 0/.22),0 3px 6px rgb(0 0 0/.18)}
+.knopf.haupt:hover,.neu:hover,.fab:hover{box-shadow:inset 0 2px 1px rgb(255 255 255/.6),inset 0 -5px 9px rgb(0 0 0/.4),0 14px 28px rgb(0 0 0/.3),0 0 24px color-mix(in srgb,var(--glanz) 45%,transparent)}
+.knopf>*,.neu>*,.fab>*,.kopf .rund>*{position:relative}
+@media (prefers-reduced-motion:reduce){.knopf,.kopf .rund,.neu,.fab{transition:none}.knopf:active,.kopf .rund:active,.neu:active,.fab:active{transform:none}}
 .knopf.klein{padding:4px 12px;min-height:34px}
 h1.betreff{font-size:1.4rem;line-height:1.25;margin:4px 0 12px;overflow-wrap:anywhere}
 .absender{display:flex;align-items:center;gap:12px;margin-bottom:14px}
@@ -116,7 +134,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
  .kopf{gap:6px;padding:8px 10px}
  .app:not([data-ansicht="lesen"]) .fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px));display:flex}
 }
-.fab{border:0;border-radius:16px;background:var(--akzent);color:var(--fl);padding:14px 18px;font-weight:700;box-shadow:0 4px 14px rgb(0 0 0/.25);align-items:center;gap:8px}
+.fab{border-radius:16px;padding:14px 18px;font-weight:700;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -125,7 +143,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
   <div class="marke"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="6" width="26" height="18" rx="4" fill="var(--akzent)"/><path d="M4 9l11 8 11-8" stroke="var(--fl)" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="11" y="16" width="8" height="3" rx="1.5" fill="var(--schutz-rand)"/></svg><span>Sende-Prüfer</span></div>
   <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="In E-Mails suchen" aria-label="In E-Mails suchen"></label>
   <button class="rund" id="einfuegen" type="button" title="Eine empfangene Mail einfügen (Text oder .eml)">📥<span class="t"> Mail einfügen</span></button>
-  <button class="rund" id="thema" type="button" aria-label="Hell oder dunkel" title="Hell oder dunkel">◐</button>
+  <button class="rund" id="thema" type="button" title="Zwischen hellem und dunklem Thema wechseln"><span id="thema-zeichen" aria-hidden="true">☀</span><span class="t" id="thema-text"> Hell</span></button>
   <button class="rund" id="menue" type="button" aria-label="Menü: Beispiele, Selbsttest, Anleitung" title="Beispiele, Selbsttest, Anleitung">⚙</button>
  </header>
  <p class="banner" id="modul-fehlt" data-modul-fehlt hidden>Der Prüfkern (modules/25_pseudonym.js) wurde nicht geladen. Deshalb wird nichts erkannt, nichts kopiert und nichts gesendet. Laden Sie die Seite neu; liegt sie als Datei vor, muss der Ordner „modules“ daneben liegen.</p>
@@ -786,11 +804,27 @@ $("fab").addEventListener("click", neueMail);
 $("suche").addEventListener("input", zeichneListe);
 $("menue").addEventListener("click", () => $("menue-dialog").showModal());
 $("menue-zu").addEventListener("click", () => $("menue-dialog").close());
+/* Hell und dunkel: der Knopf nennt, wohin er schaltet — „☀ Hell“ im dunklen
+   Thema, „🌙 Dunkel“ im hellen. Ohne Wahl folgt die Seite dem Gerät. */
+const istDunkel = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+function themaKnopf() {
+  const d = istDunkel();
+  $("thema-zeichen").textContent = d ? "☀" : "🌙"; $("thema-text").textContent = d ? " Hell" : " Dunkel";
+  $("thema").setAttribute("aria-label", d ? "Zum hellen Thema wechseln" : "Zum dunklen Thema wechseln");
+  $("thema").dataset.jetzt = d ? "dunkel" : "hell";
+}
 $("thema").addEventListener("click", () => {
-  const r = document.documentElement;
-  const dunkel = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  r.dataset.theme = dunkel ? "light" : "dark"; schreib(THEMA_KEY, r.dataset.theme);
+  document.documentElement.dataset.theme = istDunkel() ? "light" : "dark"; schreib(THEMA_KEY, document.documentElement.dataset.theme);
+  themaKnopf();
 });
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themaKnopf); } catch (_e) {}
+themaKnopf();
+/* Der Lichtfleck folgt dem Zeiger (wie in Tomys Hub). */
+document.addEventListener("pointermove", (e) => {
+  const k = e.target.closest && e.target.closest(".knopf,.kopf .rund,.neu,.fab"); if (!k) return;
+  const r = k.getBoundingClientRect();
+  k.style.setProperty("--mx", (e.clientX - r.left) + "px"); k.style.setProperty("--my", (e.clientY - r.top) + "px");
+}, { passive: true });
 $("beispiel").addEventListener("click", () => {
   const b = BEISPIELE[0];
   for (const alt of MAILS.filter((x) => x.bid === b.bid && x.ordner === "eingang")) { MAILS = MAILS.filter((x) => x !== alt); dbTx("readwrite", (s) => s.delete(alt.id)); }

@@ -18,7 +18,9 @@ Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nu
    - **Senden**, ohne Fenster zu wechseln. Sie wählen den Anbieter und tragen Ihren Schlüssel ein. Es kostet, was Ihr Schlüssel kostet.
 5. Die Antwort steht mit Ihren echten Angaben da. **In KI-Antworten ablegen**, **⤓ Als .eml speichern** oder **📤 Teilen**: die `.eml` öffnet Ihr Mail-Programm als Entwurf. Gespeicherte und geteilte Mails liegen danach in **Exportiert**.
 
-Unter **⚙** stehen die Beispiel-Mail und der Selbsttest, oben **◐** schaltet hell und dunkel um.
+Unter **⚙** stehen die Beispiel-Mail und der Selbsttest. Oben schaltet **☀ Hell** bzw. **🌙 Dunkel** das Thema um; die Wahl bleibt gemerkt.
+
+Das Postfach füllt immer das ganze Fenster. Als installierte App öffnet es sich am Rechner in einem eigenen Fenster mit **—** (verkleinern), **⧉** (Größe ändern) und **✕** (schließen); die Größe merkt sich der Browser. Einmal auf volle Größe gestellt, startet es danach so.
 
 ## Was erkannt wird
 

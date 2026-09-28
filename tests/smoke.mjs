@@ -71,6 +71,9 @@ ok("die Seite lädt Modul 25 vor ihrem eigenen Skript",
   html.indexOf('<script src="' + MODUL25 + '">') > -1 && html.indexOf('<script src="' + MODUL25 + '">') < html.indexOf("<script>\n"));
 ok("die Seite trägt keine eigenen Erkennungs-Muster mehr (keine zweite Fassung)",
   !/const (?:SCHLUESSEL_MUSTER|IBAN_FORM|BETRAG|TELEFON|BELEG_FREI|MAIL) =/.test(html));
+const manifest = JSON.parse(readFileSync(join(WURZEL, "manifest.json"), "utf8"));
+ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · Schließen (display: standalone)",
+  manifest.display === "standalone" && !manifest.display_override);
 ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
 /* ── Server auf Port 0 — ein fester Port kollidiert mit einem zweiten Lauf ─ */
@@ -168,6 +171,15 @@ try {
   ok("auf breitem Schirm stehen Ordner, Liste und Mail nebeneinander",
     await page.evaluate(() => ["nav.ordner", "section.liste", "main.lesen"].map((s) => document.querySelector(s).getBoundingClientRect())
       .every((r, i, a) => r.width > 60 && (i === 0 || r.left >= a[i - 1].right - 1))));
+  /* Klaus 2026-09-28: „die komplette Bildfläche immer einnehmen“ — auf jedem
+     Schirm, auch sehr breit. Gemessen wird die Fläche, nicht die CSS-Zeile. */
+  for (const [w, h] of [[1920, 1080], [2560, 1440], [1024, 700]]) {
+    await page.setViewportSize({ width: w, height: h });
+    const f = await page.evaluate(() => { const r = document.getElementById("app").getBoundingClientRect();
+      return { l: r.left, t: r.top, w: r.width, h: r.height, rechts: document.querySelector("main.lesen").getBoundingClientRect().right }; });
+    ok(`bei ${w}×${h} füllt das Postfach die ganze Bildfläche`,
+      f.l === 0 && f.t === 0 && Math.abs(f.w - w) < 1 && Math.abs(f.h - h) < 1 && Math.abs(f.rechts - w) < 1, JSON.stringify(f));
+  }
   await page.setViewportSize({ width: 420, height: 900 });
 
   const text = "Frau Erika Musterfrau schreibt von erika@beispiel.test.\n" +
@@ -356,9 +368,24 @@ try {
   /* ── Hell und dunkel ─────────────────────────────────────────────────── */
   const grund = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   const vorher = await grund();
+  const knopfText = () => page.evaluate(() => ({ t: document.getElementById("thema").textContent.trim(), jetzt: document.getElementById("thema").dataset.jetzt }));
+  const k1 = await knopfText();
   await page.click("#thema");
   const nachher = await grund();
+  const k2 = await knopfText();
   ok("der Umschalter wechselt hell und dunkel", vorher !== nachher, vorher + " → " + nachher);
+  ok("der Knopf sagt in Worten, wohin er schaltet (Hell ⟷ Dunkel)",
+    k1.jetzt !== k2.jetzt && [k1, k2].every((k) => (k.jetzt === "dunkel" ? /Hell/ : /Dunkel/).test(k.t)), JSON.stringify([k1, k2]));
+  /* Klaus 2026-09-28: Knöpfe „ähnlich wie Tomys Hub“ — Glas mit Tiefe. Gemessen am
+     berechneten Stil, in BEIDEN Themen: Verlauf im Haupt-Knopf, innere Schatten. */
+  for (const thema of ["light", "dark"]) {
+    await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, thema);
+    const st = await page.evaluate(() => { const c = getComputedStyle(document.getElementById("fab").offsetParent ? document.getElementById("fab") : document.getElementById("neu"));
+      const f = getComputedStyle(document.getElementById("thema")); return { bg: c.backgroundImage, sh: c.boxShadow, farbe: c.color, fsh: f.boxShadow }; });
+    ok(`Knöpfe im Glas-Stil (${thema}): Verlauf, innere Schatten, weiße Schrift`,
+      /gradient/.test(st.bg) && /inset/.test(st.sh) && st.farbe === "rgb(255, 255, 255)" && /inset/.test(st.fsh), JSON.stringify(st));
+  }
+  await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, await page.evaluate(() => localStorage.getItem("sendepruefer_thema")));
   await page.reload(); await bereit(page);
   ok("… und die Wahl übersteht das Neuladen", (await grund()) === nachher);
 

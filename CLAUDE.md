@@ -10,7 +10,7 @@ Adresse: https://lausiklauskn-png.github.io/Sende-Pruefer/
 ## Das Postfach (seit 2026-09-28, Vorschau A)
 
 Ordner **Eingefügt · Entwürfe · KI-Antworten · Exportiert**, Ansicht **Original ⟷
-Was die KI sieht**, hell/dunkel (`sendepruefer_thema`). Mails liegen in IndexedDB
+Was die KI sieht**, hell/dunkel (`sendepruefer_thema`, Knopf „☀ Hell“/„🌙 Dunkel“). Mails liegen in IndexedDB
 `SendePruefer1` (Store `mails`) — **nie ändern**, sonst ist das Postfach leer.
 Hinaus geht `ganzeMail(m)` + `\n\n---\n` + Bitte (Mail zuerst, damit die
 Zeilennummern der Befunde die der Mail sind). Namen = Von/An + „Weitere Namen“.
@@ -18,6 +18,14 @@ Die Zuordnung wird beim Kopieren/Senden mit der Mail gespeichert. `.eml` (UTF-8,
 RFC 2047, `X-Unsent: 1`), Teilen über `navigator.share`, sonst Herunterladen.
 Mail einfügen liest Kopfzeilen, Quoted-Printable, Base64, multipart.
 Beispiele erscheinen einmal beim ersten Öffnen (`sendepruefer_beispiele_v1`).
+
+**Vollbild und Knöpfe (Klaus 2026-09-28):** das Raster füllt jedes Fenster
+(`100dvh`, keine Höchstbreite), `manifest.json` bleibt `display: standalone` —
+dort hat das App-Fenster — ⧉ ✕. Eine Webseite kann ein Fenster nicht maximiert
+erzwingen; der Browser merkt sich die Größe. `fullscreen` nähme die Knöpfe weg
+(Gegenprobe-Fall). Die Knöpfe sind die Glas-Knöpfe aus Tomys Hub
+(`tomy-ui/theme.css`: innere Schatten, Glanzpunkt folgt `--mx/--my`), in
+Petrol statt Tomys Farben.
 
 **Nächste Arbeit:** Anhänge prüfen (Brief `docs/BRIEF_2026-09-29_postfach-umbau.md`,
 Stufe 2), danach Impressum/Datenschutz und Marktplatz-Einträge.
@@ -51,12 +59,12 @@ Die Muster stehen weiter ein zweites Mal im Auslieferungsprüfer (LIESMICH Grenz
 
 ```bash
 npm install         # playwright-core
-npm test            # tests/smoke.mjs — echter Browser, 95 Zusicherungen
-npm run gegenprobe  # 39 eingebaute Fehler, jeder muss seine rote Zeile werfen
+npm test            # tests/smoke.mjs — echter Browser, 102 Zusicherungen
+npm run gegenprobe  # 44 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
