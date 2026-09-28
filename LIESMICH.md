@@ -38,7 +38,7 @@ Der Sende-Prüfer sorgt dafür, dass die Namen, Nummern und Beträge Ihrer Kunde
 4. **Rechnungsnummern erkennt sie nur mit Feldname** oder in der Form `RE-/RG-/INV-/KD-/AN-Jahr-Nummer`. Eine Nummer wie `A17/33` im Fließtext bleibt stehen.
 5. **Die KI kann aus dem Zusammenhang raten.** Platzhalter verbergen den Wert, nicht die Lage: „die einzige Bäckerei am Marktplatz“ ist auch ohne Namen erkennbar.
 6. **Bilder und PDF liest die Seite nicht.** Nur Text; ein eingefügtes Foto einer Rechnung wird nicht geprüft.
-7. **Die Muster stehen zweimal:** im Auslieferungsprüfer (`pruefe-datei.py` und die Browser-Fassung) und hier. Wer eines ändert, zieht das andere nach. Beträge mit Tausenderpunkt werden hier schon ganz erfasst, dort noch nicht.
+7. **Die Muster stehen zweimal:** seit dem 28.09.2026 in Sage-Modul 25 (`modules/25_pseudonym.js`, von dort unverändert übernommen) und weiter im Auslieferungsprüfer (`pruefe-datei.py` und die Browser-Fassung). Wer eines ändert, zieht das andere nach. Beträge mit Tausenderpunkt werden hier schon ganz erfasst, dort noch nicht. Fehlt die Datei `modules/25_pseudonym.js`, sagt die Seite das und lässt nichts hinaus.
 8. **Die Anbieter-Adressen stammen aus dem Auftrag**, nicht aus einem Aufruf, den diese Seite gemacht hat. Ob der erste Senden-Aufruf durchgeht, zeigt erst ein echter Schlüssel.
 9. **Der Schlüssel liegt im Browser-Speicher** dieses Geräts. Wer das Gerät teilt, löscht ihn nach Gebrauch mit „Schlüssel löschen“.
 
