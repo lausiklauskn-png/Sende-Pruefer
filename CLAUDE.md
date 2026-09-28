@@ -18,19 +18,39 @@ vorlegen, dann Gestaltung, dann Impressum/Datenschutz und Marktplatz-Eintrag.
 Gebaut am 2026-09-26 nach dem Auftrag `Kimhub/auftraege/sende-pruefer.json`
 (Prüfmerkmale 1–10). Die Fassungen der Werkstatt-Schichten liegen nur auf Klaus'
 Gerät (`werkstatt/entwurf/`, gitignoriert) und in keinem Depot. Deshalb wurde
-**neu gebaut, nicht übernommen**. Die Muster kommen aus dem Auslieferungsprüfer
-(`pruefe-datei.py` · `pruefer-formate.js`). Wer dort eines ändert, zieht es hier
-nach (benannte Doppelung, LIESMICH Grenze 7).
+**neu gebaut, nicht übernommen**. Die Muster kamen aus dem Auslieferungsprüfer
+(`pruefe-datei.py` · `pruefer-formate.js`).
+
+## Der Prüfkern ist Sage-Modul 25 (seit 2026-09-28)
+
+`modules/25_pseudonym.js` ist eine **byte-1:1-Kopie** aus
+`Sage-Protokol/src/modules/` (Generation 2), in `tests/smoke.mjs` per SHA-256
+gepinnt (`MODUL25_SHA`). Die Seite trägt **keine eigenen Muster** mehr; sie
+übersetzt nur zwischen Modul und Oberfläche (`finde`, `verdecke`, `aufdecken`).
+**Nie hier abwandeln** — in Sage ändern, neu kopieren, Pin nachziehen,
+`CACHE_VERSION` erhöhen.
+
+Vor dem Umzug liefen alte Erkennung und Modul auf **30 015 Texten** gegeneinander
+(Köder, Bausteine, Zufallszeichen, fünf Namen-Listen): **0 Abweichungen** bei
+Fundstellen, Zeilen, verdecktem Text, Zuordnung und Rückweg. Gegengeprüft: drei
+eingebaute Fehler im Modul ergaben 30 · 168 · 168 Abweichungen.
+
+Fehlt das Modul, steht ein Hinweis da und **nichts** wird kopiert oder gesendet.
+Die Muster stehen weiter ein zweites Mal im Auslieferungsprüfer (LIESMICH Grenze 7).
 
 ## Prüfen
 
 ```bash
 npm install         # playwright-core
-npm test            # tests/smoke.mjs — echter Browser, 48 Zusicherungen
-npm run gegenprobe  # 14 eingebaute Fehler, jeder muss seine rote Zeile werfen
+npm test            # tests/smoke.mjs — echter Browser, 62 Zusicherungen
+npm run gegenprobe  # 22 eingebaute Fehler, jeder muss seine rote Zeile werfen
 ```
 
-Zuletzt gemessen (2026-09-26): **48 grün · 0 ROT** · Gegenprobe **14 gefangen ·
+Zuletzt gemessen (2026-09-28, nach dem Umzug auf Modul 25): **62 grün · 0 ROT** ·
+Gegenprobe **22 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Beim
+ersten Lauf war die letzte Sicherung vor dem Hinausgehen **blind** — sie hatte nie
+einen Wächter. Jetzt misst die Probe sie mit einem gestellten Prüfkern, der nichts
+verdeckt. Davor (2026-09-26): **48 grün · 0 ROT** · Gegenprobe **14 gefangen ·
 0 blind · 0 aus falschem Grund · 0 tote Anker**. Ein Fall war zuerst blind: das
 Raster am Handy hält zwei Riegel (`minmax` und `overflow-wrap`), und nur beide
 zusammen wegzunehmen misst etwas.

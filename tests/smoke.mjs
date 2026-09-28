@@ -10,7 +10,8 @@
  * Rückgabewert.
  */
 import http from "node:http";
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync, statSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, dirname, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { findeChromium } from "./chromium-finden.mjs";
@@ -51,6 +52,24 @@ ok("LIESMICH nennt vor der Bedienung zwei Fälle, in denen man zur Seite greift"
   liesmich.indexOf("## Wann man dazu greift") > -1
   && liesmich.indexOf("## Wann man dazu greift") < liesmich.indexOf("## So geht es")
   && (liesmich.split("## Wann man dazu greift")[1].split("## So geht es")[0].match(/\*\*\d · /g) || []).length >= 2);
+
+/* ── der Prüfkern ist Sage-Modul 25, byte-1:1 (seit 2026-09-28) ─────────────
+   Wer das Modul in Sage ändert, kopiert es neu und zieht MODUL25_SHA nach.
+   Eine Abwandlung HIER wäre eine zweite Fassung, die niemand prüft. */
+const MODUL25 = "modules/25_pseudonym.js";
+const MODUL25_SHA = "7a70fb022130d1f8275e6467b82b9a60370d1f7ce2fe9fc8e0370a735ce1eba2";
+const modulBytes = (() => { try { return readFileSync(join(WURZEL, MODUL25)); } catch { return null; } })();
+ok("Modul 25 liegt bei (" + MODUL25 + ")", !!modulBytes);
+ok("Modul 25 ist unverändert (SHA-256 gepinnt)",
+  !!modulBytes && createHash("sha256").update(modulBytes).digest("hex") === MODUL25_SHA);
+const sageKopie = join(WURZEL, "..", "Sage-Protokol", "src", "modules", "25_pseudonym.js");
+if (existsSync(sageKopie)) ok("… und byte-gleich mit Sage-Protokol daneben", !!modulBytes && readFileSync(sageKopie).equals(modulBytes));
+else console.log("⊘ Sage-Protokol liegt nicht daneben — der Vergleich mit Sage ist hier nicht messbar");
+ok("die Seite lädt Modul 25 vor ihrem eigenen Skript",
+  html.indexOf('<script src="' + MODUL25 + '">') > -1 && html.indexOf('<script src="' + MODUL25 + '">') < html.indexOf("<script>\n"));
+ok("die Seite trägt keine eigenen Erkennungs-Muster mehr (keine zweite Fassung)",
+  !/const (?:SCHLUESSEL_MUSTER|IBAN_FORM|BETRAG|TELEFON|BELEG_FREI|MAIL) =/.test(html));
+ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
 /* ── Server auf Port 0 — ein fester Port kollidiert mit einem zweiten Lauf ─ */
 const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
@@ -235,6 +254,58 @@ try {
   await datei.waitForFunction(() => window.__selbsttest);
   const st2 = await datei.evaluate(() => window.__selbsttest);
   ok("über die Dateiwahl besteht er ebenso", st2.gut === st2.gesamt);
+
+  /* ── ohne Modul 25: die Seite sagt es und lässt nichts hinaus ─────────── */
+  /* ⚠ EIGENER KONTEXT. Die erste Fassung öffnete diese Seite im Kontext der
+     normalen Seite und war rot, obwohl die Seite tadellos war: dort war das
+     Modul schon geladen, und die 404 kam nie an (nachgestellt 2026-09-28:
+     im frischen Kontext grün, auch mit erlaubtem Service-Worker). Die
+     Zeile „wirklich angefragt" darunter besteht darauf, dass gemessen wurde. */
+  const ohneCtx = await browser.newContext({ serviceWorkers: "block" });
+  const ohneModul = await ohneCtx.newPage();
+  ohneModul.__geholt = [];
+  ohneModul.on("request", (q) => ohneModul.__geholt.push(q.url()));
+  await ohneModul.route("**/modules/25_pseudonym.js", (r) => r.fulfill({ status: 404, body: "" }));
+  await ohneModul.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+  await ohneModul.goto(BASIS + "sende-pruefer.html");
+  await ohneModul.waitForFunction(() => !!window.SendePruefer);
+  ok("fehlt Modul 25, steht der Hinweis sichtbar da",
+    await ohneModul.evaluate(() => { const e = document.querySelector("[data-modul-fehlt]"); return !!e && e.checkVisibility(); }));
+  await ohneModul.fill("#eingabe", "Frau Erika Musterfrau, IBAN DE89 3704 0044 0532 0130 00");
+  await ohneModul.click("#kopieren");
+  ok("… und Kopieren wird verweigert, mit Grund",
+    /Prüfkern fehlt/.test(await ohneModul.textContent("#kopier-meldung")));
+  await ohneModul.fill("#schluessel", "sk-ant-api03-PROBEnichtECHT0000000000");
+  await ohneModul.click("#senden");
+  ok("… und Senden wird verweigert, mit Grund",
+    /Prüfkern fehlt/.test(await ohneModul.textContent("#sende-meldung")));
+  ok("… und das Modul wurde wirklich angefragt und abgewiesen (sonst misst dieser Abschnitt nichts)",
+    ohneModul.__geholt.some((u) => u.endsWith("/modules/25_pseudonym.js")));
+  await ohneCtx.close();
+  /* ── die letzte Sicherung: versagt das Verdecken, geht nichts hinaus ─────
+     Gestellt wird ein Prüfkern, der die Werte FINDET, aber nicht ersetzt.
+     Nur in dieser Lage greift die Sicherung; ohne sie war sie von ihrem
+     Fehlen nicht zu unterscheiden (Gegenprobe 2026-09-28: blind). */
+  const kaputtCtx = await browser.newContext({ serviceWorkers: "block" });
+  const kaputt = await kaputtCtx.newPage();
+  const quelle = modulBytes ? modulBytes.toString("utf8") : "";
+  const kaputtQuelle = quelle.replace("return { text: out + text.slice(pos), map:", "return { text: text, map:");
+  ok("der gestellte kaputte Prüfkern unterscheidet sich wirklich", !!quelle && kaputtQuelle !== quelle);
+  await kaputt.route("**/modules/25_pseudonym.js", (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: kaputtQuelle }));
+  const kaputtRaus = [];
+  await kaputt.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => { kaputtRaus.push(r.request().url()); return r.abort(); });
+  await kaputt.goto(BASIS + "sende-pruefer.html");
+  await kaputt.waitForFunction(() => !!window.SendePruefer && !!window.SbkimPseudonym);
+  await kaputt.fill("#eingabe", "Frau Erika Musterfrau, IBAN DE89 3704 0044 0532 0130 00");
+  await kaputt.click("#kopieren");
+  ok("versagt das Verdecken, wird NICHT kopiert", /gefundenen Wert/.test(await kaputt.textContent("#kopier-meldung")));
+  await kaputt.fill("#schluessel", "sk-ant-api03-PROBEnichtECHT0000000000");
+  await kaputt.click("#senden");
+  ok("versagt das Verdecken, wird NICHT gesendet", /gefundenen Wert/.test(await kaputt.textContent("#sende-meldung")) && kaputtRaus.length === 0);
+  await kaputtCtx.close();
+
+  ok("mit Modul 25 steht der Hinweis NICHT da",
+    await page.evaluate(() => { const e = document.querySelector("[data-modul-fehlt]"); return !!e && !e.checkVisibility(); }));
 
   /* ── kein Querlauf am Handy ──────────────────────────────────────────── */
   await page.setViewportSize({ width: 360, height: 800 });

@@ -56,6 +56,8 @@ a{color:var(--akzent2)}
 <p class="zweck" data-zweck>Damit die Namen, Nummern und Beträge Ihrer Kunden nicht beim KI-Anbieter landen: Sie stellen Ihre Frage hier, die Seite ersetzt jede solche Angabe durch einen Platzhalter, und die Antwort kommt mit den echten Angaben zurück.</p>
 <p class="zusage" data-zusage="1">Hinaus geht nur die verdeckte Fassung, nur auf Knopfdruck und nur an die Adresse, die neben dem Senden-Knopf steht. Gespeichert wird außer Ihrem Schlüssel nichts.</p>
 
+<p class="meldung warn" id="modul-fehlt" data-modul-fehlt hidden>Der Prüfkern (modules/25_pseudonym.js) wurde nicht geladen. Deshalb wird nichts erkannt, nichts kopiert und nichts gesendet. Laden Sie die Seite neu; liegt sie als Datei vor, muss der Ordner „modules“ daneben liegen.</p>
+
 <section id="s-eingabe">
 <h2><span class="nr">1</span>Ihr Text</h2>
 <p>Schreiben oder fügen Sie hier ein, was Sie die KI fragen wollen, samt der Unterlagen, um die es geht.</p>
@@ -139,6 +141,7 @@ a{color:var(--akzent2)}
 </main>
 <footer><p>Sende-Prüfer · läuft vollständig in diesem Browser · <a href="LIESMICH.md">Anleitung und Grenzen</a></p></footer>
 
+<script src="modules/25_pseudonym.js"></script>
 <script>
 "use strict";
 /* ══ DIE GESCHLOSSENE LISTE DER ANBIETER ═══════════════════════════════════
@@ -154,129 +157,40 @@ const ANBIETER = Object.freeze({
 });
 const SCHLUESSEL_PREFIX = "sendepruefer_key_";
 
-/* ══ DIE MUSTER ══════════════════════════════════════════════════════════════
-   Übernommen aus dem Auslieferungsprüfer (pruefe-datei.py und die
-   Browser-Fassung assets/pruefer-formate.js). Wer eines ändert, zieht das
-   andere nach. Zwei bewusste Abweichungen, beide weil hier VERDECKT wird statt
-   nur gemeldet: Beträge erfassen den Tausenderpunkt (sonst bliebe „1.“ im
-   Klartext stehen), und bei Feldern wird nur der WERT verdeckt. */
-const SCHLUESSEL_MUSTER = [
-  /-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:[A-Z ]+ )?PRIVATE KEY-----|$)/g,
-  /sk-ant-[A-Za-z0-9_\-]{16,}/g,
-  /\bsk-(?!ant-)[A-Za-z0-9_\-]{20,}/g,
-  /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}/g,
-  /\bgithub_pat_[A-Za-z0-9_]{20,}/g,
-  /\bAIza[A-Za-z0-9_\-]{30,}/g,
-  /\bAKIA[0-9A-Z]{16}\b/g,
-  /\bxox[baprs]-[A-Za-z0-9\-]{10,}/g,
-  /\bnsec1[02-9ac-hj-np-z]{50,}/g
-];
-/* Nur der Wert wird verdeckt, der Feldname bleibt: die KI soll wissen, dass
-   dort ein Schlüssel stand. Gruppe 1 ist der Wert. */
-const SCHLUESSEL_FELD = /\b(?:api[_\-]?key|apikey|secret|client[_\-]?secret|passwort|password|passwd)\b["']?\s*[:=]\s*["']?([^\s"',}]{12,})/gi;
-const BEARER = /Authorization\s*:\s*Bearer\s+([A-Za-z0-9._\-]{16,})/gi;
-/* RFC 5321: 64 vor dem @, 255 danach. Ohne die Grenzen ist der Ausdruck auf
-   einer langen Zeile quadratisch (gemessen in PWA Toolpoint: 23 s für 200 000
-   Zeichen). */
-const MAIL = /[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,255}\.[A-Za-z]{2,}/g;
-/* Nur mit Ländervorwahl oder tel: — eine blosse Ziffernfolge ist oft eine
-   Kennung oder ein Zeitstempel. */
-const TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)\d[\d\s\-/()]{6,}\d/g;
-const IBAN_FORM = /\b[A-Z]{2}\d{2}(?:[ \-]?[A-Z0-9]{2,4}){3,8}\b/g;
-/* ⚠ DER TAUSENDERPUNKT (Prüfmerkmal 10). `\d+[.,]\d{2}` aus dem
-   Auslieferungsprüfer trifft in „1.248,50 EUR“ nur „248,50 EUR“. Hier zuerst
-   die Form mit Tausendertrennern, dann die einfache. */
-const ZAHL = "(?:\\d{1,3}(?:\\.\\d{3})+(?:,\\d{2})?|\\d{1,3}(?:,\\d{3})+(?:\\.\\d{2})?|\\d+[.,]\\d{2})";
-const WAEHRUNG = "(?:€|EUR|\\$|USD|CHF)";
-const BETRAG = new RegExp("(?<![\\d.,])" + ZAHL + "\\s?" + WAEHRUNG + "(?![A-Za-z])|" +
-  "(?<![A-Za-z])" + WAEHRUNG + "\\s?" + ZAHL + "(?![\\d.,]*\\d)", "g");
-/* Rechnungs- und Kundennummern: in einem Feld (Wert wird verdeckt) oder
-   freistehend in der Form RE-2026-04871 (Prüfmerkmal 10: Klaus' Text trug eine
-   solche, gemeldet wurde sie nicht — jetzt ist sie ein Befund). */
-const BELEG_FELD = /["']?(?:rechnung(?:s?nummer|s?nr)?|kundennummer|kundennr|kunden_?nr|invoice(?:_id|_number)?|beleg(?:nummer)?|receipt(?:_number)?|customer_id)["']?\s*[:=]\s*["']?([A-Za-z0-9][A-Za-z0-9\-\/]{2,})/gi;
-const BELEG_FREI = /\b(?:RE|RG|INV|KD|KDNR|AN)-\d{2,4}-\d{3,}\b/g;
-
-function istIban(roh) {
-  const s = String(roh).replace(/[\s\-]/g, "").toUpperCase();
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s)) return false;
-  const um = s.slice(4) + s.slice(0, 4);
-  let rest = 0;
-  for (const z of um) {
-    const teil = /[A-Z]/.test(z) ? String(z.charCodeAt(0) - 55) : z;
-    for (const d of teil) rest = (rest * 10 + Number(d)) % 97;
-  }
-  return rest === 1;
-}
+/* ══ DIE ERKENNUNG KOMMT AUS SAGE-MODUL 25 ═════════════════════════════════
+   modules/25_pseudonym.js ist eine byte-1:1-Kopie aus
+   Sage-Protokol/src/modules/ (Generation 2, 2026-09-28), gepinnt in
+   tests/modul25.mjs. Bis dahin standen die Muster hier; dieselben Muster
+   liegen jetzt dort, und nur dort werden sie gepflegt. Vor dem Umzug wurden
+   alte Fassung und Modul auf 30 015 Texten gegeneinander gefahren:
+   0 Abweichungen. Fehlt das Modul, sagt die Seite das und lässt nichts
+   hinaus (siehe `modulFehlt`). */
+const P = window.SbkimPseudonym || null;
+const istIban = (s) => !!P && P.isIban(s);
 
 function namenListe(roh) {
   return String(roh || "").split(/[\n,;]/).map((n) => n.trim()).filter((n) => n.length >= 2);
 }
-function regexFlucht(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
-/* Findet alle Angaben. Gibt [{start, ende, wert, sorte}] zurück, nach Lage
-   sortiert und ohne Überlappung: bei zwei Treffern an derselben Stelle gewinnt
-   der frühere, bei gleichem Anfang der längere. */
+/* Findet alle Angaben: [{start, ende, wert, sorte, zeile}], nach Lage sortiert,
+   ohne Überlappung. */
 function finde(text, namen) {
-  const roh = [];
-  const nimm = (re, sorte, gruppe, pruef) => {
-    re.lastIndex = 0;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      if (m[0].length === 0) { re.lastIndex++; continue; }
-      const wert = gruppe ? m[gruppe] : m[0];
-      if (!wert) continue;
-      if (pruef && !pruef(wert)) continue;
-      const start = m.index + (gruppe ? m[0].lastIndexOf(wert) : 0);
-      roh.push({ start, ende: start + wert.length, wert, sorte });
-    }
-  };
-  for (const re of SCHLUESSEL_MUSTER) nimm(re, "SCHLUESSEL");
-  nimm(SCHLUESSEL_FELD, "SCHLUESSEL", 1);
-  nimm(BEARER, "SCHLUESSEL", 1);
-  nimm(MAIL, "MAIL");
-  nimm(IBAN_FORM, "IBAN", 0, istIban);
-  nimm(BETRAG, "BETRAG");
-  nimm(BELEG_FELD, "RECHNUNG", 1, (w) => /\d/.test(w));
-  nimm(BELEG_FREI, "RECHNUNG");
-  nimm(TELEFON, "TELEFON");
-  for (const n of namen) {
-    nimm(new RegExp("(?<![\\p{L}\\p{N}])" + regexFlucht(n) + "(?![\\p{L}\\p{N}])", "giu"), "NAME");
-  }
-  roh.sort((a, b) => a.start - b.start || (b.ende - b.start) - (a.ende - a.start));
-  const aus = [];
-  let bis = -1;
-  for (const t of roh) { if (t.start >= bis) { aus.push(t); bis = t.ende; } }
-  for (const t of aus) t.zeile = text.slice(0, t.start).split("\n").length;
-  return aus;
+  if (!P) return [];
+  return P.find(text, { values: namen }).map((f) => ({ start: f.start, ende: f.end, wert: f.value, sorte: f.type, zeile: f.line }));
 }
 
-/* Ersetzt jeden Treffer durch einen Platzhalter. Derselbe Wert derselben Sorte
-   bekommt überall denselben. Die Zuordnung geht zurück, sie wird nicht
-   gespeichert. */
-function verdecke(text, treffer) {
-  const zuordnung = new Map();          // Platzhalter → Wert
-  const vergeben = new Map();           // Sorte + Wert → Platzhalter
-  const zaehler = {};
-  let aus = "", pos = 0;
-  for (const t of treffer) {
-    const schl = t.sorte + "\u0000" + t.wert;
-    let ph = vergeben.get(schl);
-    if (!ph) {
-      zaehler[t.sorte] = (zaehler[t.sorte] || 0) + 1;
-      ph = "⟦" + t.sorte + "-" + zaehler[t.sorte] + "⟧";
-      vergeben.set(schl, ph);
-      zuordnung.set(ph, t.wert);
-    }
-    t.platzhalter = ph;
-    aus += text.slice(pos, t.start) + ph;
-    pos = t.ende;
-  }
-  return { text: aus + text.slice(pos), zuordnung };
+/* Verdeckt den Text: derselbe Wert derselben Sorte bekommt überall denselben
+   Platzhalter. Die Zuordnung (Platzhalter → Wert) bleibt auf dem Gerät. */
+function verdecke(text, namen) {
+  if (!P) return { text: "", zuordnung: new Map(), treffer: [] };
+  const r = P.pseudonymize(text, { values: namen });
+  const treffer = r.findings.map((f) => ({ start: f.start, ende: f.end, wert: f.value, sorte: f.type, zeile: f.line, platzhalter: f.token }));
+  return { text: r.text, zuordnung: new Map(Object.entries(r.map)), treffer };
 }
 
 function aufdecken(text, zuordnung) {
-  if (!zuordnung || zuordnung.size === 0) return String(text || "");
-  return String(text || "").replace(/⟦[A-Z]+-\d+⟧/g, (ph) => (zuordnung.has(ph) ? zuordnung.get(ph) : ph));
+  if (!P || !zuordnung || zuordnung.size === 0) return String(text || "");
+  return P.rehydrate(String(text || ""), Object.fromEntries(zuordnung));
 }
 
 /* ══ DIE BAHN ═════════════════════════════════════════════════════════════ */
@@ -288,8 +202,8 @@ function zeichne() {
   const text = $("eingabe").value;
   const namen = namenListe($("namen").value);
   $("namen-hinweis").hidden = namen.length > 0;
-  const treffer = finde(text, namen);
-  const v = verdecke(text, treffer);
+  const v = verdecke(text, namen);
+  const treffer = v.treffer;
   stand = { treffer, verdeckt: v.text, zuordnung: v.zuordnung };
   $("anzahl").textContent = String(treffer.length);
   const ul = $("befunde");
@@ -319,8 +233,8 @@ function antwortZeigen() {
 /* Die letzte Sicherung vor dem Hinausgehen: steht in dem, was gesendet oder
    kopiert würde, noch ein gefundener Wert, geht nichts hinaus. */
 function enthaeltWert(text) {
-  for (const w of stand.zuordnung.values()) if (w && text.includes(w)) return w;
-  return null;
+  if (!P) return "(Modul 25 fehlt)";
+  return P.findLeak(text, Object.fromEntries(stand.zuordnung));
 }
 
 $("eingabe").addEventListener("input", () => { letzteAntwort = ""; zeichne(); });
@@ -336,6 +250,7 @@ $("datei").addEventListener("change", async (e) => {
 $("kopieren").addEventListener("click", async () => {
   const m = $("kopier-meldung");
   const text = stand.verdeckt;
+  if (!P) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: der Prüfkern fehlt (siehe Hinweis oben)."; return; }
   if (!text.trim()) { m.className = "meldung warn"; m.textContent = "Es steht noch kein Text in Feld 1."; return; }
   if (enthaeltWert(text)) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: die Fassung enthält noch einen gefundenen Wert."; return; }
   try {
@@ -389,6 +304,7 @@ $("senden").addEventListener("click", async () => {
   schreib(schluesselName(), schluessel);
   const text = stand.verdeckt;
   m.className = "meldung warn";
+  if (!P) { m.textContent = "Nicht gesendet: der Prüfkern fehlt (siehe Hinweis oben)."; return; }
   if (!text.trim()) { m.textContent = "Es steht noch kein Text in Feld 1."; return; }
   if (!schluessel) { m.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }
   if (a.beginnt && !schluessel.startsWith(a.beginnt)) { m.textContent = "Ein Schlüssel für " + a.name + " beginnt mit " + a.beginnt + ". Der eingetragene tut das nicht."; return; }
@@ -434,7 +350,8 @@ function selbsttest(koeder) {
      Leerzeichen GLEICHER Länge überschrieben: so bleiben alle Stellen gleich,
      und die Namen-Liste im Kopf zählt nicht als Befund. */
   const inhalt = zeilen.map((z) => (z.startsWith("#") ? " ".repeat(z.length) : z)).join("\n");
-  const treffer = finde(inhalt, namen);
+  const v = verdecke(inhalt, namen);
+  const treffer = v.treffer;
   const jeZeile = new Map();
   for (const t of treffer) { if (!jeZeile.has(t.zeile)) jeZeile.set(t.zeile, []); jeZeile.get(t.zeile).push(t); }
   let marken = 0; const erwartetZeilen = new Set(); let erwartetBefunde = 0;
@@ -452,7 +369,6 @@ function selbsttest(koeder) {
   const ausserhalb = treffer.filter((t) => !erwartetZeilen.has(t.zeile));
   ok(ausserhalb.length === 0, "außerhalb der Marken nichts gemeldet (" + ausserhalb.length + ")");
   ok(kopfZahl === treffer.length && kopfZahl === erwartetBefunde, "Kopfzahl " + kopfZahl + " = gemeldet " + treffer.length);
-  const v = verdecke(inhalt, treffer);
   const drin = treffer.filter((t) => v.text.includes(t.wert));
   ok(treffer.length > 0 && drin.length === 0, "die verdeckte Fassung enthält keinen der " + treffer.length + " Werte");
   ok(aufdecken(v.text, v.zuordnung) === inhalt, "hin und zurück ergibt Zeichen für Zeichen den Köder");
@@ -463,7 +379,7 @@ function selbsttest(koeder) {
     return /[\d.,]/.test(vor) || /\d/.test(nach);
   });
   ok(betraege.length >= 3 && rest.length === 0, betraege.length + " Beträge ganz verdeckt, keine Ziffer und kein Punkt daneben stehen geblieben");
-  const doppelt = verdecke("a@b.de und a@b.de", finde("a@b.de und a@b.de", []));
+  const doppelt = verdecke("a@b.de und a@b.de", []);
   ok(doppelt.zuordnung.size === 1 && doppelt.text === "⟦MAIL-1⟧ und ⟦MAIL-1⟧", "derselbe Wert trägt überall denselben Platzhalter");
   ok(finde("Frau Müller ruft an", []).length === 0, "ohne Namen-Liste wird kein Name gemeldet");
   return erg;
@@ -491,6 +407,7 @@ $("test-datei").addEventListener("change", async (e) => {
 });
 
 window.SendePruefer = { finde, verdecke, aufdecken, istIban, selbsttest, ANBIETER };
+if (!P) $("modul-fehlt").hidden = false;
 anbieterZeigen();
 zeichne();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});

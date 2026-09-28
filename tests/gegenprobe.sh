@@ -47,14 +47,34 @@ fi
 echo "── Gegenprobe Sende-Prüfer ──"
 H=sende-pruefer.html
 
-fall "der Tausenderpunkt wird nicht mehr erfasst (1. bleibt stehen)" $H \
-  'const ZAHL = "(?:\\d{1,3}(?:\\.\\d{3})+(?:,\\d{2})?|' 'const ZAHL = "(?:' 'GANZ verdeckt|Selbsttest'
-fall "eine IBAN mit falscher Prüfziffer gilt als IBAN" $H \
-  '  return rest === 1;' '  return true;' 'Selbsttest'
-fall "eine Telefonnummer ohne Ländervorwahl wird gemeldet" $H \
-  'const TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)' 'const TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)?' 'Selbsttest'
-fall "derselbe Wert bekommt einen neuen Platzhalter" $H \
-  '    let ph = vergeben.get(schl);' '    let ph = undefined;' 'denselben Platzhalter'
+M=modules/25_pseudonym.js
+# Seit 2026-09-28 steht die Erkennung in Sage-Modul 25. Eine Sabotage dort
+# wirft zusätzlich den SHA-Pin um; gezählt wird trotzdem nur die rote Zeile
+# der Zusicherung (das Muster), nicht der Pin.
+fall "der Tausenderpunkt wird nicht mehr erfasst (1. bleibt stehen)" $M \
+  'var ZAHL = "(?:\\d{1,3}(?:\\.\\d{3})+(?:,\\d{2})?|' 'var ZAHL = "(?:' 'GANZ verdeckt|Selbsttest'
+fall "eine IBAN mit falscher Prüfziffer gilt als IBAN" $M \
+  '    return rest === 1;' '    return true;' 'Selbsttest'
+fall "eine Telefonnummer ohne Ländervorwahl wird gemeldet" $M \
+  'var TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)' 'var TELEFON = /(?:tel:|\+\d{2}[\s\-/()]?)?' 'Selbsttest'
+fall "derselbe Wert bekommt einen neuen Platzhalter" $M \
+  '        if (Object.prototype.hasOwnProperty.call(reverse, key)) return reverse[key];' '' 'denselben Platzhalter'
+fall "Modul 25 wird hier abgewandelt (zweite Fassung)" $M \
+  'var BELEG_FREI = /\b(?:RE|RG|INV|KD|KDNR|AN)-' 'var BELEG_FREI = /\b(?:RE|RG|INV|KD|KDNR|AN|XY)-' 'SHA-256 gepinnt'
+fall "die Seite bringt wieder eigene Muster mit" $H \
+  'const P = window.SbkimPseudonym || null;' 'const P = window.SbkimPseudonym || null; const IBAN_FORM = /x/g;' 'keine eigenen Erkennungs-Muster'
+fall "die Seite lädt Modul 25 nicht mehr" $H \
+  '<script src="modules/25_pseudonym.js"></script>' '' 'lädt Modul 25|Selbsttest'
+fall "Modul 25 fehlt im Offline-Vorrat" sw.js \
+  ', "modules/25_pseudonym.js"]' ']' 'Offline-Vorrat'
+fall "ohne Modul 25 bleibt der Hinweis verborgen" $H \
+  'if (!P) $("modul-fehlt").hidden = false;' '' 'Hinweis sichtbar'
+fall "ohne Modul 25 wird trotzdem kopiert" $H \
+  '  if (!P) { m.className = "meldung warn"; m.textContent = "Nicht kopiert: der Prüfkern fehlt (siehe Hinweis oben)."; return; }' '' 'Kopieren wird verweigert'
+fall "ohne Modul 25 wird trotzdem gesendet" $H \
+  '  if (!P) { m.textContent = "Nicht gesendet: der Prüfkern fehlt (siehe Hinweis oben)."; return; }' '' 'Senden wird verweigert'
+fall "die letzte Sicherung vor dem Hinausgehen fehlt" $H \
+  '  return P.findLeak(text, Object.fromEntries(stand.zuordnung));' '  return null;' 'versagt das Verdecken'
 fall "Senden schickt den ursprünglichen Text" $H \
   '  const q = anfrage(a, schluessel, text);' '  const q = anfrage(a, schluessel, $("eingabe").value);' 'KEIN Befund-Wert|verdeckte Fassung'
 fall "die Anthropic-Version fehlt in den Kopfzeilen" $H \
@@ -70,7 +90,7 @@ fall "der Hinweis ohne Namen-Liste verschwindet" $H \
 fall "der Kopieren-Weg heißt wieder „stattdessen“" $H \
   'Für Ihr eigenes KI-Abo:' 'Stattdessen für Ihr eigenes KI-Abo:' 'stattdessen'
 fall "die Antwort kommt ohne echte Werte zurück" $H \
-  '  return String(text || "").replace(/⟦[A-Z]+-\d+⟧/g' '  return String(text || "") || String(text || "").replace(/⟦[A-Z]+-\d+⟧/g' 'echten Werten zurück|Selbsttest'
+  '  return P.rehydrate(String(text || ""), Object.fromEntries(zuordnung));' '  return String(text || "");' 'echten Werten zurück|Selbsttest'
 fall "der Selbsttest liest keine Marken mehr (grünes Nichts)" $H \
   '    if (!m) return;' '    if (!m || true) return;' 'Selbsttest'
 # ⚠ Zwei Riegel decken einander (minmax UND overflow-wrap) — nur beide
