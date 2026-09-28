@@ -304,6 +304,27 @@ try {
   ok("versagt das Verdecken, wird NICHT gesendet", /gefundenen Wert/.test(await kaputt.textContent("#sende-meldung")) && kaputtRaus.length === 0);
   await kaputtCtx.close();
 
+  /* ── Beispiel-E-Mail (Klaus 2026-09-28): ein Tipp zeigt den ganzen Weg ── */
+  await page.fill("#eingabe", ""); await page.fill("#namen", ""); await page.fill("#antwort-ein", "");
+  ok("vor dem Tipp ist der Beispiel-Hinweis verborgen",
+    await page.evaluate(() => !document.querySelector("[data-beispiel-meldung]").checkVisibility()));
+  await page.click("#beispiel");
+  const bsp = await page.evaluate(() => ({
+    ein: document.getElementById("eingabe").value,
+    ver: document.getElementById("verdeckt").textContent,
+    klar: document.getElementById("antwort-klar").textContent,
+    hin: document.querySelector("[data-beispiel-meldung]").checkVisibility(),
+  }));
+  ok("das Beispiel ist eine E-Mail mit Kopfzeilen", /^Von: .*\nAn: .*\nBetreff: /.test(bsp.ein));
+  const bspWerte = ["Petra Beispiel", "Musterbau GmbH", "petra.beispiel@musterbau.example", "buchhaltung@beispiel-firma.example",
+    "RE-2026-04871", "1.248,50", "DE89 3704", "+49 170"];
+  const bspDrin = bspWerte.filter((w) => bsp.ver.includes(w));
+  ok("in der verdeckten Fassung steht kein Wert des Beispiels", bsp.ver.length > 50 && bspDrin.length === 0, bspDrin.join(" · "));
+  ok("keine führende 1. vor dem Betrags-Platzhalter", /über ⟦BETRAG-1⟧/.test(bsp.ver));
+  ok("die Beispiel-Antwort kommt mit den echten Angaben zurück",
+    /Frau Beispiel,/.test(bsp.klar) && bsp.klar.includes("RE-2026-04871") && bsp.klar.includes("1.248,50 EUR") && !/⟦/.test(bsp.klar), bsp.klar.slice(0, 120));
+  ok("nach dem Tipp sagt die Seite, dass alles erfunden ist", bsp.hin);
+
   ok("mit Modul 25 steht der Hinweis NICHT da",
     await page.evaluate(() => { const e = document.querySelector("[data-modul-fehlt]"); return !!e && !e.checkVisibility(); }));
 

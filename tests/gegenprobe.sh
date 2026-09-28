@@ -98,5 +98,15 @@ fall "der Selbsttest liest keine Marken mehr (grünes Nichts)" $H \
 fall "das Raster läuft am Handy wieder quer" $H \
   $'@media (max-width:640px){.zwei{grid-template-columns:minmax(0,1fr)}}\ncode{overflow-wrap:anywhere}' '@media (max-width:640px){.zwei{grid-template-columns:1fr}}' '360 px'
 
+# Beispiel-E-Mail (Klaus 2026-09-28)
+fall "das Beispiel füllt die Namen nicht mehr ein" $H \
+  '  $("namen").value = BEISPIEL_NAMEN;' '' 'kein Wert des Beispiels'
+fall "das Beispiel bringt keine Antwort mehr mit" $H \
+  '  $("antwort-ein").value = BEISPIEL_ANTWORT;' '' 'echten Angaben zurück'
+fall "der Hinweis „alles erfunden“ bleibt verborgen" $H \
+  '  $("beispiel-meldung").hidden = false;' '' 'alles erfunden'
+fall "das Beispiel verliert seine Kopfzeilen" $H \
+  'const BEISPIEL_TEXT = "Von: Petra Beispiel <petra.beispiel@musterbau.example>\nAn: ' 'const BEISPIEL_TEXT = "Petra Beispiel <petra.beispiel@musterbau.example>\nAn: ' 'Kopfzeilen'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
