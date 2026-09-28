@@ -71,6 +71,19 @@ ok("die Seite lädt Modul 25 vor ihrem eigenen Skript",
   html.indexOf('<script src="' + MODUL25 + '">') > -1 && html.indexOf('<script src="' + MODUL25 + '">') < html.indexOf("<script>\n"));
 ok("die Seite trägt keine eigenen Erkennungs-Muster mehr (keine zweite Fassung)",
   !/const (?:SCHLUESSEL_MUSTER|IBAN_FORM|BETRAG|TELEFON|BELEG_FREI|MAIL) =/.test(html));
+
+/* ── Modul 15 (Membran) und 17 (Widget), byte-1:1 aus Sage (seit 2026-09-29) ── */
+for (const [datei, sha] of [["modules/15_membran.js", "829a5bc01976b59c5ce428125314b87b314b6212cd5a473634c2d22c02579397"],
+                            ["modules/17_floating_widget.js", "3f757b35cea544b1ee84c1cbe8e0f6dbb653ddaa319cd99433be76c0958a44e5"]]) {
+  const b = (() => { try { return readFileSync(join(WURZEL, datei)); } catch { return null; } })();
+  ok(datei + " ist unverändert (SHA-256 gepinnt)", !!b && createHash("sha256").update(b).digest("hex") === sha);
+  const neben = join(WURZEL, "..", "Sage-Protokol", "src", "modules", datei.split("/")[1]);
+  if (existsSync(neben)) ok("… und byte-gleich mit Sage-Protokol daneben", !!b && readFileSync(neben).equals(b));
+  ok("… und steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + datei + '"'));
+}
+ok("Modul 17 wird VOR Modul 15 geladen (sonst fehlt der FREMD-Platz)",
+  html.indexOf("modules/17_floating_widget.js") > -1 && html.indexOf("modules/17_floating_widget.js") < html.indexOf("modules/15_membran.js"));
+ok("die Membran erlaubt keine fremde Herkunft (allowedOrigins leer)", /SbkimMembrane\.init\(\{\s*allowedOrigins:\s*\[\]\s*\}\)/.test(html));
 const manifest = JSON.parse(readFileSync(join(WURZEL, "manifest.json"), "utf8"));
 ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · Schließen (display: standalone)",
   manifest.display === "standalone" && !manifest.display_override);
@@ -497,6 +510,67 @@ try {
   await kaputt.click("#senden");
   ok("versagt das Verdecken, wird NICHT gesendet", /gefundenen Wert/.test(await kaputt.textContent("#sende-meldung")) && kaputtRaus.length === 0);
   await kaputtCtx.close();
+
+  /* ── Abschirmung: Fremdes erkennen, mit einem Klick abschirmen (2026-09-29) ─ */
+  const abCtx = await browser.newContext({ serviceWorkers: "block" });
+  const ab = await abCtx.newPage();
+  await ab.goto(BASIS + "sende-pruefer.html");
+  await bereit(ab);
+  ok("das Widget (Modul 17) steht in der Seite", await ab.evaluate(() => !!document.getElementById("sbkim-widget")));
+  ok("ohne Fremdes: kein Fund, kein Banner", await ab.evaluate(() => SendeAbschirmung.funde().length === 0 && document.getElementById("fremd-banner").hidden));
+  ok("… und die FREMD-Lampe ist aus", await ab.evaluate(() => !document.querySelector(".sbkim-widget-slot.fremd.active")));
+  await ab.evaluate(() => document.body.append(document.createElement("grammarly-desktop-integration")));
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 0).catch(() => {});
+  ok("ein fremdes Element wird erkannt und beim Namen genannt",
+    /grammarly-desktop-integration/.test(await ab.textContent("#fremd-banner-text")) && !(await ab.evaluate(() => document.getElementById("fremd-banner").hidden)));
+  ok("… die FREMD-Lampe im Widget leuchtet", await ab.evaluate(() => !!document.querySelector(".sbkim-widget-slot.fremd.active")));
+  ok("… und der Schild-Knopf zeigt die Zahl", (await ab.textContent("#schild-zahl")).trim() === "1");
+  await ab.evaluate(() => { const f = document.createElement("iframe"); f.style.display = "none"; document.body.append(f); });
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 1).catch(() => {});
+  ok("ein eingelegtes iframe wird erkannt", await ab.evaluate(() => SendeAbschirmung.funde().some((f) => /iframe/.test(f.was))));
+  await ab.evaluate(() => document.body.setAttribute("data-lt-tmp-id", "x"));
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 2).catch(() => {});
+  ok("eine Marke an einem VORHANDENEN Element wird erkannt (LanguageTool)", await ab.evaluate(() => SendeAbschirmung.funde().some((f) => /LanguageTool/.test(f.was))));
+  await ab.click("#schild");
+  const zu = await ab.evaluate(() => { const t = document.getElementById("einfuegen-text");
+    return { an: document.getElementById("schild").dataset.an, ws: t.getAttribute("writingsuggestions"), g: t.getAttribute("data-gramm"),
+      ac: t.getAttribute("autocorrect"), banner: document.getElementById("fremd-banner").hidden, n: SendeAbschirmung.funde().length }; });
+  ok("ein Klick schirmt ab: KI-Schreibhilfe, Grammarly-Marke, Autokorrektur aus",
+    zu.an === "1" && zu.ws === "false" && zu.g === "false" && zu.ac === "off", JSON.stringify(zu));
+  ok("… das Banner geht weg, der Befund bleibt gezählt", zu.banner === true && zu.n === 3);
+  ok("… die eigenen Marken melden sich nicht selbst als Fund", zu.n === 3);
+  await verfassen(ab);
+  ok("ein Feld, das DANACH entsteht, ist auch abgeschirmt", await ab.evaluate(() => document.getElementById("text").getAttribute("writingsuggestions") === "false"));
+  await ab.reload(); await bereit(ab);
+  ok("die Wahl übersteht das Neuladen", await ab.evaluate(() => SendeAbschirmung.an() && document.getElementById("einfuegen-text").getAttribute("writingsuggestions") === "false"));
+  await ab.click("#schild");
+  const auf = await ab.evaluate(() => { const t = document.getElementById("einfuegen-text");
+    return { ws: t.getAttribute("writingsuggestions"), sp: t.getAttribute("spellcheck"), g: t.hasAttribute("data-gramm") }; });
+  ok("der zweite Klick stellt die alten Werte wieder her (auch das spellcheck, das schon vorher aus war)",
+    auf.ws === null && auf.sp === "false" && auf.g === false, JSON.stringify(auf));
+  ok("die Grenzen stehen im Menü (Erweiterungen dürfen es übergehen, Programme auf dem Gerät sieht keine Webseite)",
+    /übergehen/.test(html.split("data-abschirm-grenze")[1] || "") && /Gerät/.test(html.split("data-abschirm-grenze")[1] || ""));
+  await abCtx.close();
+  /* Ein Fund VOR dem Start des Widgets muss die Lampe trotzdem zünden. */
+  const frCtx = await browser.newContext({ serviceWorkers: "block" });
+  const fr = await frCtx.newPage();
+  await fr.addInitScript(() => document.addEventListener("DOMContentLoaded", () => document.documentElement.setAttribute("data-gr-ext-installed", "")));
+  await fr.goto(BASIS + "sende-pruefer.html");
+  await bereit(fr);
+  ok("ein Fund schon beim Laden zündet die FREMD-Lampe, auch wenn das Widget erst danach startet",
+    await fr.evaluate(() => SendeAbschirmung.funde().length === 1 && !!document.querySelector(".sbkim-widget-slot.fremd.active")));
+  await frCtx.close();
+  /* Am Handy darf das Widget keinen Knopf der Ordner-Leiste verdecken. */
+  const hCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 800 }, hasTouch: true, isMobile: true });
+  const h = await hCtx.newPage();
+  await h.goto(BASIS + "sende-pruefer.html");
+  await bereit(h);
+  const frei = await h.evaluate(() => [...document.querySelectorAll("#bottomnav button, #fab")].filter((k) => k.checkVisibility()).map((k) => {
+    const r = k.getBoundingClientRect(); const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !!t && k.contains(t); }));
+  ok("am Handy (380 px) verdeckt das Widget keinen Knopf der Ordner-Leiste und nicht den ✏️-Knopf",
+    frei.length >= 4 && frei.every(Boolean), JSON.stringify(frei));
+  await hCtx.close();
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {

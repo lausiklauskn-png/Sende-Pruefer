@@ -69,7 +69,7 @@ fall "die Seite bringt wieder eigene Muster mit" $H \
 fall "die Seite lädt Modul 25 nicht mehr" $H \
   '<script src="modules/25_pseudonym.js"></script>' '' 'lädt Modul 25|Selbsttest'
 fall "Modul 25 fehlt im Offline-Vorrat" sw.js \
-  ', "modules/25_pseudonym.js"]' ']' 'Offline-Vorrat'
+  ' "modules/25_pseudonym.js",' '' 'Modul 25 steht im Offline-Vorrat'
 fall "ohne Modul 25 bleibt der Hinweis verborgen" $H \
   'if (!P) $("modul-fehlt").hidden = false;' '' 'Hinweis sichtbar'
 fall "ohne Modul 25 fällt der erste Riegel weg (Kopieren und Senden)" $H \
@@ -152,6 +152,35 @@ fall "die Namen aus dem Beispiel kleben zusammen" $H \
   'value: String(m.namenExtra || "").replace(/\s*\n\s*/g, ", "),' 'value: m.namenExtra || "",' 'Weitere Namen'
 fall "eine eingefügte Mail wird nicht entschlüsselt (Quoted-Printable)" $H \
   'cte === "quoted-printable" ? dekodBytes(vonQP(rumpf), cs) : rumpf' 'cte === "quoted-printable" ? rumpf : rumpf' 'entschlüsselt'
+
+# Abschirmung (2026-09-29)
+A=assets/abschirmung.js
+fall "ein eingelegtes iframe wird nicht mehr erkannt" $A \
+  'if (tag === "iframe") fund(' 'if (false) fund(' 'iframe wird erkannt'
+fall "ein fremdes Element wird nicht mehr erkannt" $A \
+  'else if (tag.indexOf("-") > 0) fund(' 'else if (false) fund(' 'fremdes Element wird erkannt'
+fall "Marken an vorhandenen Elementen werden nicht mehr beobachtet" $A \
+  'if (SPUREN[m.attributeName]) pruefe(m.target); return;' 'return;' 'VORHANDENEN Element'
+fall "die KI-Schreibhilfe des Browsers bleibt an" $A \
+  ' writingsuggestions: "false",' '' 'Klick schirmt ab'
+fall "Felder, die danach entstehen, werden nicht abgeschirmt" $A \
+  '        if (an) felder(n).forEach(schirme);' '' 'DANACH entsteht'
+fall "die Wahl wird nicht gespeichert" $A \
+  'an = !!v; schreib(an);' 'an = !!v;' 'Neuladen'
+fall "der zweite Klick stellt die alten Werte nicht her" $A \
+  'if (vorher) for (var a in vorher) { if (vorher[a] === null) feld.removeAttribute(a); else feld.setAttribute(a, vorher[a]); }' '' 'alten Werte'
+fall "die Lampe erfährt nichts vom Fund" $A \
+  'try { g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'try { if (0) g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'Lampe'
+fall "ein Fund vor dem Widget zündet die Lampe nicht" $H \
+  '  if (AB) AB.melde();' '' 'schon beim Laden'
+fall "das Widget sitzt am Handy auf der Ordner-Leiste" $H \
+  '    await window.SbkimWidget.init({ defaultCorner: "bottom-left", defaultOffset: { x: 12, y: unten } });' '    await window.SbkimWidget.init();' 'verdeckt das Widget'
+fall "die Membran erlaubt eine fremde Herkunft" $H \
+  'SbkimMembrane.init({ allowedOrigins: [] })' 'SbkimMembrane.init({ allowedOrigins: ["*"] })' 'fremde Herkunft'
+fall "Modul 17 wird hier abgewandelt" modules/17_floating_widget.js \
+  '  var DEFAULT_CORNER = "bottom-right";' '  var DEFAULT_CORNER = "bottom-left";' '17_floating_widget.js ist unverändert'
+fall "die Grenze der Abschirmung verschwindet aus dem Menü" $H \
+  'eine Erweiterung kann das Signal übergehen, und Programme auf dem Gerät' 'Programme' 'Grenzen stehen im Menü'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
