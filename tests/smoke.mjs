@@ -178,7 +178,13 @@ try {
     const f = await page.evaluate(() => { const r = document.getElementById("app").getBoundingClientRect();
       return { l: r.left, t: r.top, w: r.width, h: r.height, rechts: document.querySelector("main.lesen").getBoundingClientRect().right }; });
     ok(`bei ${w}×${h} füllt das Postfach die ganze Bildfläche`,
-      f.l === 0 && f.t === 0 && Math.abs(f.w - w) < 1 && Math.abs(f.h - h) < 1 && Math.abs(f.rechts - w) < 1, JSON.stringify(f));
+      f.l === 0 && f.t === 0 && Math.abs(f.w - w) < 1 && Math.abs(f.h - h) < 1 && Math.abs(f.rechts - w) < 1, JSON.stringify(f));    /* Klaus 2026-09-29, mit Gmail daneben: die Mail nutzt die Breite noch nicht.
+       Jeder sichtbare Kasten im Lesebereich reicht bis an dessen rechten Innenrand. */
+    const k = await page.evaluate(() => { const m = document.querySelector("main.lesen"), r = m.getBoundingClientRect();
+      const innen = r.left + m.clientWidth - parseFloat(getComputedStyle(m).paddingRight);
+      const b = [...m.querySelectorAll(".kasten,.blatt,.feldzeile,.namen,.funde")].filter((e) => !e.closest(".zwei>*") && e.checkVisibility() && e.getBoundingClientRect().width > 0);
+      return { n: b.length, innen: Math.round(innen), kurz: b.filter((e) => e.getBoundingClientRect().right < innen - 2).map((e) => e.className + ":" + Math.round(e.getBoundingClientRect().right)) }; });
+    ok(`bei ${w}×${h} nutzt die Mail die ganze Breite des Lesebereichs`, k.n > 2 && k.kurz.length === 0, JSON.stringify(k));
   }
   await page.setViewportSize({ width: 420, height: 900 });
 
@@ -302,6 +308,12 @@ try {
   ok("die Beispiel-Antwort kommt mit den echten Angaben zurück",
     /Frau Beispiel,/.test(bsp.klar) && bsp.klar.includes("RE-2026-04871") && bsp.klar.includes("1.248,50 EUR") && !/⟦/.test(bsp.klar), bsp.klar.slice(0, 120));
   ok("am Beispiel sagt die Seite, dass alles erfunden ist", bsp.hin);
+  /* Klaus 2026-09-29: „Musterbau GmbHBeispiel“ — ein Zeilenumbruch aus einer
+     älteren Fassung verschwand im einzeiligen Feld. Gestellt wie auf seinem Gerät. */
+  const namenFeld = await page.evaluate(() => { const m = window.SendePruefer.mails().find((x) => x.bid === "petra" && x.ordner === "eingang");
+    m.namenExtra = "Musterbau GmbH\nBeispiel"; document.querySelector('.zeile[data-id="' + m.id + '"]').click();
+    return document.getElementById("namen").value; });
+  ok("Weitere Namen aus mehreren Zeilen stehen mit Komma getrennt im Feld", namenFeld === "Musterbau GmbH, Beispiel", namenFeld);
   ok("das Beispiel liegt nur einmal im Postfach (kein Doppel)",
     await page.evaluate(() => window.SendePruefer.mails().filter((m) => m.bid === "petra" && m.ordner === "eingang").length === 1));
 
@@ -318,12 +330,14 @@ try {
   /* ── Teilen: dieselbe .eml geht an das Teilen-Fenster ────────────────── */
   await page.evaluate(() => {
     Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
-    Object.defineProperty(navigator, "share", { configurable: true, value: async (d) => { window.__geteilt = d.files.map((f) => f.name + "|" + f.type); } });
+    /* wie Chrome: Dateien beim Teilen abweisen (Klaus 2026-09-29, NotAllowedError bei .eml) */
+    Object.defineProperty(navigator, "share", { configurable: true, value: async (d) => { if (d.files) throw new DOMException("x", "NotAllowedError"); window.__geteilt = d; } });
   });
   await page.click("#antwort-teilen");
   await page.waitForFunction(() => window.__geteilt, null, { timeout: 4000 }).catch(() => {});
-  const geteilt = (await page.evaluate(() => window.__geteilt)) || [];
-  ok("Teilen reicht genau eine .eml als message/rfc822 weiter", geteilt.length === 1 && /\.eml\|message\/rfc822$/.test(geteilt[0]), geteilt.join(","));
+  const geteilt = (await page.evaluate(() => window.__geteilt)) || {};
+  ok("Teilen gibt Betreff und Text weiter, keine Datei (Chrome lehnt .eml ab)",
+    /^Re: Rechnung/.test(geteilt.title || "") && String(geteilt.text || "").includes("1.248,50 EUR") && !/⟦/.test(geteilt.text || ""), JSON.stringify(geteilt).slice(0, 160));
 
   /* ── .eml hin und zurück, Umlaute im Kopf ────────────────────────────── */
   const rund = await page.evaluate(() => {

@@ -99,7 +99,7 @@ fall "die zwei Wege stehen am Handy nebeneinander" $H \
 
 # Beispiel-E-Mails (Klaus 2026-09-28)
 fall "das Beispiel bringt seine Namen nicht mehr mit" $H \
-  'betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH\nBeispiel",' 'betreff: "Rechnung RE-2026-04871 noch offen",' 'kein Wert des Beispiels'
+  'betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH, Beispiel",' 'betreff: "Rechnung RE-2026-04871 noch offen",' 'kein Wert des Beispiels'
 fall "das Beispiel bringt keine Antwort mehr mit" $H \
   'antwortRoh: "Sehr geehrte Frau' 'antwortRoh: "", _alt: "Sehr geehrte Frau' 'echten Angaben zurück'
 fall "der Hinweis „alles erfunden“ fehlt" $H \
@@ -130,6 +130,8 @@ fall "das Postfach füllt die Höhe nicht mehr" $H \
   'height:100vh;height:100dvh;width:100%}' 'width:100%}' 'ganze Bildfläche'
 fall "installiert öffnet es im Vollbild ohne Fensterknöpfe" manifest.json \
   '"display": "standalone",' '"display": "fullscreen",' 'standalone'
+fall "die Mail wird wieder auf Lesebreite gedeckelt" $H \
+  'white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:inherit}' 'white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:inherit;max-width:72ch}' 'ganze Breite des Lesebereichs'
 fall "der Themen-Knopf sagt nicht mehr, wohin er schaltet" $H \
   '$("thema-zeichen").textContent = d ? "☀" : "🌙"; $("thema-text").textContent = d ? " Hell" : " Dunkel";' '' 'wohin er schaltet'
 fall "die Knöpfe verlieren den Glas-Stil" $H \
@@ -144,8 +146,10 @@ fall "Umlaute im Betreff gehen roh in den Kopf" $H \
   '  if (/^[\x20-\x7e]*$/.test(s)) return s;' '  return s;' 'reines ASCII|hin und zurück'
 fall "eine gespeicherte .eml bleibt in ihrem Ordner" $H \
   'm.ordner = "export"; m.exportiert' 'm.exportiert' 'Exportiert'
-fall "Teilen lädt immer nur herunter" $H \
-  'if (!(navigator.canShare && navigator.canShare({ files: [f] }))) {' 'if (true) {' 'Teilen reicht'
+fall "Teilen schickt wieder eine .eml-Datei" $H \
+  'const d = { title: m.betreff || "E-Mail", text: String(m.text || "") };' 'const d = { title: m.betreff || "E-Mail", files: [emlDatei(m)] };' 'keine Datei'
+fall "die Namen aus dem Beispiel kleben zusammen" $H \
+  'value: String(m.namenExtra || "").replace(/\s*\n\s*/g, ", "),' 'value: m.namenExtra || "",' 'Weitere Namen'
 fall "eine eingefügte Mail wird nicht entschlüsselt (Quoted-Printable)" $H \
   'cte === "quoted-printable" ? dekodBytes(vonQP(rumpf), cs) : rumpf' 'cte === "quoted-printable" ? rumpf : rumpf' 'entschlüsselt'
 

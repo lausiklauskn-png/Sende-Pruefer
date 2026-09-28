@@ -83,26 +83,26 @@ h1.betreff{font-size:1.4rem;line-height:1.25;margin:4px 0 12px;overflow-wrap:any
 .umschalter{display:inline-flex;border:1px solid var(--linie);border-radius:999px;padding:3px;background:var(--fl2)}
 .umschalter button{border:0;background:transparent;border-radius:999px;padding:5px 14px;font-size:.85rem;font-weight:600;color:var(--leise)}
 .umschalter button[aria-pressed="true"]{background:var(--fl);color:var(--schrift);box-shadow:0 1px 2px rgb(0 0 0/.15)}
-.blatt{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:18px 20px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:72ch;margin:0;font:inherit}
+.blatt{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:18px 20px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:inherit}
 .blatt.ki{border-color:var(--schutz-rand)}
 .fund{background:var(--schutz-grund);color:inherit;border-bottom:2px solid var(--schutz-rand);border-radius:3px;padding:0 2px}
 .tok{font-family:var(--mono);font-size:.82em;background:var(--schutz-grund);color:var(--schutz);border:1px solid var(--schutz-rand);border-radius:6px;padding:0 5px;white-space:nowrap}
 textarea,input,select{background:var(--fl);color:var(--schrift);border:1px solid var(--linie);border-radius:10px;padding:9px 11px;font:inherit;width:100%}
 textarea.blatt{display:block;min-height:14rem;resize:vertical}
-.feldzeile{display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--linie);padding:6px 2px;max-width:72ch}
+.feldzeile{display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--linie);padding:6px 2px}
 .feldzeile label{color:var(--leise);width:64px;flex:none;font-size:.88rem}
 .feldzeile input{flex:1;min-width:0;border:0;background:transparent;padding:6px 0;border-radius:0}
 .feldzeile+textarea{margin-top:12px}
-.namen{max-width:72ch;margin:14px 0 0;font-size:.88rem}
+.namen{margin:14px 0 0;font-size:.88rem}
 .namen label{display:block;font-weight:600;margin-bottom:2px}
 .gedaempft,small{color:var(--leise)}
-.funde{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;max-width:72ch}
+.funde{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
 .funde span{font-size:.78rem;background:var(--fl2);border:1px solid var(--linie);border-radius:6px;padding:2px 8px;color:var(--leise)}
-ul.befunde{list-style:none;padding:0;margin:.4rem 0;max-width:72ch}
+ul.befunde{list-style:none;padding:0;margin:.4rem 0}
 ul.befunde li{padding:5px 0;border-top:1px solid var(--linie);font-size:.88rem;overflow-wrap:anywhere}
 .sorte{font-family:var(--mono);font-size:.75rem;padding:1px 6px;border-radius:5px;background:var(--fl2);color:var(--akzent);margin-right:.4rem}
 details summary{cursor:pointer;color:var(--leise);min-height:32px;padding:4px 0}
-.kasten{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:14px 16px;margin:14px 0;max-width:80ch}
+.kasten{background:var(--fl);border:1px solid var(--linie);border-radius:14px;padding:14px 16px;margin:14px 0}
 .kasten h2{font-size:1rem;margin:0 0 6px}
 .kasten label{display:block;font-weight:600;margin:.6rem 0 .2rem;font-size:.9rem}
 .zwei{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
@@ -112,7 +112,7 @@ details summary{cursor:pointer;color:var(--leise);min-height:32px;padding:4px 0}
 .meldung.warn{color:var(--warn)}
 .meldung.gut{color:var(--ok)}
 .antwort{border-color:var(--akzent)}
-.beispiel-hin{max-width:72ch;background:var(--akzent-hell);color:var(--akzent);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:.88rem}
+.beispiel-hin{background:var(--akzent-hell);color:var(--akzent);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:.88rem}
 dialog{border:1px solid var(--linie);border-radius:16px;background:var(--fl);color:var(--schrift);width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px}
 dialog::backdrop{background:rgb(0 0 0/.45)}
 dialog h2{margin:0 0 8px;font-size:1.1rem}
@@ -293,7 +293,7 @@ const re = (b) => (/^(re|aw):/i.test(b || "") ? b : "Re: " + (b || ""));
    Postfach zum ersten Mal leer ist, und tragen die Marke „Beispiel“. */
 const BEISPIELE = [
   { bid: "petra", ordner: "eingang", vonName: "Petra Beispiel", vonAdr: "petra.beispiel@musterbau.example", anAdr: "buchhaltung@beispiel-firma.example",
-    betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH\nBeispiel",
+    betreff: "Rechnung RE-2026-04871 noch offen", namenExtra: "Musterbau GmbH, Beispiel",
     text: "Hallo zusammen,\n\ndie Musterbau GmbH hat unsere Rechnung RE-2026-04871 über 1.248,50 EUR noch nicht bezahlt. Überwiesen werden soll auf DE89 3704 0044 0532 0130 00. Frau Beispiel ist unter +49 170 1234567 erreichbar.\n\nBitte schreib mir eine freundliche Zahlungserinnerung an Frau Beispiel.",
     antwortRoh: "Sehr geehrte Frau ⟦NAME-3⟧,\n\nunsere Rechnung ⟦RECHNUNG-1⟧ über ⟦BETRAG-1⟧ ist noch offen. Bitte überweisen Sie den Betrag auf ⟦IBAN-1⟧. Bei Fragen erreichen Sie uns unter ⟦MAIL-2⟧.\n\nMit freundlichen Grüßen" },
   { bid: "jonas", ordner: "eingang", vonName: "Jonas Beispielmann", vonAdr: "j.beispielmann@holzwurm.example",
@@ -545,7 +545,7 @@ function zeichneLesen() {
           el("div", { class: "adr" }, [m.vonAdr, m.anAdr ? "an " + adrZeile(m.anName, m.anAdr) : "", zeitText(m.zeit)].filter(Boolean).join(" · ")))),
       el("div", { class: "blatt" }, stueckeOriginal(ganzeMail(m), r.treffer)));
   }
-  const nx = el("input", { id: "namen", value: m.namenExtra || "", autocomplete: "off", spellcheck: "false", oninput: (e) => { m.namenExtra = e.target.value; geaendert(m); } });
+  const nx = el("input", { id: "namen", value: String(m.namenExtra || "").replace(/\s*\n\s*/g, ", "), autocomplete: "off", spellcheck: "false", oninput: (e) => { m.namenExtra = e.target.value; geaendert(m); } });
   box.append(el("div", { class: "namen" }, el("label", { for: "namen" }, "Weitere Namen, die nicht hinausgehen sollen"),
     el("p", { class: "gedaempft", style: "margin:0 0 4px", "data-namen-zweck": true }, "Tragen Sie Personen- und Firmennamen ein, die im Text vorkommen (durch Komma getrennt): sie werden dann ebenfalls verdeckt. Die Namen aus Von und An sind schon dabei."),
     nx, el("p", { class: "meldung warn", id: "namen-hinweis", "data-ohne-namen": true }, "Es sind keine Namen bekannt, deshalb wird kein Name verdeckt."),
@@ -748,18 +748,23 @@ function emlSpeichern(m) {
   exportiert(m);
   meldeAktion("Gespeichert als " + f.name + ". Öffnen Sie die Datei, dann zeigt Ihr Mail-Programm sie als Entwurf.", true);
 }
+/* Teilen gibt TEXT weiter, keine .eml: Chrome lässt beim Teilen nur bestimmte
+   Dateiarten zu, und .eml gehört nicht dazu — Klaus' Tablet meldete 2026-09-29
+   NotAllowedError. Betreff geht als Titel (das Mail-Programm macht den Betreff
+   daraus), der Mail-Text als Text. Der Empfänger reist beim Teilen nicht mit. */
 async function teilen(m) {
-  const f = emlDatei(m);
-  if (!(navigator.canShare && navigator.canShare({ files: [f] }))) {
-    emlSpeichern(m); meldeAktion("Dieses Gerät kann hier keine Dateien teilen. Die .eml ist stattdessen gespeichert: " + f.name, true); return;
+  const d = { title: m.betreff || "E-Mail", text: String(m.text || "") };
+  if (!navigator.share || (navigator.canShare && !navigator.canShare(d))) {
+    emlSpeichern(m); meldeAktion("Dieses Gerät kann hier nicht teilen. Die Mail ist stattdessen als " + emlName(m) + " gespeichert.", true); return;
   }
   try {
-    await navigator.share({ files: [f], title: m.betreff || "E-Mail" });
-    window.__letzteEml = { name: f.name, weg: "teilen" };
-    exportiert(m); meldeAktion("Geteilt: " + f.name, true);
+    await navigator.share(d);
+    window.__letzteEml = { name: emlName(m), weg: "teilen" };
+    exportiert(m);
+    meldeAktion("Geteilt: Betreff und Text." + (m.anAdr ? " Den Empfänger (" + m.anAdr + ") tragen Sie im Mail-Programm ein." : ""), true);
   } catch (x) {
     if (x && x.name === "AbortError") return;
-    meldeAktion("Das Teilen wurde verweigert (" + (x && x.name || x) + "). Tippen Sie noch einmal auf Teilen oder speichern Sie die .eml.", false);
+    meldeAktion("Das Teilen ging nicht (" + (x && x.name || x) + "). Speichern Sie die Mail mit „Als .eml speichern“.", false);
   }
 }
 async function inAblage(text, knopf) {
