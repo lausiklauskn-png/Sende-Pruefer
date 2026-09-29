@@ -306,8 +306,17 @@ fall "HOL: der Link wechselt nicht mit dem Anbieter" $H \
 fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
   '    holen: "https://console.mistral.ai/api-keys" })' '    holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'je Anbieter eine'
 
-fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $H \
-  '(/subscription tier|not available/i.test(grund) ?' '(false ?' 'nicht das Guthaben'
+A=assets/ablehnung.js
+fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $A \
+  'if (/subscription tier|not available/i.test(grund))' 'if (false)' 'nicht das Guthaben'
+fall "LIMIT: ein 429 wird nicht wiederholt" $A \
+  '    if (antwort.status !== 429) return antwort;' '    return antwort;' 'vor der zweite Versuch'
+fall "LIMIT: die Seite fragt die Wiederholung gar nicht" $H \
+  'await (H ? H.holen(' 'await (false ? H.holen(' 'vor der zweite Versuch'
+fall "LIMIT: ein bleibendes 429 wird nicht erklärt" $A \
+  '    if (status === 429)' '    if (false)' 'Grenze und den Weg'
+fall "LIMIT: es wird mehr als einmal wiederholt" $A \
+  '    return fetch(url, init);' '    await fetch(url, init); return fetch(url, init);' 'nicht öfter'
 
 T=assets/tresor-ui.js
 fall "TRESOR: die Seite legt den Schlüssel beim Senden wieder offen ab" $H \

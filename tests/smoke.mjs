@@ -248,7 +248,7 @@ try {
 
   /* Jeder Aufruf nach draußen wird mitgeschrieben. Die zwei Anbieter
      antworten gestellt, alles andere wird abgewiesen. */
-  const draussen = [];
+  const draussen = []; let limitZahl = 0;
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, async (route) => {
     const q = route.request();
     draussen.push({ url: q.url(), headers: q.headers(), body: q.postData() || "" });
@@ -261,6 +261,13 @@ try {
     if (q.url().startsWith("https://api.mistral.ai/") && /TARIF/.test(q.headers().authorization || ""))
       return route.fulfill({ status: 403, contentType: "application/json",   // wortgleich Klaus' Befund 2026-09-29
         body: JSON.stringify({ message: "This model is not available in your subscription tier" }) });
+    if (q.url().startsWith("https://api.mistral.ai/") && /LIMIT/.test(q.headers().authorization || "")) {
+      limitZahl++;                                  // wortgleich Klaus' Befund 2026-09-29
+      if (/IMMER/.test(q.headers().authorization) || limitZahl === 1)
+        return route.fulfill({ status: 429, contentType: "application/json",
+          headers: { "retry-after": "1", "access-control-expose-headers": "retry-after" },
+          body: JSON.stringify({ message: "Rate limit exceeded" }) });
+    }
     if (q.url().startsWith("https://api.mistral.ai/"))
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ choices: [{ message: { content: "Bitte an ⟦MAIL-1⟧ antworten." } }] }) });
@@ -507,6 +514,22 @@ try {
   const tarif = await page.textContent("#sende-meldung");
   ok("lehnt der Tarif das Modell ab, nennt die Meldung Modell und Tarif, nicht das Guthaben",
     /mistral-small-latest ist in Ihrem Tarif nicht freigeschaltet/.test(tarif) && /nicht am Guthaben|am Guthaben liegt es nicht/.test(tarif), tarif);
+  /* 429: einmal angesagt wiederholen, dann entweder durch oder erklärt (Klaus 2026-09-29) */
+  await page.fill("#schluessel", "mistral-LIMIT-0000");
+  await page.click("#senden");
+  await page.waitForFunction(() => /Neuer Versuch/.test(document.getElementById("sende-meldung").textContent), null, { timeout: 5000 }).catch(() => {});
+  const ansage = await page.textContent("#sende-meldung");
+  ok("ein 429 wird angesagt, bevor der zweite Versuch läuft", /zu viele Anfragen.*Neuer Versuch in 1 s/.test(ansage), ansage);
+  await page.waitForFunction(() => /Antwort erhalten|abgelehnt/.test(document.getElementById("sende-meldung").textContent), null, { timeout: 15000 }).catch(() => {});
+  ok("… und der zweite Versuch bringt die Antwort", /Antwort erhalten/.test(await page.textContent("#sende-meldung")) && limitZahl === 2,
+    (await page.textContent("#sende-meldung")) + " · Anfragen: " + limitZahl);
+  limitZahl = 0;
+  await page.fill("#schluessel", "mistral-LIMIT-IMMER-0000");
+  await page.click("#senden");
+  await page.waitForFunction(() => /abgelehnt/.test(document.getElementById("sende-meldung").textContent), null, { timeout: 15000 }).catch(() => {});
+  const zuviel = await page.textContent("#sende-meldung");
+  ok("bleibt es bei 429, erklärt die Meldung die Grenze und den Weg", /\(429\)/.test(zuviel) && /zweite Versuch kam zu früh/.test(zuviel) && /Minute warten/.test(zuviel), zuviel);
+  ok("… und es wird genau einmal wiederholt, nicht öfter", limitZahl === 2, "Anfragen: " + limitZahl);
   draussen.splice(1);
   await page.fill("#schluessel", "mistral-PROBE-0000");
   await page.click("#senden");

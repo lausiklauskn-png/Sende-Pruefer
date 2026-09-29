@@ -296,6 +296,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 <script src="assets/abschirmung.js"></script>
 <script src="assets/schluesseltresor.js"></script>
 <script src="assets/tresor-ui.js"></script>
+<script src="assets/ablehnung.js"></script>
 <script src="assets/sbkim-init.js"></script>
 <script>
 "use strict";
@@ -862,12 +863,13 @@ async function senden(m) {
   merkeHinaus(m, r); aktualisiere(m);
   e.className = "meldung"; e.textContent = "Wird gesendet an " + a.adresse + " …";
   try {
-    const antwort = await fetch(a.adresse, { method: "POST", headers: q.headers, body: JSON.stringify(q.body) });
+    const H = window.SPAblehnung, init = { method: "POST", headers: q.headers, body: JSON.stringify(q.body) };
+    const antwort = await (H ? H.holen(a.adresse, init, (t) => { e.textContent = t; }) : fetch(a.adresse, init));
     const j = await antwort.json().catch(() => ({}));
     if (!antwort.ok) {
       const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + antwort.status);
       e.className = "meldung warn"; e.textContent = "Der Anbieter hat abgelehnt (" + antwort.status + "): " + grund
-        + (/subscription tier|not available/i.test(grund) ? " — das Modell " + a.modell + " ist in Ihrem Tarif nicht freigeschaltet; am Guthaben liegt es nicht." : ""); return;
+        + (H ? H.deuten(antwort.status, grund, a.modell) : ""); return;
     }
     m.antwortRoh = antwortText(a, j);
     jetztSpeichern(m);
