@@ -111,6 +111,7 @@ section.liste{background:var(--fl);border-right:1px solid var(--linie);overflow:
 .zeile .chips{grid-column:2/4;display:flex;gap:6px;flex-wrap:wrap}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--schutz-rand);background:var(--schutz-grund);color:var(--schutz);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
 .chip.gut{border-color:transparent;background:var(--ok-grund);color:var(--ok)}
+button.chip{cursor:pointer;font:inherit;font-size:.82rem}button.chip:hover{border-color:var(--petrol,#5cc2c9)}
 .chip.leise{border-color:var(--linie);background:var(--fl2);color:var(--leise)}
 main.lesen{overflow:auto;min-width:0;padding:18px 28px 40px;container-type:inline-size}
 .leer{color:var(--leise);text-align:center;margin-top:18vh}
@@ -296,7 +297,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 <script src="assets/sbkim-init.js"></script>
 <script>
 "use strict";
-/* ══ DIE GESCHLOSSENE LISTE DER ANBIETER ═══════════════════════════════════
+/* ══ DIE GESCHLOSSENE LISTE DER ANBIETER
    Abgeschrieben aus dem Auftrag (Kimhub/auftraege/sende-pruefer.json,
    `_anbieter`, Stand 2026-09-21). Ein freies Adressfeld gibt es nicht: wer eine
    Adresse eintippen kann, kann den Text irgendwohin schicken. Wer einen
@@ -312,7 +313,7 @@ const THEMA_KEY = "sendepruefer_thema";
 const SAAT_KEY = "sendepruefer_beispiele_v1";
 const DB_NAME = "SendePruefer1";
 
-/* ══ DIE ERKENNUNG KOMMT AUS SAGE-MODUL 25 ═════════════════════════════════
+/* ══ DIE ERKENNUNG KOMMT AUS SAGE-MODUL 25
    modules/25_pseudonym.js ist eine byte-1:1-Kopie aus
    Sage-Protokol/src/modules/ (Generation 2), SHA-gepinnt in tests/smoke.mjs.
    Nur dort werden die Muster gepflegt. Fehlt das Modul, sagt die Seite das
@@ -345,7 +346,7 @@ function enthaeltWert(text, zuordnung) {
   return P.findLeak(text, alsObjekt(zuordnung));
 }
 
-/* ══ EINE MAIL ═════════════════════════════════════════════════════════════
+/* ══ EINE MAIL
    {id, ordner, vonName, vonAdr, anName, anAdr, betreff, text, namenExtra,
     bitte, zeit, ungelesen, beispiel, antwortRoh, zuordnung, verworfen,
     gesendet, antwortId, bezug}
@@ -360,6 +361,21 @@ const ORDNER = [
 const ICON = { eingang: "📥", entwurf: "📝", antwort: "↩", export: "📤" };
 const BITTE = { eingang: "Schreiben Sie eine kurze, freundliche Antwort auf diese E-Mail.",
   sonst: "Überarbeiten Sie diesen E-Mail-Entwurf: freundlich, klar und kurz." };
+/* Aufgaben an die KI (Klaus 2026-09-29): antippen oder eintragen → ganze Anweisung */
+const AUFGABEN = { eingang: [["💬 Antwort", "eine kurze, freundliche Antwort auf diese E-Mail"],
+  ["🧾 Rechnung", "eine Rechnung zu diesem Auftrag: Positionen mit Menge und Preis, netto, Umsatzsteuer, brutto, zahlbar in 14 Tagen"],
+  ["⏰ Mahnung", "eine höfliche Zahlungserinnerung zur offenen Rechnung mit neuer Frist von 7 Tagen"],
+  ["📋 Angebot", "ein Angebot zu dieser Anfrage: Leistungen mit Preis, Summe, gültig 30 Tage"],
+  ["✅ Auftragsbestätigung", "eine Auftragsbestätigung: was, Preis, Termin"],
+  ["📅 Termin", "eine Antwort mit zwei Terminvorschlägen"]],
+ sonst: [["✎ Überarbeiten", "diesen Entwurf freundlich, klar und kurz"],
+  ["✂ Kürzen", "diesen Entwurf auf das Nötige gekürzt"],
+  ["🎩 Förmlicher", "diesen Entwurf in förmlichem Ton"]] };
+function anweisung(t) {
+  return "Aufgabe: Schreibe " + t + ".\nGrundlage ist die E-Mail oben. Übernimm jeden Platzhalter in ⟦ ⟧ genau so, wie er steht, und erfinde keine Namen, Nummern oder Beträge. Fehlt eine Angabe, schreibe [bitte ergänzen: …]. Gib nur den fertigen Text aus.";
+}
+const EIGENE = "sendepruefer_aufgaben";
+function eigeneAufgaben() { try { return JSON.parse(lies(EIGENE) || "[]"); } catch (_e) { return []; } }
 const SORTE_NAME = { NAME: "Name", MAIL: "E-Mail", TELEFON: "Telefon", IBAN: "IBAN", BETRAG: "Betrag", RECHNUNG: "Rechnung", SCHLUESSEL: "Schlüssel" };
 
 function adrZeile(name, adr) { return name && adr ? name + " <" + adr + ">" : (name || adr || ""); }
@@ -441,7 +457,7 @@ function jetztSpeichern(m) { clearTimeout(merke.get(m.id)); merke.delete(m.id); 
 function lies(k) { try { return localStorage.getItem(k) || ""; } catch (_e) { return ""; } }
 function schreib(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (_e) {} }
 
-/* ══ .eml — ein Entwurf, den Outlook, Gmail oder Samsung-Mail öffnen ═══════ */
+/* ══ .eml — ein Entwurf, den Outlook, Gmail oder Samsung-Mail öffnen */
 function b64utf8(s) { const b = new TextEncoder().encode(s); let x = ""; for (const c of b) x += String.fromCharCode(c); return btoa(x); }
 function kodiereWort(s) {
   s = String(s || "");
@@ -460,7 +476,7 @@ function emlBauen(m) {
 function emlName(m) { return (String(m.betreff || "E-Mail").replace(/[^\w\-äöüÄÖÜß ]+/g, "").trim().replace(/\s+/g, "_").slice(0, 60) || "E-Mail") + ".eml"; }
 
 /* ══ .eml LESEN — Kopfzeilen, kodierte Wörter, Quoted-Printable, Base64,
-   multipart (der erste text/plain-Teil, sonst text/html ohne Tags). ══════ */
+   multipart (der erste text/plain-Teil, sonst text/html ohne Tags). */
 function dekodBytes(bytes, cs) { try { return new TextDecoder(cs || "utf-8").decode(bytes); } catch (_e) { return new TextDecoder("utf-8").decode(bytes); } }
 function vonB64(s) { const b = atob(String(s).replace(/[^A-Za-z0-9+/=]/g, "")); return Uint8Array.from(b, (c) => c.charCodeAt(0)); }
 function vonQP(s, wort) {
@@ -533,7 +549,7 @@ function mailLesen(roh) {
   return m;
 }
 
-/* ══ DIE OBERFLÄCHE ═══════════════════════════════════════════════════════ */
+/* ══ DIE OBERFLÄCHE */
 const $ = (id) => document.getElementById(id);
 function el(tag, attrs, ...kinder) {
   const e = document.createElement(tag);
@@ -690,8 +706,20 @@ function zeichneLesen() {
 }
 
 function kiKasten(m) {
-  const bitte = el("textarea", { id: "bitte", rows: "2", spellcheck: "true", oninput: (e) => { m.bitte = e.target.value; geaendert(m); } });
+  const bitte = el("textarea", { id: "bitte", rows: "4", spellcheck: "true", oninput: (e) => { m.bitte = e.target.value; geaendert(m); } });
   bitte.value = m.bitte || "";
+  const setze = (t) => { m.bitte = bitte.value = anweisung(t); geaendert(m); };
+  const eigen = el("input", { id: "aufgabe-eigen", placeholder: "z. B. Rechnung für die Schrankmontage", onkeydown: (e) => { if (e.key === "Enter") setze(eigen.value.trim() || "…"); } });
+  const reihe = el("div", { class: "chips", id: "aufgaben" });
+  const merke = (l) => { schreib(EIGENE, JSON.stringify(l)); reiheZeichnen(); };
+  const reiheZeichnen = () => { const ei = eigeneAufgaben(); reihe.replaceChildren(...AUFGABEN[m.ordner === "eingang" ? "eingang" : "sonst"].concat(ei).map(([n, t], i) =>
+    el("button", { class: "chip leise", type: "button", "data-aufgabe": n, onclick: () => setze(t) }, n,
+      ei.some((x) => x[0] === n) ? el("span", { "data-weg": n, title: "Vergessen", onclick: (e) => { e.stopPropagation(); merke(ei.filter((x) => x[0] !== n)); } }, " ✕") : ""))); };
+  reiheZeichnen();
+  const aufgabe = el("div", null, el("label", { for: "aufgabe-eigen" }, "Was soll die KI tun? Antippen oder selbst eintragen"), reihe,
+    el("div", { class: "werkzeug", style: "margin:8px 0 0" }, eigen,
+      el("button", { class: "knopf", id: "aufgabe-bauen", type: "button", onclick: () => setze(eigen.value.trim() || "…") }, "Anweisung bauen"),
+      el("button", { class: "knopf", id: "aufgabe-merken", type: "button", onclick: () => { const t = eigen.value.trim(), n = "★ " + t.slice(0, 24); if (t) merke(eigeneAufgaben().filter((x) => x[0] !== n).concat([[n, t]])); } }, "Als Knopf merken")));
   const auswahl = el("select", { id: "anbieter", onchange: () => { schreib(SCHLUESSEL_PREFIX + "wahl", auswahl.value); anbieterZeigen(); } });
   for (const [k, a] of Object.entries(ANBIETER)) auswahl.append(el("option", { value: k }, a.name));
   auswahl.value = ANBIETER[lies(SCHLUESSEL_PREFIX + "wahl")] ? lies(SCHLUESSEL_PREFIX + "wahl") : "anthropic";
@@ -700,7 +728,7 @@ function kiKasten(m) {
   const schl = el("input", { id: "schluessel", type: "password", autocomplete: "off", spellcheck: "false", onchange: (e) => schreib(schluesselName(), e.target.value.trim()) });
   const k = el("section", { class: "kasten", id: "s-ki" },
     el("h2", null, "Mit KI"),
-    el("label", { for: "bitte" }, "Ihre Bitte an die KI"), bitte,
+    aufgabe, el("label", { for: "bitte" }, "Ihre Anweisung an die KI (frei änderbar, wird mit verdeckt)"), bitte,
     el("p", { class: "gedaempft" }, "Hinaus geht nur die verdeckte Fassung (siehe „Was die KI sieht“), nur auf Knopfdruck und nur an die Adresse neben dem Senden-Knopf."),
     el("div", { class: "zwei" },
       el("section", { class: "kasten", id: "s-kopieren" }, el("h2", null, "Kopieren"),
@@ -770,7 +798,7 @@ function aktualisiere(m) {
   });
 }
 
-/* ══ DIE ZWEI WEGE ════════════════════════════════════════════════════════ */
+/* ══ DIE ZWEI WEGE */
 function bereit(m, meldung) {
   const r = pruefung(m);
   if (!P) { meldung("Der Prüfkern fehlt (siehe Hinweis oben)."); return null; }
@@ -845,7 +873,7 @@ async function senden(m) {
   }
 }
 
-/* ══ ANTWORT ABLEGEN, .eml, TEILEN ════════════════════════════════════════ */
+/* ══ ANTWORT ABLEGEN, .eml, TEILEN */
 function antwortMail(m) {
   let a = MAILS.find((x) => x.id === m.antwortId);
   const klar = klarAntwort(m);
@@ -904,7 +932,7 @@ function loeschen(m) {
   st.id = null; $("app").dataset.ansicht = "liste"; alles();
 }
 
-/* ══ NEU, EINFÜGEN, BEISPIEL ══════════════════════════════════════════════ */
+/* ══ NEU, EINFÜGEN, BEISPIEL */
 function neueMail() {
   const m = { id: neueId(), ordner: "entwurf", vonName: "", vonAdr: "", anName: "", anAdr: "", betreff: "", text: "", namenExtra: "",
     bitte: BITTE.sonst, zeit: new Date().toISOString() };
@@ -965,7 +993,7 @@ $("beispiel").addEventListener("click", () => {
 
 function alles() { zeichneOrdner(); zeichneListe(); zeichneLesen(); }
 
-/* ══ SELBSTTEST ═══════════════════════════════════════════════════════════
+/* ══ SELBSTTEST
    Liest den Köder (koeder.txt): vor jedem Fall `# ERWARTET: <Sorte>` oder
    `# ERWARTET: kein Befund`; im Kopf `# BEFUNDE: <Zahl>` und `# NAMEN: …`.
    Zwei Vorbedingungen werden mitgemessen: der Köder ist geladen, und es gab
@@ -1036,7 +1064,7 @@ $("test-datei").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (f) testZeigen(selbsttest(await f.text()));
 });
 
-/* ══ ABSCHIRMUNG + MEMBRAN (Klaus 2026-09-29) ══════════════════════════════
+/* ══ ABSCHIRMUNG + MEMBRAN (Klaus 2026-09-29)
    Modul 17 (Widget mit der FREMD-Lampe) VOR Modul 15, so verlangt es Modul 17.
    allowedOrigins leer: jede fremde Nachricht wird abgewiesen und gemeldet. */
 const AB = window.SendeAbschirmung;
@@ -1060,7 +1088,7 @@ if (AB) {
 }
 if (AB) { AB.start(); abschirmZeichnen(); }
 
-/* ══ START ════════════════════════════════════════════════════════════════ */
+/* ══ START */
 window.SendePruefer = { finde, verdecke, aufdecken, istIban, selbsttest, ANBIETER, emlBauen, mailLesen, mails: () => MAILS, bereit: null };
 if (!P) $("modul-fehlt").hidden = false;
 (async () => {

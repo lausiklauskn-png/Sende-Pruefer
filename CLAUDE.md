@@ -125,6 +125,17 @@ aufgebaut, dass später eine Videosequenz es besser erklärt"*.
 - ⚠ Das große Bild ist nur **1254 px** breit — bis Tablet-Breite scharf, darüber nicht.
 - Ein Video wird eingebaut, sobald Klaus eins liefert (nicht vorgebaut).
 
+## Aufgaben an die KI (seit 2026-09-29)
+
+Klaus: *„vorausgefüllte Prompts nur noch anklicken … oder einen selbst ausgefüllten
+Prompt … Rechnung, Mahnung, Angebot … daraus soll ein Prompt generiert werden."*
+Im KI-Kasten: Aufgaben zum Antippen (`AUFGABEN.eingang`/`.sonst`), ein Feld „Eigene
+Aufgabe" mit **Anweisung bauen** und **Als Knopf merken** (`sendepruefer_aufgaben`,
+✕ vergisst). `anweisung(t)` baut die ganze Anweisung: Platzhalter in ⟦ ⟧ unverändert,
+nichts erfinden, Fehlendes als [bitte ergänzen: …], nur der Text. Die Anweisung steht
+in `m.bitte` und läuft durch `hinaus()` — Namen und Beträge darin werden mit verdeckt.
+Für die 96 KB wurden die `═══`-Zierlinien der Kommentare gekürzt (kein Satz gestrichen).
+
 ## Anleitung als Seite (seit 2026-09-29)
 
 Klaus: *„Das ist eine MD-Datei. Ich hätte gern … im Stile des gesamten Handbuches."*

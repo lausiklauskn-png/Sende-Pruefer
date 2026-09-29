@@ -13,7 +13,7 @@ Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nu
 1. **📥 Mail einfügen:** eine empfangene Mail samt Kopfzeilen (Von, An, Betreff) aus Ihrem Mail-Programm hineinkopieren oder eine gespeicherte `.eml` öffnen. Sie landet in **Eingefügt**. Oder **Verfassen** für einen eigenen Entwurf (Ordner **Entwürfe**).
 2. Die Namen aus Von und An werden von selbst verdeckt. Weitere Personen- und Firmennamen tragen Sie unter **„Weitere Namen“** ein.
 3. **Original** zeigt die Mail mit jedem Fund markiert, **Was die KI sieht** zeigt genau den Text, der hinausgeht: Ihre Mail, darunter Ihre Bitte, jede Angabe als Platzhalter.
-4. **✦ Mit KI beantworten** (bzw. überarbeiten) und einen der beiden Wege wählen:
+4. **✦ Mit KI beantworten** (bzw. überarbeiten). Unter **„Was soll die KI tun?“** eine Aufgabe antippen (Antwort, Rechnung, Mahnung, Angebot …) oder selbst eintragen und **Anweisung bauen**; daraus entsteht die ganze Anweisung, frei änderbar. **Als Knopf merken** legt eine eigene Aufgabe als Knopf an. Dann einen der beiden Wege wählen:
    - **Kopieren**, für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten. Die Antwort fügen Sie danach in das Feld darunter ein.
    - **Senden**, ohne Fenster zu wechseln. Sie wählen den Anbieter und tragen Ihren Schlüssel ein. Es kostet, was Ihr Schlüssel kostet.
 5. Die Antwort steht mit Ihren echten Angaben da. **In KI-Antworten ablegen**, **⤓ Als .eml speichern** oder **📤 Teilen**: die `.eml` öffnet Ihr Mail-Programm als Entwurf; Teilen gibt Betreff und Text an ein Programm Ihrer Wahl (den Empfänger tragen Sie dort ein). Gespeicherte und geteilte Mails liegen danach in **Exportiert**.
