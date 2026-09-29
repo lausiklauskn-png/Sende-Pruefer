@@ -306,5 +306,8 @@ fall "HOL: der Link wechselt nicht mit dem Anbieter" $H \
 fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
   '    holen: "https://console.mistral.ai/api-keys" })' '    holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'je Anbieter eine'
 
+fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $H \
+  '(/subscription tier|not available/i.test(grund) ?' '(false ?' 'nicht das Guthaben'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

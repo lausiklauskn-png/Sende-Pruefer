@@ -307,7 +307,7 @@ const ANBIETER = Object.freeze({
     modell: "claude-opus-5", beginnt: "sk-ant-", protokoll: "messages",
     holen: "https://console.anthropic.com/settings/keys" }),
   mistral: Object.freeze({ name: "Mistral (EU)", adresse: "https://api.mistral.ai/v1/chat/completions",
-    modell: "mistral-large-latest", beginnt: null, protokoll: "openai",
+    modell: "mistral-small-latest", beginnt: null, protokoll: "openai",
     holen: "https://console.mistral.ai/api-keys" })
 });
 const SCHLUESSEL_PREFIX = "sendepruefer_key_";
@@ -865,7 +865,8 @@ async function senden(m) {
     const j = await antwort.json().catch(() => ({}));
     if (!antwort.ok) {
       const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + antwort.status);
-      e.className = "meldung warn"; e.textContent = "Der Anbieter hat abgelehnt (" + antwort.status + "): " + grund; return;
+      e.className = "meldung warn"; e.textContent = "Der Anbieter hat abgelehnt (" + antwort.status + "): " + grund
+        + (/subscription tier|not available/i.test(grund) ? " — das Modell " + a.modell + " ist in Ihrem Tarif nicht freigeschaltet; am Guthaben liegt es nicht." : ""); return;
     }
     m.antwortRoh = antwortText(a, j);
     jetztSpeichern(m);

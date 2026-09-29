@@ -156,6 +156,15 @@ des Netzes) und wechselt mit dem Anbieter. Neuer Tab, `noopener noreferrer`. Kei
 Zahl zu Startguthaben. Ob die Seiten beim Anbieter heute so heißen, ist aus dem
 Behälter nicht gemessen.
 
+## Mistral-Modell: small, nicht large (Klaus 2026-09-29)
+
+Senden an Mistral lehnte ab: *403 „This model is not available in your subscription
+tier"* — bei ausreichendem Guthaben. `mistral-large-latest` ist in Klaus' Tarif nicht
+freigeschaltet. Umgestellt auf **`mistral-small-latest`**, das Workflow PDF und
+BookLedgerPro schon benutzen. Kommt diese Ablehnung wieder, nennt die Meldung Modell
+und Tarif („am Guthaben liegt es nicht"). Die Doku des Anbieters ist aus dem Behälter
+gesperrt; ob small in seinem Tarif geht, zeigt erst sein nächster Versuch.
+
 ## Prüfen
 
 ```bash
