@@ -145,8 +145,31 @@ ok("das Manifest nennt 192, 512 und ein maskierbares Icon, und alle Dateien lieg
 ok("Favicon und Apple-Icon stehen im Kopf der Seite und liegen da",
   /<link rel="icon" href="icons\/favicon-32\.png"/.test(kopfTeil) && /<link rel="apple-touch-icon" href="icons\/apple-touch-icon\.png">/.test(kopfTeil)
   && ["favicon-32.png", "favicon-48.png", "apple-touch-icon.png", "marke-72.png", "sende-pruefer-bild.webp", "sende-pruefer-bild-gross.webp"].every((f) => existsSync(join(WURZEL, "icons", f))));
-ok("der Lichtkegel wird im Schild größer (Lichtbrechung) und danach wieder klein",
-  /50%\{transform:translateX\(70%\) scale\(1\.7\)/.test(html) && /64%\{transform:translateX\(105%\) scale\(1\)\}/.test(html) && /36%\{transform:translateX\(35%\) scale\(1\)\}/.test(html));
+/* Klaus 2026-09-29: den Weg hat er im Lichtweg-Werkzeug selbst gezogen (tools/lichtweg.mjs,
+   WEG). Gemessen wird am CSS der SEITE, nicht am Werkzeug — sonst wäre eine Handänderung
+   an der Seite unsichtbar. Dazu, dass beide Dateien genau den gebauten Block tragen. */
+const lwBlock = (t) => (t.match(/\/\* LICHTWEG-ANFANG[\s\S]*?\/\* LICHTWEG-ENDE \*\//) || [""])[0];
+const lw = await import(pathToFileURL(join(WURZEL, "tools", "lichtweg.mjs")).href);
+ok("der Lichtweg in Seite und Handbuch ist genau der gebaute (node tools/lichtweg.mjs)",
+  lwBlock(html) === lw.cssBlock() && lwBlock(readFileSync(join(WURZEL, "tools", "handbuch-vorlage.html"), "utf8")) === lw.cssBlock());
+const lwWeg = [...((html.match(/@keyframes licht-weg\{(.*?)\}\}/) || ["", ""])[1] + "}").matchAll(/([\d.]+)%\{left:([\d.]+)%;top:([\d.]+)%\}/g)]
+  .map((m) => [Number(m[1]), Number(m[2]), Number(m[3])]);
+const nahe = (p, q) => p && Math.hypot(p[1] - q[0], p[2] - q[1]) < 1;
+ok("… folgt Klaus' Weg: Start unten links, durch die Mitte, Ende oben rechts",
+  lwWeg.length > 20 && nahe(lwWeg[0], lw.WEG.start) && nahe(lwWeg[lwWeg.length - 1], lw.WEG.ende) && lwWeg.some((p) => nahe(p, lw.WEG.mitte)),
+  `${lwWeg.length} Punkte`);
+const lwAbst = lwWeg.slice(1).map((p, i) => Math.hypot(p[1] - lwWeg[i][1], p[2] - lwWeg[i][2]));
+ok("… läuft ohne Halt: gleicher Abstand je Schritt, linear abgespielt",
+  lwAbst.length > 0 && Math.max(...lwAbst) / Math.min(...lwAbst) < 1.3 && /animation:licht-weg \d+s linear infinite/.test(html),
+  lwAbst.length ? `${Math.min(...lwAbst).toFixed(2)}–${Math.max(...lwAbst).toFixed(2)}` : "kein Weg");
+const kg = (html.match(/@keyframes kegel\{(.*?)\}\}/) || ["", ""])[1] + "}";
+const skalen = [...kg.matchAll(/([\d.]+)%\{scale:([\d.]+)(?: ([\d.]+))?/g)].map((m) => ({ t: Number(m[1]), x: Number(m[2]), y: Number(m[3] || m[2]) }));
+const beiT = (t) => skalen.find((s) => Math.abs(s.t - t) < 0.2);
+ok("… blitzt am Start und am Ende mindestens vierfach auf",
+  (beiT(0)?.x ?? 0) >= 4 && (beiT(100)?.x ?? 0) >= 4, kg);
+ok("… nimmt in der Mitte die ganze Höhe des Icons ein",
+  skalen.some((s) => s.t > 30 && s.t < 70 && s.x >= 4 && s.y * 14 >= 99), kg);
+ok("… und wird dazwischen wieder klein", skalen.filter((s) => s.x === 1 && s.y === 1).length >= 2, kg);
 ok("… und steht bei „weniger Bewegung“ still", /prefers-reduced-motion:reduce\)\{\.bild-buehne::after,\.bild-buehne::before\{animation:none/.test(html));
 ok("das Handbuch steht im Offline-Vorrat", /"handbuch\.html"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
 
