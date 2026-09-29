@@ -265,5 +265,23 @@ fall "HB: ein Icon im Manifest fehlt" manifest.json \
 fall "HB: am kleinen Handy steht der Thema-Knopf wieder in der Kopfleiste" $H \
   ' #thema{display:none}}' '}' 'über den Rand|Suchfeld'
 
+# ── Anleitung als Seite (Klaus 2026-09-29) ──
+fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \
+  '## Selbsttest' '## Selbsttest (neu)' 'genau das, was aus LIESMICH'
+fall "ANL: eine Grenze fehlt auf der Seite" anleitung.html \
+  '<ol class="grenzen"><li>' '<ol class="grenzen"><li class="weg">' 'jede Grenze'
+fall "ANL: der Text wird nicht mehr maskiert" tools/anleitung-bauen.mjs \
+  'return maske(s)' 'return s' 'maskiert'
+fall "ANL: die Seite verlinkt wieder die Rohdatei" $H \
+  '<a href="anleitung.html">Anleitung und Grenzen</a>' '<a href="LIESMICH.md">Anleitung und Grenzen</a>' 'Rohdatei'
+fall "ANL: das Handbuch verlinkt wieder die Rohdatei" handbuch.html \
+  '<a class="knopf" href="anleitung.html">' '<a class="knopf" href="LIESMICH.md">' 'Handbuch ebenso'
+fall "ANL: die Anleitung fehlt im Offline-Vorrat" sw.js \
+  '"anleitung.html", ' '' 'Offline-Vorrat'
+fall "ANL: am Handy läuft die Tabelle quer" anleitung.html \
+  ' table,thead,tbody,tr,td{display:block;width:100%}' ' table{min-width:520px}' 'Tabelle nicht'
+fall "ANL: der lange Inhalts-Link bricht nicht mehr um" anleitung.html \
+  ' .film a{flex:0 1 auto;min-width:0}' ' .film a{flex:none;white-space:nowrap}' 'Tabelle nicht'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
