@@ -108,9 +108,15 @@ aufgebaut, dass später eine Videosequenz es besser erklärt"*.
   Ende 88.8/35.6, zwei Bögen). **`tools/lichtweg.mjs` baut das CSS** zwischen den Marken
   `LICHTWEG-ANFANG/-ENDE` in `sende-pruefer.html` UND `tools/handbuch-vorlage.html`
   — nie von Hand ändern, Weg in `WEG` anpassen, dann `node tools/lichtweg.mjs` und das
-  Handbuch neu bauen. 48 Punkte in gleichem Abstand, linear: kein Halt. An Start, Mitte
-  und Ende blitzt er auf (4-fach), in der Mitte über die ganze Höhe des Icons, dazwischen
-  klein. Bei „weniger Bewegung" fliegt nichts und der Schein steht still.
+  Handbuch neu bauen. 48 Punkte in gleichem Abstand, linear: kein Halt, **3,5 s** je
+  Durchlauf. An Start, Mitte und Ende blitzt er auf (4-fach), in der Mitte über die ganze
+  Höhe des Icons, dazwischen klein. In der Mitte **strahlt der Boden zurück**: das Bild
+  liegt ein zweites Mal darüber (`plus-lighter`, Maske Schild + Boden), so leuchten die
+  hellen, farbigen Streifen der Spiegelung heller — kein Fleck. Das Icon **wackelt** wie
+  die Glas-Knöpfe in family-project (`wireHoloButtons`): der Schein spielt die Maus, die
+  Stelle unter ihm gibt nach hinten nach (bis 12°, am Anfang/Ende null). Das Schweben
+  läuft deshalb über `translate`, nicht `transform`. Bei „weniger Bewegung" fliegt,
+  wackelt und leuchtet nichts.
 - **Kein weißer Saum am Rand** (Klaus 2026-09-29: „weiße Blitzer an den runden Ecken").
   Beim Freistellen blieb außen ein heller Rest; entfernt in allen Bildern mit
   durchsichtigem Rand. Die Probe zählt fast weiße Pixel im Band neben der
@@ -123,12 +129,12 @@ aufgebaut, dass später eine Videosequenz es besser erklärt"*.
 
 ```bash
 npm install         # playwright-core
-npm test            # tests/smoke.mjs — echter Browser, 234 Zusicherungen
-npm run gegenprobe  # 89 eingebaute Fehler, jeder muss seine rote Zeile werfen
+npm test            # tests/smoke.mjs — echter Browser, 240 Zusicherungen
+npm run gegenprobe  # 96 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor

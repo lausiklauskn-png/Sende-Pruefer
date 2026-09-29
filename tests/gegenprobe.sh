@@ -231,13 +231,27 @@ fall "HB: Stopp hält die Vorführung nicht an" $HB \
 fall "HB: der Lichtkegel wird in der Mitte nicht groß" $H \
   'scale:4 7.14}' 'scale:1}' 'ganze Höhe'
 fall "HB: der Lichtkegel bremst unterwegs ab (Zwischenhalt)" $H \
-  'animation:licht-weg 7s linear infinite' 'animation:licht-weg 7s ease-in-out infinite' 'ohne Halt'
+  'animation:licht-weg 3.5s linear infinite' 'animation:licht-weg 3.5s ease-in-out infinite' 'ohne Halt'
 fall "HB: der Lichtkegel blitzt am Start nicht auf" $H \
   'kegel{0%{scale:4;' 'kegel{0%{scale:1;' 'vierfach'
 fall "HB: der Lichtkegel läuft nicht mehr Klaus' Weg (alter Start)" $H \
   '0%{left:4.4%;top:58.6%}' '0%{left:16%;top:80%}' "Klaus' Weg"
 fall "HB: der Lichtkegel springt (ein Schritt viel weiter als die anderen)" $H \
   '2.08%{left:6.4%;' '2.08%{left:12%;' 'ohne Halt'
+fall "HB: der Lichtkegel läuft wieder im alten Tempo" $H \
+  'animation:licht-weg 3.5s linear infinite,kegel 3.5s' 'animation:licht-weg 7s linear infinite,kegel 7s' 'doppelt so schnell'
+fall "HB: der Boden strahlt als Fleck statt aus den Streifen des Bildes" $H \
+  'url(icons/sende-pruefer-bild.webp) 0 0/100% 100%' 'rgb(255 255 255/.5)' 'Boden'
+fall "HB: der Boden strahlt nicht mehr zurück (Maske ohne Boden)" $H \
+  ';mask:radial-gradient(18% 32% at 50% 48%,#000 60%,transparent),radial-gradient(22% 7% at 50% 87%,#000 55%,transparent);' ';mask:radial-gradient(18% 32% at 50% 48%,#000 60%,transparent);' 'Boden'
+fall "HB: das Icon wackelt nicht mehr" $H \
+  '.bild-buehne{animation:var(--wackeln),schweben ' '.bild-buehne{animation:schweben ' 'Schweben'
+fall "HB: das Icon kippt nicht an der Stelle des Scheins" $H \
+  '@keyframes wackeln{' '@keyframes wackeln-weg{' 'Stelle'
+fall "HB: das Schweben nimmt dem Wackeln die Drehung weg" $H \
+  '50%{translate:0 -8px}' '50%{transform:translateY(-8px)}' 'Schweben'
+fall "HB: im Handbuch wackelt es auch bei weniger Bewegung" tools/handbuch-vorlage.html \
+  '@media (prefers-reduced-motion:reduce){.bild-buehne{animation:none}}' '' 'weniger Bewegung'
 fall "HB: der Lichtkegel läuft auch bei weniger Bewegung" $H \
   '@media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}' '' 'weniger Bewegung'
 fall "HB: das Bild fliegt nicht mehr in die Kopfleiste" $H \
