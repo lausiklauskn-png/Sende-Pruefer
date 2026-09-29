@@ -210,6 +210,9 @@ Abschirmung meldete dieses Fenster zugleich als „fremd"; `eigenesFenster()` ni
 die eigene `sicherheit.html` aus (gleiche Herkunft, gleicher Ordner) — ein leeres oder fremdes
 iframe wird weiter gemeldet. ✅ Die übrigen **neun** Knoten ohne `sicherheit.html` sind am selben Tag nachgezogen
 (neutrale Fassung aus Sages Wurzel); die Regel steht in `Sage-Protokol/docs/PFLICHT_MODULE.md`.
+**Seit dem Abend desselben Tages** trägt die Seite in allen 22 Fassungen den Abschnitt **„Was nützt mir das?"**
+(Nutzen gegenüber Mail, belegte Quellen, Beispiele, Grafik zum eigenen abgeschirmten Netz, Bausteine mit Stand),
+zwischen `NUTZEN-ANFANG`/`NUTZEN-ENDE`. Quelle: Sages Wurzel. family-project fehlt noch (zweisprachig, braucht EN).
 
 ## Abschirmung: wegklicken, aufheben, im Fremdzugriff-Fenster (Klaus 2026-09-29)
 

@@ -32,6 +32,8 @@ Geprüft werden sollte:
 - Warnzeile: ✕ blendet aus, OHNE abzuschirmen; ein neuer Fund bringt sie zurück
 - Schild: zweiter Tipp hebt die Abschirmung auf (Hinweis beim Draufzeigen)
 - FREMD-Lampe → Fenster: Funde als Liste und Knopf „🛡 Jetzt abschirmen“
+- Siegel → „So funktioniert das Mycel“ zeigt den neuen Abschnitt **„Was nützt mir das?“**
+  mit Beispielen und der Grafik zum eigenen Netz (Handy und breit ansehen)
 - Siegel → „So funktioniert das Mycel“ öffnet die Erklärseite (kein 404) — im
   Sende-Prüfer und stichprobenweise in einer der neun nachgezogenen Apps
   (Alis Moderaum, Auslieferungsprüfer, Muster Werbetechnik, Muttis Rezeptbuch,
@@ -94,7 +96,10 @@ lesbar ist. Die Seite sagt, was geprüft wurde — nicht, dass eine Datei „sau
    (§ 5 DDG). Der Datenschutz nennt alle fünf Anbieter, dass nur der verdeckte
    Text hinausgeht, dass Mails nur auf dem Gerät liegen, den Tresor und das
    Mycel (Verbinden nur auf Klick).
-2. **Marktplatz-Einträge** in PWA-Toolpoint und family-project (dort die
+2. **family-project:** der Abschnitt „Was nützt mir das?“ fehlt dort, weil die Seite
+   zweisprachig ist (`smoke_uebersetzung.mjs` verbietet deutschen Text im Englisch-Modus).
+   Einbauen mit `data-i18n`-Schlüsseln in DE und EN, dann `CACHE_VERSION` + `ASSET_V`.
+3. **Marktplatz-Einträge** in PWA-Toolpoint und family-project (dort die
    Positivlisten `normEintrag`/`markteintraege()` beachten) · gegenseitiger
    Verweis beider Prüfer.
 
