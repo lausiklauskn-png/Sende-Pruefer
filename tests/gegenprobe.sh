@@ -453,7 +453,7 @@ fall "PDFTEXT: der Anhang-Prüfer kommt vor der KI-Liste" $A \
     .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
     .then(function (x) { laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); return x; })' 'Reihenfolge'
 fall "PDFTEXT: der Weg zu pdf.js wird nicht gesetzt" $A \
-  '      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade(' '      if (false) welt.PrueferAnhang.pfade(' 'Workflow PDF'
+  '      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade(' '      if (false) welt.PrueferAnhang.pfade(' 'im Browser: das PDF meldet'
 fall "PDFTEXT: die Mailadresse aus dem Seitentext geht nicht an Modul 25" $A \
   'var funde = r.text && finde ?' 'var funde = r.text && finde && r.art !== "pdf" ?' 'Angabe'
 fall "PDFTEXT: die KI-Liste fehlt im Offline-Vorrat" sw.js \
