@@ -252,7 +252,7 @@ Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
 - `assets/anhaenge.js` ist seitdem **nur noch die Oberfläche** und lädt den Kern
   nach (`bereit`). Fehlt er, heißt jeder Anhang **„ungeprüft"**, nie „sauber".
   Cache `sende-pruefer-v25`, beide Dateien in `CORE`.
-- Stufe 2 (Bildpunkte, Text im Bild, PDF-Seitentext) ist **vorbereitet, nicht gebaut**:
+- Stufe 2: **D (PDF-Seitentext) ist gebaut** (Abschnitt unten), Bildpunkte und Text im Bild sind **vorbereitet, nicht gebaut**:
   `docs/BRIEF_2026-09-29_anhaenge-stufe2.md`.
 - `assets/anhaenge.js` (app-eigen, außerhalb der 96 KB). Die Seite trägt nur eine
   `<script>`-Zeile; die Datei hängt sich per MutationObserver an `#lesen` und liest
@@ -263,7 +263,7 @@ Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
 - ⚠ Der `.eml`-Zuhörer hängt **sofort** beim Laden, nicht nach DOMContentLoaded:
   das Seiten-Skript leert das Datei-Feld in seinem eigenen Zuhörer.
 - ⚠ **Benannte Grenzen:** kein Virenscanner, keine Steganografie, **keine
-  Texterkennung in Bildern, kein PDF-Seitentext** (Tesseract/pdf.js nicht
+  Texterkennung in Bildern** (Tesseract nicht
   eingebaut), GIF nur am Kopf. **An die KI geht weiterhin nur der Mailtext.**
   `.eml`-Export und Teilen nehmen die Anhänge seit 2026-09-29 mit (Abschnitt unten).
 - ⚠ **Abweichung vom Brief:** die Befundarten stehen nicht im Köder (`koeder.txt`
@@ -297,6 +297,24 @@ Mail-Programm geöffnet, der Anhang ist nicht da."* Beides stimmte: die Seite ba
 - ⚠ Nicht gemessen: welche Mail-Programme am Tablet die Anhänge aus der .eml zeigen,
   und welche Dateiarten Klaus' Chrome beim Teilen annimmt.
 - Gegenprobe `EXP:` (7 Fälle). Cache `sende-pruefer-v26`.
+
+## 📄 Stufe 2 D · der Seitentext eines PDFs (seit 2026-09-29)
+
+Klaus: C bekommt einen eigenen Knopf mit „Verdacht", E liest höchstens 10 Seiten
+gegen — Reihenfolge D → A → B → E → C (Brief `docs/BRIEF_2026-09-29_anhaenge-stufe2.md`).
+
+- `assets/pruefer-anhang.js` (7452e51) und **`assets/pruefer-mail.js`** (die Liste der
+  KI-Anweisungen) sind byte-1:1 aus dem Auslieferungsprüfer, gepinnt in
+  `tests/anhaenge.mjs` (`ANHANG_SHA`, `MAIL_SHA`). Dort pflegen, hier neu kopieren.
+- `assets/anhaenge.js` lädt **PDF-Prüfer → KI-Liste → Anhang-Prüfer** der Reihe nach und
+  setzt `pfade({pdfjs: "../Workflow-PDF/vendor/pdfjs/"})`. pdf.js steht **nicht** im
+  Vorrat; fehlt es, heißt der Seitentext „NICHT gelesen … ungeprüft".
+- Gefunden wird `PDF-KI-ANWEISUNG` mit Seite und Zeile; der Seitentext geht an Modul 25
+  (Angaben wie im Mailtext). Höchstens 100 Seiten, der Rest wird benannt.
+- Proben: `seitentext()` ohne Browser und ein Block im Browser (der Proben-Server liefert
+  `Workflow-PDF/…` aus dem Nachbar-Klon) · Gegenprobe `NUR_FALL="PDFTEXT:"` (5 Fälle).
+  Fehlt der Nachbar, ist der Teil ⊘ nicht lauffähig.
+- ⚠ Nicht gemessen: echte PDFs aus Klaus' Postfach, das Tablet (Zeit, Speicher).
 
 ## Prüfen
 

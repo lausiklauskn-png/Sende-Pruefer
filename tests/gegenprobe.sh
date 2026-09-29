@@ -18,6 +18,8 @@ frisch() {
   rm -rf "$KOPIE/w"; mkdir -p "$KOPIE/w"
   (cd "$WURZEL" && tar --exclude=node_modules --exclude=.git -cf - .) | (cd "$KOPIE/w" && tar -xf -)
   ln -s "$(readlink -f "$WURZEL/node_modules")" "$KOPIE/w/node_modules"
+  # pdf.js und pdf-lib liegen in Workflow PDF (Nachbar) — ohne ihn wäre der Seitentext-Teil ⊘ und jeder Fall dazu blind
+  [ -d "$WURZEL/../Workflow-PDF" ] && ln -sfn "$(readlink -f "$WURZEL/../Workflow-PDF")" "$KOPIE/Workflow-PDF"
 }
 
 # fall <name> <datei> <anker> <ersatz> <erwartete rote Zeile (grep -E)>
@@ -390,7 +392,7 @@ fall "ANH: Office-Verweise nach außen werden übersehen" $K \
 fall "ANH: der Word-Text geht nicht an Modul 25" $K \
   '          texte.push(entitaeten(xml.replace(' '          void (entitaeten(xml.replace(' 'Text samt Verfasser|Angaben im Text'
 fall "ANH: der PDF-Prüfer wird nicht nachgeladen" $A \
-  's.src = "assets/pruefer-formate.js";' 's.src = "assets/fehlt.js";' 'PDF-Prüfer wurde nachgeladen'
+  'laden("assets/pruefer-formate.js"' 'laden("assets/fehlt.js"' 'PDF-Prüfer wurde nachgeladen'
 fall "ANH: die Endung wird nicht mit dem Dateikopf verglichen" $K \
   '    else if (ENDUNGEN[art] && endung && ENDUNGEN[art].indexOf(endung) < 0)' '    else if (false)' 'nicht zum Dateikopf passt'
 fall "ANH: ein Programm wird nur an der Endung erkannt" $K \
@@ -416,7 +418,7 @@ fall "ANH: die Anhang-Prüfung fehlt im Offline-Vorrat" sw.js \
 fall "ANH: pruefer-anhang.js wird abgewandelt (Pin)" $K \
   '  var GROESSE_MAX = 25 * 1024 * 1024;' '  var GROESSE_MAX = 26 * 1024 * 1024;' 'pruefer-anhang.js ist unver'
 fall "ANH: der Prüfteil wird nicht nachgeladen" $A \
-  's.src = "assets/pruefer-anhang.js";' 's.src = "assets/fehlt.js";' 'lädt pruefer-anhang.js nach|alle fünf'
+  'laden("assets/pruefer-anhang.js"' 'laden("assets/fehlt.js"' 'lädt pruefer-anhang.js nach|alle fünf'
 fall "ANH: die Oberfläche trägt wieder eine eigene Prüfung" $A \
   '  function artVon(b) {' '  function pngPruefen() {}
   function artVon(b) {' 'keine eigene Prüfung mehr'
@@ -439,6 +441,23 @@ fall "EXP: die KI-Antwort übernimmt den Anhang nicht" $A \
   '      if (b && b.anhaenge && b.anhaenge.length) {' '      if (false) {' 'ursprünglichen Mail'
 fall "EXP: ein entfernter Anhang kommt wieder" $A \
   ' && !m.anhaengeGeerbt && m.bezug) {' ' && m.bezug) {' 'kommt nicht wieder'
+
+# ── Stufe 2 D · PDF-Seitentext (2026-09-29). Nur mit Workflow PDF daneben messbar.
+A=assets/anhaenge.js
+fall "PDFTEXT: die KI-Liste wird nicht mehr geladen" $A \
+  '.then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })' '.then(function () { return true; })' 'KI-Liste'
+fall "PDFTEXT: der Anhang-Prüfer kommt vor der KI-Liste" $A \
+  '  var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
+    .then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })
+    .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })' '  var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
+    .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
+    .then(function (x) { laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); return x; })' 'Reihenfolge'
+fall "PDFTEXT: der Weg zu pdf.js wird nicht gesetzt" $A \
+  '      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade(' '      if (false) welt.PrueferAnhang.pfade(' 'im Browser: das PDF meldet'
+fall "PDFTEXT: die Mailadresse aus dem Seitentext geht nicht an Modul 25" $A \
+  'var funde = r.text && finde ?' 'var funde = r.text && finde && r.art !== "pdf" ?' 'Angabe'
+fall "PDFTEXT: die KI-Liste fehlt im Offline-Vorrat" sw.js \
+  ', "assets/pruefer-mail.js"' '' 'Offline-Vorrat'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

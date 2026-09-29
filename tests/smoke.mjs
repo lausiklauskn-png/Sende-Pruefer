@@ -247,7 +247,9 @@ const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=
   ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 const server = http.createServer((q, a) => {
   const p = decodeURIComponent(new URL(q.url, "http://x").pathname).replace(/^\/+/, "") || "index.html";
-  try { const b = readFileSync(join(WURZEL, p)); a.writeHead(200, { "content-type": TYP[extname(p)] || "application/octet-stream" }); a.end(b); }
+  /* ../Workflow-PDF/ liegt im Netz auf derselben Adresse — hier im Nachbar-Klon */
+  const quelle = p.startsWith("Workflow-PDF/") ? join(WURZEL, "..", p) : join(WURZEL, p);
+  try { const b = readFileSync(quelle); a.writeHead(200, { "content-type": TYP[extname(p)] || "application/octet-stream" }); a.end(b); }
   catch { a.writeHead(404); a.end(); }
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
@@ -255,6 +257,7 @@ const BASIS = `http://127.0.0.1:${server.address().port}/`;
 
 /* ── Anhänge ohne Browser (tests/anhaenge.mjs) ── */
 await Anhang.ohneBrowser(ok, WURZEL).catch((e) => ok("Anhänge ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Anhang.seitentext(ok, WURZEL).catch((e) => ok("PDF-Seitentext ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
 try {

@@ -10,8 +10,9 @@
  * Endung, die nicht zum Dateikopf passt — und Angaben im TEXT einer Datei
  * (SVG, Word, Excel, PowerPoint), die Modul 25 wie im Mailtext findet.
  *
- * ⚠ BENANNTE GRENZEN dieser Fassung: Text IN einem Bild (Texterkennung) und
- * der Seitentext eines PDFs werden NICHT gelesen. An die KI geht weiterhin
+ * ⚠ BENANNTE GRENZEN dieser Fassung: Text IN einem Bild (Texterkennung) wird
+ * NICHT gelesen. Der Seitentext eines PDFs schon (bis 100 Seiten, pdf.js aus
+ * Workflow PDF) — fehlt pdf.js, heißt er „ungeprüft". An die KI geht weiterhin
  * nur der Mailtext, keine Datei.
  *
  * ⚠ DIE SEITE BLEIBT UNBERÜHRT. Sie ist voll (96 KB für vier Dateien); diese
@@ -20,7 +21,8 @@
  * finde, mailNamen). Fehlt diese Datei, läuft die Seite wie vorher.
  *
  * Die Prüfung selbst steht in assets/pruefer-anhang.js, PDF-Befunde in
- * assets/pruefer-formate.js — beide byte-1:1 aus dem Auslieferungsprüfer,
+ * assets/pruefer-formate.js, die KI-Anweisungen in assets/pruefer-mail.js —
+ * alle drei byte-1:1 aus dem Auslieferungsprüfer,
  * dort pflegen, hier neu kopieren. Diese Datei trägt nur die Oberfläche.
  */
 (function (welt) {
@@ -32,12 +34,27 @@
    * Oberfläche. Die Seite ist voll; der Prüfteil wird deshalb von HIER
    * nachgeladen, nicht über eine eigene Zeile in der Seite. */
   if (typeof document === "undefined") return;
-  var bereit = welt.PrueferAnhang ? Promise.resolve(welt.PrueferAnhang) : new Promise(function (res, rej) {
-    var s = document.createElement("script"); s.src = "assets/pruefer-anhang.js";
-    s.onload = function () { welt.PrueferAnhang ? res(welt.PrueferAnhang) : rej(new Error("leer")); };
-    s.onerror = function () { rej(new Error("fehlt")); };
-    document.head.append(s);
-  });
+  /* Reihenfolge: PDF-Prüfer → Mail-Prüfer (trägt die Liste der
+   * KI-Anweisungen, die auch im Seitentext eines PDFs gesucht wird) →
+   * Anhang-Prüfer. Fehlt einer der ersten zwei, läuft es weiter — der
+   * Anhang-Prüfer nennt dann, was ungeprüft blieb. */
+  function laden(pfad, da) {
+    return da() ? Promise.resolve(true) : new Promise(function (res) {
+      var s = document.createElement("script"); s.src = pfad;
+      s.onload = function () { res(!!da()); }; s.onerror = function () { res(false); };
+      document.head.append(s);
+    });
+  }
+  var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
+    .then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })
+    .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
+    .then(function (da) {
+      if (!da) throw new Error("fehlt");
+      /* pdf.js liegt in Workflow PDF (gleiche Adresse, nicht im Vorrat) und
+       * wird erst geholt, wenn ein PDF kommt. */
+      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href });
+      return welt.PrueferAnhang;
+    });
   function pruefe(name, bytes) {
     return bereit.then(function (A) { return A.pruefe(name, bytes); }, function () {
       return { art: "unbekannt", artName: "nicht geprüft", befunde: [], text: "", sicher: false,
@@ -153,7 +170,7 @@
       liste,
       m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
-      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern und der Seitentext von PDFs werden noch nicht gelesen. An die KI geht nur der Mailtext, keine Datei."));
+      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern wird noch nicht gelesen; den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten). An die KI geht nur der Mailtext, keine Datei."));
   }
 
   function zeichne() {
@@ -313,9 +330,6 @@
 
   function start() {
     document.head.append(el("style", null, ".anhang-liste{list-style:none;padding:0;margin:8px 0}.anhang{border-top:1px solid color-mix(in srgb,currentColor 15%,transparent);padding:8px 0}.anhang-name{overflow-wrap:anywhere}.anhang-befunde{margin:6px 0 0}"));
-    if (!welt.PrueferFormate) {
-      var s = document.createElement("script"); s.src = "assets/pruefer-formate.js"; document.head.append(s);
-    }
     exportEinbauen();
     beobachten();
   }
