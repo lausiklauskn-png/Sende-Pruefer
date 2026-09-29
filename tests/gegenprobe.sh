@@ -306,6 +306,8 @@ fall "HOL: der Link wechselt nicht mit dem Anbieter" $H \
 fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
   '    holen: "https://console.mistral.ai/api-keys" })' '    holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'je Anbieter eine'
 
+fall "LIMIT: Mistral bekommt keine Ausgabe-Grenze" $H \
+  'body: { max_tokens: 4096, model: a.modell,' 'body: { model: a.modell,' 'Ausgabe-Grenze'
 A=assets/ablehnung.js
 fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $A \
   'if (/subscription tier|not available/i.test(grund))' 'if (false)' 'nicht das Guthaben'
