@@ -146,6 +146,16 @@ Die Tabelle wird am Handy zu Karten; gemessen wird die Tabelle selbst, nicht ihr
 (`overflow:hidden` hätte eine zu breite Tabelle still abgeschnitten — so war ein
 Gegenprobe-Fall zuerst blind). Wer LIESMICH.md ändert, baut neu, sonst wird die Probe rot.
 
+## Schlüssel beim Anbieter erzeugen (seit 2026-09-29)
+
+Klaus: *„Mir fehlt noch die Schlüsselgenerierung für KI … der Link direkt zum Anbieter.“*
+Unter dem Schlüsselfeld steht „🔑 Schlüssel beim Anbieter erzeugen ↗“. Die Adresse
+steht als `holen` in `ANBIETER` (Anthropic `console.anthropic.com/settings/keys`,
+Mistral `console.mistral.ai/api-keys` — dieselben Adressen wie in den übrigen Apps
+des Netzes) und wechselt mit dem Anbieter. Neuer Tab, `noopener noreferrer`. Keine
+Zahl zu Startguthaben. Ob die Seiten beim Anbieter heute so heißen, ist aus dem
+Behälter nicht gemessen.
+
 ## Prüfen
 
 ```bash
@@ -155,7 +165,7 @@ npm run gegenprobe  # 96 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
