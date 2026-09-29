@@ -392,7 +392,7 @@ fall "ANH: Office-Verweise nach außen werden übersehen" $K \
 fall "ANH: der Word-Text geht nicht an Modul 25" $K \
   '          texte.push(entitaeten(xml.replace(' '          void (entitaeten(xml.replace(' 'Text samt Verfasser|Angaben im Text'
 fall "ANH: der PDF-Prüfer wird nicht nachgeladen" $A \
-  's.src = "assets/pruefer-formate.js";' 's.src = "assets/fehlt.js";' 'PDF-Prüfer wurde nachgeladen'
+  'laden("assets/pruefer-formate.js"' 'laden("assets/fehlt.js"' 'PDF-Prüfer wurde nachgeladen'
 fall "ANH: die Endung wird nicht mit dem Dateikopf verglichen" $K \
   '    else if (ENDUNGEN[art] && endung && ENDUNGEN[art].indexOf(endung) < 0)' '    else if (false)' 'nicht zum Dateikopf passt'
 fall "ANH: ein Programm wird nur an der Endung erkannt" $K \
@@ -418,7 +418,7 @@ fall "ANH: die Anhang-Prüfung fehlt im Offline-Vorrat" sw.js \
 fall "ANH: pruefer-anhang.js wird abgewandelt (Pin)" $K \
   '  var GROESSE_MAX = 25 * 1024 * 1024;' '  var GROESSE_MAX = 26 * 1024 * 1024;' 'pruefer-anhang.js ist unver'
 fall "ANH: der Prüfteil wird nicht nachgeladen" $A \
-  's.src = "assets/pruefer-anhang.js";' 's.src = "assets/fehlt.js";' 'lädt pruefer-anhang.js nach|alle fünf'
+  'laden("assets/pruefer-anhang.js"' 'laden("assets/fehlt.js"' 'lädt pruefer-anhang.js nach|alle fünf'
 fall "ANH: die Oberfläche trägt wieder eine eigene Prüfung" $A \
   '  function artVon(b) {' '  function pngPruefen() {}
   function artVon(b) {' 'keine eigene Prüfung mehr'
