@@ -365,34 +365,35 @@ fall "TRESOR: das Schloss wird abgewandelt" assets/schluesseltresor.js \
   'var RUNDEN = 600000;' 'var RUNDEN = 1000;' 'schluesseltresor.js ist unver'
 
 A=assets/anhaenge.js
+K=assets/pruefer-anhang.js   # byte-1:1 aus dem Auslieferungsprüfer; ein Eingriff wirft AUCH den Pin — gezählt wird die Zeile der Zusicherung
 # Anhänge (2026-09-29). Jeder Fall nimmt EINE Erkennung weg; gezählt wird die rote Zeile mit ihrem Namen.
-fall "ANH: Daten hinter dem Bildende werden nicht mehr gemeldet" $A \
+fall "ANH: Daten hinter dem Bildende werden nicht mehr gemeldet" $K \
   '    if (leer && rest.length <= 64) return;' '    return;' 'Daten hinter dem Bildende|Metadaten und Anhängsel'
-fall "ANH: Füllbytes gelten als Anhängsel" $A \
+fall "ANH: Füllbytes gelten als Anhängsel" $K \
   '    if (leer && rest.length <= 64) return;' '' 'Füllbytes'
-fall "ANH: GPS wird geraten statt im IFD0 gesucht" $A \
+fall "ANH: GPS wird geraten statt im IFD0 gesucht" $K \
   '        var gps = exifHatGps(b, i + 10, Math.min(i + 2 + len, b.length));' '        var gps = true;' 'keine erfundene Ortsangabe'
-fall "ANH: PNG-Textfelder werden übersehen" $A \
+fall "ANH: PNG-Textfelder werden übersehen" $K \
   '      if (typ === "tEXt" || typ === "iTXt" || typ === "zTXt") {' '      if (false) {' 'Text-Feld in den Metadaten|Metadaten und Anhängsel'
-fall "ANH: ein SVG-Skript wird übersehen" $A \
+fall "ANH: ein SVG-Skript wird übersehen" $K \
   'if (/<script[\s>]/i.test(s)) melde' 'if (false) melde' 'Skript und Ereignis'
-fall "ANH: ein fremder Abruf aus der SVG wird übersehen" $A \
+fall "ANH: ein fremder Abruf aus der SVG wird übersehen" $K \
   '      wirte[w] = 1; melde("SVG-VERWEIS"' '      wirte[w] = 1; void ("SVG-VERWEIS"' 'fremden Rechner|fremder Abruf'
-fall "ANH: das SVG-Skript geht mit an Modul 25" $A \
+fall "ANH: das SVG-Skript geht mit an Modul 25" $K \
   '    var text = s.replace(/<script[\s\S]*?<\/script>/gi, " ")' '    var text = s' 'das Skript nicht'
-fall "ANH: Makros werden übersehen" $A \
+fall "ANH: Makros werden übersehen" $K \
   '    if (makro.length) melde("OFFICE-MAKRO"' '    if (false) melde("OFFICE-MAKRO"' 'Makro'
-fall "ANH: gepackte Office-Teile werden nicht entpackt" $A \
+fall "ANH: gepackte Office-Teile werden nicht entpackt" $K \
   'new welt.DecompressionStream("deflate-raw")' 'new welt.DecompressionStream("deflate")' 'Word \(gepackt\)'
-fall "ANH: Office-Verweise nach außen werden übersehen" $A \
+fall "ANH: Office-Verweise nach außen werden übersehen" $K \
   '            if (!/TargetMode="External"/.test(m[0])) continue;' '            continue;' 'Vorlage von außen|Verweis'
-fall "ANH: der Word-Text geht nicht an Modul 25" $A \
+fall "ANH: der Word-Text geht nicht an Modul 25" $K \
   '          texte.push(entitaeten(xml.replace(' '          void (entitaeten(xml.replace(' 'Text samt Verfasser|Angaben im Text'
 fall "ANH: der PDF-Prüfer wird nicht nachgeladen" $A \
   's.src = "assets/pruefer-formate.js";' 's.src = "assets/fehlt.js";' 'PDF-Prüfer wurde nachgeladen'
-fall "ANH: die Endung wird nicht mit dem Dateikopf verglichen" $A \
+fall "ANH: die Endung wird nicht mit dem Dateikopf verglichen" $K \
   '    else if (ENDUNGEN[art] && endung && ENDUNGEN[art].indexOf(endung) < 0)' '    else if (false)' 'nicht zum Dateikopf passt'
-fall "ANH: ein Programm wird nur an der Endung erkannt" $A \
+fall "ANH: ein Programm wird nur an der Endung erkannt" $K \
   '    if (b[0] === 0x4D && b[1] === 0x5A) return "programm";' '' 'am Dateikopf erkannt'
 fall "ANH: ein Name wird als HTML eingesetzt" $A \
   '      el("div", { class: "anhang-kopf" }, el("b", { class: "anhang-name" }, a.name),' '      el("div", { class: "anhang-kopf" }, (function () { var x = el("b", { class: "anhang-name" }); x.innerHTML = a.name; return x; })(),' 'als Text da'
@@ -412,6 +413,15 @@ fall "ANH: der PDF-Prüfer wird abgewandelt" assets/pruefer-formate.js \
   '    { re: /\/Launch\b/,' '    { re: /\/Launchx\b/,' 'pruefer-formate.js ist unver'
 fall "ANH: die Anhang-Prüfung fehlt im Offline-Vorrat" sw.js \
   ' "assets/anhaenge.js",' '' 'Offline-Vorrat'
+fall "ANH: pruefer-anhang.js wird abgewandelt (Pin)" $K \
+  '  var GROESSE_MAX = 25 * 1024 * 1024;' '  var GROESSE_MAX = 26 * 1024 * 1024;' 'pruefer-anhang.js ist unver'
+fall "ANH: der Prüfteil wird nicht nachgeladen" $A \
+  's.src = "assets/pruefer-anhang.js";' 's.src = "assets/fehlt.js";' 'lädt pruefer-anhang.js nach|alle fünf'
+fall "ANH: die Oberfläche trägt wieder eine eigene Prüfung" $A \
+  '  function artVon(b) {' '  function pngPruefen() {}
+  function artVon(b) {' 'keine eigene Prüfung mehr'
+fall "ANH: der Prüfteil fehlt im Offline-Vorrat" sw.js \
+  ' "assets/pruefer-anhang.js",' '' 'Offline-Vorrat'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

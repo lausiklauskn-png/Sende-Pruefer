@@ -19,272 +19,34 @@
  * Mail über die globalen Namen des Seiten-Skripts (aktuell, jetztSpeichern,
  * finde, mailNamen). Fehlt diese Datei, läuft die Seite wie vorher.
  *
- * Die Prüfung (pruefe) läuft in beiden Welten, Browser und Node, damit die
- * Probe genau den Code misst, den der Browser ausführt. PDF-Befunde kommen
- * aus assets/pruefer-formate.js — byte-1:1 aus dem Auslieferungsprüfer,
- * dort pflegen, hier neu kopieren.
+ * Die Prüfung selbst steht in assets/pruefer-anhang.js, PDF-Befunde in
+ * assets/pruefer-formate.js — beide byte-1:1 aus dem Auslieferungsprüfer,
+ * dort pflegen, hier neu kopieren. Diese Datei trägt nur die Oberfläche.
  */
 (function (welt) {
   "use strict";
 
-  var BEFUNDE = ["ANHANG-TARNUNG", "ANHANG-PROGRAMM", "BILD-ANHAENGSEL", "BILD-METADATEN",
-    "SVG-SKRIPT", "SVG-VERWEIS", "OFFICE-MAKRO", "OFFICE-VERWEIS", "OFFICE-EINBETTUNG",
-    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG"];
-
-  function alsBytes(b) { return b instanceof Uint8Array ? b : new Uint8Array(b || []); }
-  function latin1(b, von, bis) {
-    var s = "", e = Math.min(bis == null ? b.length : bis, b.length);
-    for (var i = von || 0; i < e; i += 32768) s += String.fromCharCode.apply(null, b.subarray(i, Math.min(i + 32768, e)));
-    return s;
-  }
-  var u16 = function (b, i) { return b[i] | (b[i + 1] << 8); };
-  var u32 = function (b, i) { return (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24)) >>> 0; };
-  var b32 = function (b, i) { return ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0; };
-  function gross(n) { return n < 1024 ? n + " Bytes" : n < 1048576 ? (n / 1024).toFixed(1).replace(".", ",") + " KB" : (n / 1048576).toFixed(1).replace(".", ",") + " MB"; }
-
-  /* ══ WAS IST ES WIRKLICH? — am Dateikopf, nicht an der Endung */
-  function artVon(b) {
-    if (b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return "png";
-    if (b.length >= 3 && b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return "jpeg";
-    if (b.length >= 6 && latin1(b, 0, 4) === "GIF8") return "gif";
-    if (b.length >= 12 && latin1(b, 0, 4) === "RIFF" && latin1(b, 8, 12) === "WEBP") return "webp";
-    if (latin1(b, 0, 5) === "%PDF-") return "pdf";
-    if (b.length >= 4 && b[0] === 0x50 && b[1] === 0x4B && b[2] === 3 && b[3] === 4) return "zip";
-    if (b[0] === 0x4D && b[1] === 0x5A) return "programm";               // MZ: Windows-Programm
-    if (b[0] === 0x7F && latin1(b, 1, 4) === "ELF") return "programm";
-    if (latin1(b, 0, 2) === "#!") return "programm";
-    var anf = latin1(b, 0, 1024).replace(/^﻿|^\xEF\xBB\xBF/, "").trimStart();
-    if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE svg[^>]*>\s*)?<svg[\s>]/i.test(anf)) return "svg";
-    return "unbekannt";
-  }
-  var ART_NAME = { png: "PNG-Bild", jpeg: "JPEG-Bild", gif: "GIF-Bild", webp: "WebP-Bild", pdf: "PDF",
-    zip: "ZIP-Archiv", docx: "Word-Dokument", xlsx: "Excel-Tabelle", pptx: "PowerPoint", svg: "SVG-Grafik",
-    programm: "ausführbares Programm", unbekannt: "unbekannte Art" };
-  var ENDUNGEN = { png: ["png"], jpeg: ["jpg", "jpeg", "jfif"], gif: ["gif"], webp: ["webp"], pdf: ["pdf"],
-    svg: ["svg"], zip: ["zip", "docx", "docm", "xlsx", "xlsm", "pptx", "pptm", "odt", "ods", "odp", "epub"] };
-  var PROGRAMM_ENDUNG = /\.(exe|scr|com|bat|cmd|ps1|vbs|vbe|js|jse|wsf|hta|msi|lnk|jar|apk|sh|dll|cpl|reg)$/i;
-
-  /* ══ BILDER */
-  function jpegPruefen(b, melde) {
-    var i = 2, ende = -1, meta = [];
-    while (i + 4 <= b.length) {
-      if (b[i] !== 0xFF) break;
-      var mk = b[i + 1];
-      if (mk === 0xFF) { i++; continue; }
-      if (mk === 0xD9) { ende = i + 2; break; }
-      if (mk >= 0xD0 && mk <= 0xD7 || mk === 0x01) { i += 2; continue; }
-      var len = (b[i + 2] << 8) | b[i + 3];
-      var inhalt = latin1(b, i + 4, Math.min(i + 4 + 40, b.length));
-      if (mk === 0xE1 && inhalt.indexOf("Exif\0") === 0) {
-        var gps = exifHatGps(b, i + 10, Math.min(i + 2 + len, b.length));
-        meta.push("EXIF (Kamera, Aufnahmezeit" + (gps ? ", Ortsangabe GPS" : "") + ")");
-      } else if (mk === 0xE1 && inhalt.indexOf("http://ns.adobe.com/xap/") === 0) meta.push("XMP");
-      else if (mk === 0xED) meta.push("IPTC/Photoshop");
-      else if (mk === 0xFE) meta.push("Kommentar");
-      if (mk === 0xDA) {                         // Bilddaten: bis zum echten Ende suchen
-        var j = i + 2 + len;
-        while (j + 1 < b.length) {
-          if (b[j] === 0xFF && b[j + 1] === 0xD9) { ende = j + 2; break; }
-          j++;
-        }
-        break;
-      }
-      i += 2 + len;
-    }
-    if (meta.length) melde("BILD-METADATEN", "Im Bild stehen Metadaten: " + meta.join(", ") + ".");
-    return ende;
-  }
-  /* GPS nur, wenn IFD0 wirklich den Verweis 0x8825 trägt — eine geratene
-     Ortsangabe wäre eine falsche Warnung über den Aufnahmeort. */
-  function exifHatGps(b, t, bis) {
-    if (t + 8 > bis) return false;
-    var le = b[t] === 0x49, r16 = function (i) { return le ? u16(b, i) : (b[i] << 8) | b[i + 1]; },
-      r32 = function (i) { return le ? u32(b, i) : b32(b, i); };
-    var ifd = t + r32(t + 4); if (ifd + 2 > bis) return false;
-    var n = r16(ifd);
-    for (var k = 0; k < n && ifd + 2 + k * 12 + 2 <= bis; k++) if (r16(ifd + 2 + k * 12) === 0x8825) return true;
-    return false;
-  }
-  function pngPruefen(b, melde) {
-    var i = 8, ende = -1, meta = [];
-    while (i + 12 <= b.length) {
-      var len = b32(b, i), typ = latin1(b, i + 4, i + 8);
-      if (typ === "tEXt" || typ === "iTXt" || typ === "zTXt") {
-        var schl = latin1(b, i + 8, Math.min(i + 8 + len, i + 8 + 80)).split("\0")[0];
-        meta.push("Text „" + schl + "“");
-      } else if (typ === "eXIf") meta.push("EXIF");
-      i += 12 + len;
-      if (typ === "IEND") { ende = i; break; }
-    }
-    if (meta.length) melde("BILD-METADATEN", "Im Bild stehen Metadaten: " + meta.join(", ") + ".");
-    return ende;
-  }
-  function webpPruefen(b, melde) {
-    var ende = 8 + u32(b, 4), i = 12, meta = [];
-    while (i + 8 <= Math.min(ende, b.length)) {
-      var typ = latin1(b, i, i + 4), len = u32(b, i + 4);
-      if (typ === "EXIF") meta.push("EXIF"); else if (typ === "XMP ") meta.push("XMP");
-      i += 8 + len + (len & 1);
-    }
-    if (meta.length) melde("BILD-METADATEN", "Im Bild stehen Metadaten: " + meta.join(", ") + ".");
-    return ende;
-  }
-  function anhaengsel(b, ende, melde) {
-    if (ende < 0 || ende >= b.length) return;
-    var rest = b.subarray(ende), leer = true;
-    for (var k = 0; k < rest.length; k++) if (rest[k] !== 0 && rest[k] !== 10 && rest[k] !== 13 && rest[k] !== 32) { leer = false; break; }
-    if (leer && rest.length <= 64) return;       // Füllbytes einiger Programme
-    var kopf = latin1(rest, 0, 4096), was = "";
-    if (/ftyp(mp4|isom|qt)/.test(kopf) || /MotionPhoto|MicroVideo/i.test(latin1(b, 0, 65536))) was = " — vermutlich ein Bewegungsfoto (Video)";
-    else if (/SEF[HT]/.test(latin1(rest, Math.max(0, rest.length - 64)))) was = " — vermutlich Zusatzdaten einer Samsung-Kamera";
-    else if (rest[0] === 0x50 && rest[1] === 0x4B) was = " — dort beginnt ein ZIP-Archiv";
-    else if (latin1(rest, 0, 5) === "%PDF-") was = " — dort beginnt ein PDF";
-    melde("BILD-ANHAENGSEL", "Hinter dem Ende des Bildes stehen noch " + gross(rest.length) +
-      " Daten" + was + ". Kein Bildbetrachter zeigt sie, mitgeschickt werden sie trotzdem.");
-  }
-
-  /* ══ SVG — Text, kein Bild: darin kann ein Skript stehen */
-  function svgPruefen(b, melde) {
-    var s = new TextDecoder("utf-8").decode(b);
-    if (/<script[\s>]/i.test(s)) melde("SVG-SKRIPT", "Die Grafik enthält ein Skript (<script>). Im Browser geöffnet läuft es.");
-    var h = s.match(/\son[a-z]+\s*=/i);
-    if (h) melde("SVG-SKRIPT", "Die Grafik enthält einen Ereignis-Auslöser (" + h[0].trim().replace(/\s*=$/, "") + "=…).");
-    if (/javascript:/i.test(s)) melde("SVG-SKRIPT", "Die Grafik enthält eine javascript:-Adresse.");
-    if (/<foreignObject[\s>]/i.test(s)) melde("SVG-SKRIPT", "Die Grafik bettet fremdes HTML ein (<foreignObject>).");
-    var wirte = {}, re = /(?:href|src)\s*=\s*["']\s*((?:https?:)?\/\/([A-Za-z0-9.\-]+))/gi, m;
-    while ((m = re.exec(s)) !== null) {
-      var w = m[2].toLowerCase(); if (w === "www.w3.org" || wirte[w]) continue;
-      wirte[w] = 1; melde("SVG-VERWEIS", "Die Grafik lädt etwas von einem fremden Rechner: " + w);
-    }
-    var text = s.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ");
-    return entitaeten(text).replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
-  }
-  function entitaeten(s) {
-    return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'")
-      .replace(/&#(\d+);/g, function (_a, n) { return String.fromCodePoint(+n); })
-      .replace(/&#x([0-9a-f]+);/gi, function (_a, n) { return String.fromCodePoint(parseInt(n, 16)); })
-      .replace(/&amp;/g, "&");
-  }
-
-  /* ══ ZIP / OFFICE — das Inhaltsverzeichnis am Ende der Datei */
-  function zipEintraege(b) {
-    var e = -1;
-    for (var i = b.length - 22; i >= Math.max(0, b.length - 65557); i--) if (u32(b, i) === 0x06054b50) { e = i; break; }
-    if (e < 0) return null;
-    var n = u16(b, e + 10), p = u32(b, e + 16), liste = [];
-    for (var k = 0; k < n && p + 46 <= b.length; k++) {
-      if (u32(b, p) !== 0x02014b50) break;
-      var nl = u16(b, p + 28), xl = u16(b, p + 30), cl = u16(b, p + 32);
-      liste.push({ name: new TextDecoder("utf-8").decode(b.subarray(p + 46, p + 46 + nl)), art: u16(b, p + 10),
-        gepackt: u32(b, p + 20), roh: u32(b, p + 24), lokal: u32(b, p + 42) });
-      p += 46 + nl + xl + cl;
-    }
-    return liste;
-  }
-  function zipLesen(b, e) {
-    if (e.roh > 8 * 1048576) return Promise.resolve(null);   // Deckel: 8 MB entpackt
-    var p = e.lokal; if (u32(b, p) !== 0x04034b50) return Promise.resolve(null);
-    var daten = b.subarray(p + 30 + u16(b, p + 26) + u16(b, p + 28)).subarray(0, e.gepackt);
-    if (e.art === 0) return Promise.resolve(daten);
-    if (e.art !== 8 || typeof welt.DecompressionStream !== "function") return Promise.resolve(null);
-    return Promise.resolve().then(function () {
-      var ds = new welt.DecompressionStream("deflate-raw"), w = ds.writable.getWriter();
-      w.write(daten).catch(function () {}); w.close().catch(function () {});
-      return new Response(ds.readable).arrayBuffer();
-    }).then(function (x) { return new Uint8Array(x); }, function () { return null; });
-  }
-  function officePruefen(b, name, melde) {
-    var liste = zipEintraege(b);
-    if (!liste) return Promise.resolve({ art: "zip", text: null, hinweis: "Das Inhaltsverzeichnis des Archivs ist nicht lesbar." });
-    var namen = liste.map(function (x) { return x.name; });
-    var art = namen.some(function (n) { return /^word\//.test(n); }) ? "docx" : namen.some(function (n) { return /^xl\//.test(n); }) ? "xlsx"
-      : namen.some(function (n) { return /^ppt\//.test(n); }) ? "pptx" : "zip";
-    var makro = namen.filter(function (n) { return /vbaProject\.bin$|\.bin$/i.test(n) && /vba/i.test(n); });
-    if (makro.length) melde("OFFICE-MAKRO", "Die Datei enthält Makros (" + makro[0] + "). Makros sind Programme, die beim Öffnen laufen können.");
-    var eingebettet = namen.filter(function (n) { return /\/embeddings\/|\/oleObject/i.test(n); });
-    if (eingebettet.length) melde("OFFICE-EINBETTUNG", "In der Datei stecken " + eingebettet.length + " eingebettete Datei(en), z. B. " + eingebettet[0].split("/").pop() + ".");
-    var prog = namen.filter(function (n) { return PROGRAMM_ENDUNG.test(n); });
-    if (prog.length) melde("ANHANG-PROGRAMM", "Im Archiv liegt eine ausführbare Datei: " + prog[0]);
-    var textTeile = liste.filter(function (x) {
-      return /^word\/(document|header\d*|footer\d*|footnotes|comments)\.xml$/.test(x.name) || /^xl\/sharedStrings\.xml$/.test(x.name)
-        || /^ppt\/(slides\/slide|notesSlides\/notesSlide)\d+\.xml$/.test(x.name) || /^docProps\/core\.xml$/.test(x.name);
-    });
-    var rels = liste.filter(function (x) { return /\.rels$/.test(x.name); });
-    var texte = [], wirte = {}, unlesbar = 0;
-    var kette = Promise.resolve();
-    rels.concat(textTeile).slice(0, 80).forEach(function (e) {
-      kette = kette.then(function () { return zipLesen(b, e); }).then(function (roh) {
-        if (!roh) { unlesbar++; return; }
-        var xml = new TextDecoder("utf-8").decode(roh);
-        if (/\.rels$/.test(e.name)) {
-          var re = /<Relationship\b[^>]*>/g, m;
-          while ((m = re.exec(xml)) !== null) {
-            if (!/TargetMode="External"/.test(m[0])) continue;
-            var ziel = (/Target="([^"]*)"/.exec(m[0]) || [])[1] || "";
-            var wm = /^(?:https?:|file:)?\/\/([^/"]+)/i.exec(ziel), wirt = wm ? wm[1].toLowerCase() : ziel.slice(0, 60);
-            if (wirte[wirt]) continue; wirte[wirt] = 1;
-            melde("OFFICE-VERWEIS", "Die Datei verweist auf etwas außerhalb: " + wirt +
-              (/attachedTemplate|oleObject|frame/i.test(m[0]) ? " (wird beim Öffnen geladen)" : ""));
-          }
-        } else if (/core\.xml$/.test(e.name)) {
-          var au = /<dc:creator>([^<]{1,120})<\/dc:creator>/.exec(xml), lm = /<cp:lastModifiedBy>([^<]{1,120})<\/cp:lastModifiedBy>/.exec(xml);
-          if (au || lm) texte.push([au && au[1], lm && lm[1]].filter(Boolean).map(entitaeten).join("\n"));
-        } else {
-          texte.push(entitaeten(xml.replace(/<\/(w:p|a:p|si)>/g, "\n").replace(/<w:tab\/>/g, "\t").replace(/<[^>]+>/g, "")).trim());
-        }
-      });
-    });
-    return kette.then(function () {
-      return { art: art, text: texte.filter(Boolean).join("\n"), hinweis: unlesbar ? unlesbar + " Teil(e) des Archivs waren nicht lesbar — die sind ungeprüft, nicht sauber." : "" };
-    });
-  }
-
-  /* ══ DIE EINE TÜR
-   * @returns Promise<{art, artName, befunde:[{kennung,satz}], text:string|null,
-   *                   hinweise:[], sicher:boolean}>
-   * text: was Modul 25 danach lesen soll (null = kein Text gelesen). */
-  function pruefe(name, bytes) {
-    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null;
-    function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
-    name = String(name || "");
-    var endung = (/\.([A-Za-z0-9]{1,6})$/.exec(name) || [])[1];
-    endung = endung ? endung.toLowerCase() : "";
-    if (art === "programm" || PROGRAMM_ENDUNG.test(name))
-      melde("ANHANG-PROGRAMM", "Das ist ein Programm oder Skript" + (art === "programm" ? " (am Dateikopf erkannt)" : " (Endung ." + endung + ")") + ". Programme gehören nicht in einen Mail-Anhang an eine KI.");
-    var doppelt = /\.(pdf|jpe?g|png|docx?|xlsx?|txt)\.[a-z0-9]{2,4}$/i.exec(name);
-    if (doppelt && PROGRAMM_ENDUNG.test(name)) melde("ANHANG-TARNUNG", "Der Name täuscht eine harmlose Datei vor (doppelte Endung).");
-    else if (art === "programm" && endung && !PROGRAMM_ENDUNG.test(name)) melde("ANHANG-TARNUNG", "Die Endung „." + endung + "“ täuscht: die Datei ist in Wahrheit ein Programm.");
-    else if (ENDUNGEN[art] && endung && ENDUNGEN[art].indexOf(endung) < 0)
-      melde("ANHANG-TARNUNG", "Die Endung „." + endung + "“ passt nicht zum Inhalt: die Datei ist in Wahrheit ein " + ART_NAME[art] + ".");
-    var weiter = Promise.resolve();
-    if (art === "jpeg") anhaengsel(b, jpegPruefen(b, melde), melde);
-    else if (art === "png") anhaengsel(b, pngPruefen(b, melde), melde);
-    else if (art === "webp") anhaengsel(b, webpPruefen(b, melde), melde);
-    else if (art === "gif") hinweise.push("Bei GIF wird nur der Dateikopf geprüft, nicht, was hinter dem Bild steht.");
-    else if (art === "svg") text = svgPruefen(b, melde);
-    else if (art === "zip") weiter = officePruefen(b, name, melde).then(function (r) {
-      art = r.art; text = r.text; if (r.hinweis) hinweise.push(r.hinweis);
-    });
-    else if (art === "pdf") {
-      var PF = welt.PrueferFormate;
-      if (!PF) hinweise.push("Der PDF-Prüfer (assets/pruefer-formate.js) ist nicht geladen — das PDF ist ungeprüft, nicht sauber.");
-      else weiter = PF.pruefePdf(b, []).then(function (r) {
-        r.stellen.forEach(function (x) { melde(x.kennung, x.satz + " (" + x.stelle + ")"); });
-        hinweise.push.apply(hinweise, r.hinweise);
-      });
-      hinweise.push("Der Seitentext eines PDFs wird in dieser Fassung nicht gelesen.");
-    }
-    if (/^(png|jpeg|webp|gif)$/.test(art)) hinweise.push("Text im Bild (Texterkennung) wird in dieser Fassung nicht gelesen.");
-    return weiter.then(function () {
-      return { art: art, artName: ART_NAME[art] || art, befunde: befunde, text: text, hinweise: hinweise,
-        sicher: /^(png|jpeg|webp|gif|svg)$/.test(art) };
-    });
-  }
-
-  var API = { pruefe: pruefe, artVon: artVon, zipEintraege: zipEintraege, BEFUNDE: BEFUNDE, gross: gross };
-  welt.SPAnhang = API;
+  /* ══ DER PRÜFTEIL STEHT IN assets/pruefer-anhang.js — byte-1:1 aus dem
+   * Auslieferungsprüfer, dort gepflegt, hier per SHA-256 gepinnt
+   * (Klaus 2026-09-29: „bitte so"). Diese Datei trägt nur noch die
+   * Oberfläche. Die Seite ist voll; der Prüfteil wird deshalb von HIER
+   * nachgeladen, nicht über eine eigene Zeile in der Seite. */
   if (typeof document === "undefined") return;
+  var bereit = welt.PrueferAnhang ? Promise.resolve(welt.PrueferAnhang) : new Promise(function (res, rej) {
+    var s = document.createElement("script"); s.src = "assets/pruefer-anhang.js";
+    s.onload = function () { welt.PrueferAnhang ? res(welt.PrueferAnhang) : rej(new Error("leer")); };
+    s.onerror = function () { rej(new Error("fehlt")); };
+    document.head.append(s);
+  });
+  function pruefe(name, bytes) {
+    return bereit.then(function (A) { return A.pruefe(name, bytes); }, function () {
+      return { art: "unbekannt", artName: "nicht geprüft", befunde: [], text: "", sicher: false,
+        hinweise: ["Der Anhang-Prüfer (assets/pruefer-anhang.js) ist nicht geladen — dieser Anhang ist UNGEPRÜFT, nicht sauber."] };
+    });
+  }
+  function artVon(b) { return welt.PrueferAnhang ? welt.PrueferAnhang.artVon(b) : "unbekannt"; }
+  function gross(n) { return welt.PrueferAnhang ? welt.PrueferAnhang.gross(n) : n + " Bytes"; }
+  var API = welt.SPAnhangUI = {};
 
   /* ══ SICHERE FASSUNG — ein Bild wird auf einer Leinwand neu gezeichnet.
    * Übrig bleiben nur die Bildpunkte: keine Metadaten, kein Anhängsel, bei
