@@ -1,8 +1,8 @@
 /* Offline-Vorrat des Sende-Prüfers. Wer eine Datei aus CORE ändert, erhöht
    CACHE_VERSION — sonst liefert der Worker die alte Fassung weiter.
    Anfragen an fremde Adressen (die KI-Anbieter) fasst er NICHT an. */
-const CACHE_VERSION = "sende-pruefer-v8";
-const CORE = ["./", "index.html", "sende-pruefer.html", "koeder.txt", "LIESMICH.md", "manifest.json", "icon.svg", "modules/25_pseudonym.js", "assets/abschirmung.js", "assets/sbkim-init.js", "assets/siegel-inhalt.js"];
+const CACHE_VERSION = "sende-pruefer-v9";
+const CORE = ["./", "index.html", "sende-pruefer.html", "handbuch.html", "koeder.txt", "LIESMICH.md", "manifest.json", "icons/favicon-32.png", "icons/marke-72.png", "icons/sende-pruefer-bild.webp", "modules/25_pseudonym.js", "assets/abschirmung.js", "assets/sbkim-init.js", "assets/siegel-inhalt.js"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_VERSION).then((c) =>
     Promise.allSettled(CORE.map((u) => c.add(new Request(u, { cache: "reload" }))))).then(() => self.skipWaiting()));

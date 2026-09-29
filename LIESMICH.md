@@ -20,6 +20,10 @@ Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nu
 
 Unter **⚙** stehen die Beispiel-Mail und der Selbsttest. Oben schaltet **☀ Hell** bzw. **🌙 Dunkel** das Thema um; die Wahl bleibt gemerkt.
 
+**🛡 Abschirmen** hält Schreib-Helfer (Grammarly, LanguageTool) und die KI-Schreibhilfe des Browsers von den Schreibfeldern fern: Rechtschreibprüfung, Autokorrektur und Schreibvorschläge gehen aus, auch in Feldern, die später aufgehen. Ein zweiter Tipp stellt alles wieder her. Hängt etwas Fremdes Elemente oder Marken in die Seite, erscheint oben ein roter Hinweis, und die Lampe **fremd** leuchtet.
+
+Oben neben dem Namen steht die **Netz-Leiste**: drei Lampen (**lebt** · **verkehr** · **fremd**), das **Siegel** und die **Mycel-Blase**. Am Handy stehen dort nur die drei Punkte; ein Tipp klappt Namen, Siegel und Blase auf. Der Sende-Prüfer ist damit ein eigener Knoten im SBKIM-Netz. Mit dem Netz verbindet er sich nur, wenn Sie in der Mycel-Blase darauf tippen.
+
 Das Postfach füllt immer das ganze Fenster. Als installierte App öffnet es sich am Rechner in einem eigenen Fenster mit **—** (verkleinern), **⧉** (Größe ändern) und **✕** (schließen); die Größe merkt sich der Browser. Einmal auf volle Größe gestellt, startet es danach so.
 
 ## Was erkannt wird
@@ -46,6 +50,8 @@ Das Postfach füllt immer das ganze Fenster. Als installierte App öffnet es sic
 8. **Die Anbieter-Adressen stammen aus dem Auftrag**, nicht aus einem Aufruf, den diese Seite gemacht hat. Ob der erste Senden-Aufruf durchgeht, zeigt erst ein echter Schlüssel.
 9. **Mails, Zuordnung und Schlüssel liegen im Browser-Speicher** dieses Geräts. Wer Browserdaten löscht, löscht auch das Postfach. Wer das Gerät teilt, löscht den Schlüssel nach Gebrauch mit „Schlüssel löschen“ und die Mails mit 🗑.
 10. **Eine eingefügte Mail wird nur als Text gelesen.** Aus einer HTML-Mail bleibt der Text ohne Gestaltung; Kopfzeilen außer Von, An und Betreff fallen weg.
+11. **Die Abschirmung ist eine Bitte, kein Riegel.** Eine Erweiterung darf die Marken übergehen, und Programme auf dem Gerät, die Bildschirm oder Zwischenablage mitlesen, sieht eine Webseite gar nicht. Gemeldet wird nur, was sich in der Seite zeigt.
+12. **Mit dem Netz verbinden schickt etwas hinaus:** die signierte Visitenkarte des Knotens (Name, Kennung, Beschreibung) an das Relais `relay.family-projekt.de` — keine Mails, keine Namen, keine Befunde. Ohne Tipp in der Mycel-Blase geht nichts hinaus. Das Siegel lädt beim Signieren einmal ein Sprachmodell aus dem Netz.
 
 ## Selbsttest
 

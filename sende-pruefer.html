@@ -7,7 +7,9 @@
 <meta name="description" content="Ein Postfach, das jede Mail prüft, bevor sie an eine KI geht: Schlüssel, Mailadressen, Telefonnummern, Kontonummern, Beträge, Rechnungsnummern und Namen werden durch Platzhalter ersetzt. Die Antwort kommt im Klartext zurück und lässt sich als .eml speichern oder teilen. Läuft im Browser, die Mails bleiben auf dem Gerät.">
 <meta name="theme-color" content="#0e6b72">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("sendepruefer_thema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{--bg:#eef1f4;--fl:#fff;--fl2:#f6f8fa;--linie:#dde3e9;--schrift:#1b232c;--leise:#5c6975;--akzent:#0e6b72;--akzent-hell:#d7eeef;--h1:#15838b;--h2:#0a4a50;--glanz:#7fd8de;--schutz:#8a5000;--schutz-grund:#fff1d6;--schutz-rand:#e0b25e;--ok:#1f7a45;--ok-grund:#dff3e6;--warn:#a3321f;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
@@ -24,7 +26,21 @@ code{font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}
 .app{display:grid;grid-template-columns:clamp(200px,15vw,300px) clamp(300px,24vw,460px) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);height:100vh;height:100dvh;width:100%}
 header.kopf{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--fl);border-bottom:1px solid var(--linie)}
 .marke{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;white-space:nowrap}
-.marke svg{flex:none}
+.marke img{flex:none;border-radius:9px;box-shadow:0 0 12px color-mix(in srgb,var(--akzent) 35%,transparent)}
+.leer-bild{display:block;width:100%;height:auto}
+.bild-buehne{position:relative;display:block;width:min(360px,70%);margin:0 auto 18px;border-radius:17%;overflow:hidden;isolation:isolate}
+.bild-buehne .leer-bild,.bild-buehne .bild-held{width:100%;margin:0}
+/* ein weißer Lichtkegel läuft von links nach rechts durch die Mitte, wo der Brief das Schild durchquert */
+.bild-buehne::after{content:"";position:absolute;top:22%;left:0;width:42%;height:52%;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.75),rgb(255 255 255/.28) 45%,rgb(143 228 234/.12) 70%,transparent);transform:translateX(-110%);animation:kegel 6.5s ease-in-out infinite}
+/* … und das Schild leuchtet auf, wenn der Kegel es trifft */
+.bild-buehne::before{content:"";position:absolute;left:34%;top:18%;width:32%;height:60%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.9),rgb(143 228 234/.35) 50%,transparent);animation:aufleuchten 6.5s ease-in-out infinite}
+@keyframes kegel{0%{transform:translateX(-110%) scale(1);opacity:0}12%{opacity:1}36%{transform:translateX(35%) scale(1)}50%{transform:translateX(70%) scale(1.7);opacity:1}64%{transform:translateX(105%) scale(1)}88%{opacity:.9}100%{transform:translateX(250%) scale(1);opacity:0}}
+@keyframes aufleuchten{0%,38%{opacity:0}50%{opacity:.85}64%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}
+.bild-buehne{animation:schweben 7s ease-in-out infinite;filter:drop-shadow(0 24px 40px rgb(0 0 0/.35))}
+@keyframes schweben{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.flug{position:fixed;z-index:60;pointer-events:none;border-radius:18%;will-change:transform}
+@media (prefers-reduced-motion:reduce){.bild-buehne{animation:none!important}}
 /* ── Netz-Leiste: Lampen, Siegel, Mycel-Blase — fest im Kopf ── */
 .netzleiste{position:relative;display:flex;align-items:center;gap:6px;flex:none}
 .lampen{display:flex;align-items:center;gap:8px;height:40px;box-sizing:border-box;padding:0 10px;border:1px solid var(--linie);border-radius:999px;background:var(--fl2);color:var(--leise);font:inherit;font-size:.72rem;cursor:pointer}
@@ -55,7 +71,8 @@ header.kopf{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10
 /* Zwischen Handy und breitem Schirm tragen die Kopf-Knöpfe nur ihr Zeichen —
    sonst bleibt der Suche neben der Netz-Leiste kein Platz (gemessen 760 px: 30 px). */
 @media (max-width:1200px){.kopf .rund .t{display:none}}
-@media (max-width:400px){.marke{display:none}}
+@media (max-width:400px){.marke{display:none} #thema{display:none}}
+.kopf a.rund{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;font-weight:700;font-size:1.05rem}
 .suche{flex:1;min-width:0;max-width:560px;height:40px;box-sizing:border-box;display:flex;align-items:center;gap:8px;background:var(--fl2);border:1px solid var(--linie);border-radius:999px;padding:0 14px;color:var(--leise)}
 .suche input{border:0;background:transparent;color:var(--schrift);font:inherit;width:100%;outline:0;min-width:0;height:100%;padding:0;margin:0;box-shadow:none}
 .kopf .rund{flex:none;min-width:40px;height:40px;padding:0 12px;border-radius:999px}
@@ -188,7 +205,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 <body>
 <div class="app" id="app" data-ansicht="liste">
  <header class="kopf">
-  <div class="marke"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="6" width="26" height="18" rx="4" fill="var(--akzent)"/><path d="M4 9l11 8 11-8" stroke="var(--fl)" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="11" y="16" width="8" height="3" rx="1.5" fill="var(--schutz-rand)"/></svg><span>Sende-Prüfer</span></div>
+  <div class="marke"><img class="marke-bild" src="icons/marke-72.png" width="36" height="36" alt=""><span>Sende-Prüfer</span></div>
   <!-- Netz-Leiste (Klaus 2026-09-29): fest in der Kopfzeile, nichts fliegt.
        Breit: Lampen mit Namen, Siegel und Mycel-Blase daneben. Am Handy nur
        die drei Punkte; ein Tipp klappt den Rest unter der Leiste auf. -->
@@ -204,10 +221,11 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
     <span class="mycel-platz" data-sbkim-mycel-platz></span>
    </span>
   </div>
-  <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="In E-Mails suchen" aria-label="In E-Mails suchen"></label>
+  <label class="suche"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="suche" placeholder="Suchen" aria-label="In E-Mails suchen"></label>
   <button class="rund" id="einfuegen" type="button" title="Eine empfangene Mail einfügen (Text oder .eml)">📥<span class="t"> Mail einfügen</span></button>
   <button class="rund" id="schild" type="button" data-an="0" title="Schreib-Helfer und KI-Schreibhilfe des Browsers von den Schreibfeldern fernhalten"><span aria-hidden="true">🛡</span><span class="t" id="schild-text"> Abschirmen</span><span class="zahl" id="schild-zahl" hidden></span></button>
   <button class="rund" id="thema" type="button" title="Zwischen hellem und dunklem Thema wechseln"><span id="thema-zeichen" aria-hidden="true">☀</span><span class="t" id="thema-text"> Hell</span></button>
+  <a class="rund" id="hilfe" href="handbuch.html" aria-label="Handbuch: was der Sende-Prüfer kann und was er tut" title="Handbuch: was der Sende-Prüfer kann und was er tut">?</a>
   <button class="rund" id="menue" type="button" aria-label="Menü: Beispiele, Selbsttest, Anleitung" title="Beispiele, Selbsttest, Anleitung">⚙</button>
  </header>
  <div class="bannerplatz">
@@ -261,7 +279,8 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
   <ul class="befunde" id="test-ergebnis"></ul>
   <p class="meldung" id="test-summe"></p>
  </details>
- <p><a href="LIESMICH.md">Anleitung und Grenzen</a> · Der Sende-Prüfer läuft vollständig in diesem Browser.</p>
+ <div class="werkzeug"><button class="knopf" id="thema-menue" type="button">☀ / 🌙 Hell oder dunkel</button></div>
+ <p><a href="handbuch.html">Handbuch mit Bildern</a> · <a href="LIESMICH.md">Anleitung und Grenzen</a> · Der Sende-Prüfer läuft vollständig in diesem Browser.</p>
  <div class="fuss"><button class="knopf haupt" id="menue-zu" type="button">Schließen</button></div>
 </dialog>
 
@@ -590,10 +609,33 @@ function stueckeVerdeckt(text) {
   return f;
 }
 
+function fliegen(von) {
+  const ziel = document.querySelector(".marke-bild");
+  if (!ziel || !ziel.checkVisibility() || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const z = ziel.getBoundingClientRect();
+  const k = el("img", { class: "flug", src: "icons/sende-pruefer-bild.webp", alt: "", "data-flug": "" });
+  Object.assign(k.style, { left: von.left + "px", top: von.top + "px", width: von.width + "px", height: von.height + "px" });
+  document.body.append(k);
+  const dx = z.left - von.left, dy = z.top - von.top, f = z.width / von.width;
+  const a = k.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(${f})`, opacity: .85 }],
+    { duration: 650, easing: "cubic-bezier(.5,0,.2,1)", transformOrigin: "0 0" });
+  k.style.transformOrigin = "0 0";
+  const weg = () => k.remove(); a.onfinish = weg; a.oncancel = weg; setTimeout(weg, 1500);
+  ziel.animate([{ transform: "scale(1)" }, { transform: "scale(1.25)" }, { transform: "scale(1)" }], { duration: 400, delay: 600 });
+}
+
 function zeichneLesen() {
-  const box = $("lesen"); box.replaceChildren();
+  const box = $("lesen");
+  /* Klaus 2026-09-29: das große Bild füllt den leeren Raum; kommt eine Mail,
+     fliegt es oben in die Kopfleiste. Gemessen wird die Lage VOR dem Leeren. */
+  const altBild = box.querySelector(".leer-bild");
+  const von = altBild && altBild.checkVisibility() ? altBild.getBoundingClientRect() : null;
+  box.replaceChildren();
   const m = aktuell();
-  if (!m) { box.append(el("p", { class: "leer" }, MAILS.length ? "Wählen Sie eine E-Mail." : "Das Postfach ist leer. Fügen Sie eine Mail ein (📥) oder verfassen Sie eine.")); return; }
+  if (!m) { box.append(el("div", { class: "leer" },
+    el("span", { class: "bild-buehne", "data-licht": "" }, el("img", { class: "leer-bild", src: "icons/sende-pruefer-bild.webp", width: "640", height: "640", alt: "Sende-Prüfer: ein Brief geht durch ein Schutzschild, persönliche Angaben werden zu Platzhaltern", decoding: "async" })),
+    el("p", {}, MAILS.length ? "Wählen Sie eine E-Mail." : "Das Postfach ist leer. Fügen Sie eine Mail ein (📥) oder verfassen Sie eine."))); return; }
+  if (von) requestAnimationFrame(() => fliegen(von));
   const r = pruefung(m);
   box.append(el("div", { class: "werkzeug" },
     el("button", { class: "knopf zurueck", type: "button", onclick: () => { $("app").dataset.ansicht = "liste"; } }, "← Zurück"),
@@ -894,6 +936,7 @@ function themaKnopf() {
   $("thema").setAttribute("aria-label", d ? "Zum hellen Thema wechseln" : "Zum dunklen Thema wechseln");
   $("thema").dataset.jetzt = d ? "dunkel" : "hell";
 }
+$("thema-menue").addEventListener("click", () => $("thema").click());
 $("thema").addEventListener("click", () => {
   document.documentElement.dataset.theme = istDunkel() ? "light" : "dark"; schreib(THEMA_KEY, document.documentElement.dataset.theme);
   themaKnopf();

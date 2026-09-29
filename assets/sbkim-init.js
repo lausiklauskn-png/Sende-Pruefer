@@ -193,8 +193,6 @@
         namensfelderAbgleichen();
         try { if (window.SbkimRendezvous && window.SbkimRendezvous.configure) window.SbkimRendezvous.configure({ nodeName: anzeigeName() }); } catch (_e) {}
       });
-      /* Was die Abschirmung vor dem Start gefunden hat, soll die Lampe zeigen. */
-      try { if (window.SendeAbschirmung) window.SendeAbschirmung.melde(); } catch (_e) {}
     } catch (e) {
       if (window.console && console.warn) console.warn("[Sende-Prüfer-SBKIM] Andock übersprungen:", e);
     } finally {

@@ -57,16 +57,68 @@ eingebaute Fehler im Modul ergaben 30 · 168 · 168 Abweichungen.
 Fehlt das Modul, steht ein Hinweis da und **nichts** wird kopiert oder gesendet.
 Die Muster stehen weiter ein zweites Mal im Auslieferungsprüfer (LIESMICH Grenze 7).
 
+## Ein SBKIM-Knoten, fest in der Kopfleiste (seit 2026-09-29)
+
+Klaus: *„das komplette Siegel einbauen … oben in der Navi-Leiste verankert,
+muss ja nicht fliegen"* · *„im Handy-Modus einfach nur die Lampen, und die dann
+ausklappen"*. Bauart wie der Toolpoint-Marktplatz: **kein Modul 17**.
+
+| | |
+|---|---|
+| Module | 01 02 03 04 05 05b 07 15 16 16b 23 23-UI noble — **byte-1:1 aus Sage** (`5ab4fbb`), in `tests/smoke.mjs` per SHA gepinnt (`KNOTEN_PINS`) |
+| Klebstoff | `assets/sbkim-init.js` (Kette, Lampen, Auf-/Zuklappen, Gerätename) · `assets/siegel-inhalt.js` (Identität, Beschreibung — wird nie verteilt) |
+| Schublade | `sendepruefer` — im `<head>` UND im Klebstoff. **Nie ändern.** |
+| Leiste | `#netzleiste`: Lampen `#lamp-alive/-traffic/-fremd`, `#siegel-platz`, `[data-sbkim-mycel-platz]` |
+| Membran | `allowedOrigins: []` — keine fremde Herkunft |
+
+- **Breit (> 900 px):** Lampen mit Namen, Siegel und Mycel-Blase stehen in der Leiste.
+  **Handy:** nur drei Punkte; ein Tipp klappt Namen (Kopie `data-lampe-kopie`),
+  Siegel und Blase unter der Leiste auf — die Kopfleiste wächst dabei nicht.
+- **Das Siegel braucht Maße aus dem CSS** (`#sbkim-siegel-badge` 28×28), sonst 0×0.
+- **Die Kopfleiste lief schon auf `main` ~50 px über** (380 px). Seitdem am Handy
+  schmalere Abstände, alle Teile gleich hoch (36/40 px, eine Probe misst es),
+  Beschriftungen der Knöpfe erst ab 1201 px, Marke erst ab 401 px.
+- **Beim Laden geht nichts ins Netz** — Verbinden nur auf Klick in der Mycel-Blase
+  (Relais aus 05b: `relay.family-projekt.de`). Eine Probe zählt die Anfragen.
+- **Die Abschirmung** (`assets/abschirmung.js`, app-eigen) meldet Funde über
+  `sbkim:fremd-alert` an die FREMD-Lampe. Der Zuhörer hängt **schon beim Laden**
+  des Klebstoffs, nicht erst nach der Kette — deshalb gibt es kein Nachholen.
+- Die Module stehen **nicht** im Installations-Vorrat; der Worker legt sie beim
+  ersten Abruf ab (wie beim Marktplatz, Sage LEHREN § 4).
+
+## Handbuch, Icons und das große Bild (seit 2026-09-29)
+
+Klaus: *„Oben Fragezeichen und so eine Art Handbuch … Ganz wichtig"* · *„so
+aufgebaut, dass später eine Videosequenz es besser erklärt"*.
+
+- **`?` in der Kopfleiste → `handbuch.html`**, eine eigene Seite (nicht Teil der
+  vier Dateien unter 96 KB). **Gebaut, nicht von Hand:** `node tools/handbuch-bauen.mjs`
+  fotografiert die echte App (Szenen in `tools/handbuch-szenen.mjs`, Vorlage
+  `tools/handbuch-vorlage.html`) und schreibt `handbuch/NN-*.jpg`, `handbuch/szenen.json`
+  und `handbuch.html`. **Wer die Oberfläche oder einen Sprechtext ändert, baut neu** —
+  die Probe meldet sonst „veraltet".
+- Jede Szene hat einen Leuchtring (Prozent) und einen **Sprechtext fürs Video**.
+  **▶ Vorführen** liest nur mit einer Stimme **vom Gerät** vor (`localService`),
+  sonst nur Untertitel — eine Netz-Stimme schickte den Text zu Google. Stopp und Esc.
+- Ohne Skript stehen alle Szenen voll da (`html.bewegt` schaltet das Einblenden ein).
+- **Icons:** das Schild mit Brief ist App-Icon und Favicon (`icons/`); das große
+  Bild steht im leeren Lesebereich und **fliegt beim Öffnen einer Mail in die
+  Kopfleiste** (`fliegen()`, 650 ms). Darüber ein **Lichtkegel**, der im Schild auf
+  `scale(1.7)` wächst (Lichtbrechung) und danach wieder kleiner wird. Bei „weniger
+  Bewegung" fliegt nichts und der Kegel steht still.
+- ⚠ Das große Bild ist nur **1254 px** breit — bis Tablet-Breite scharf, darüber nicht.
+- Ein Video wird eingebaut, sobald Klaus eins liefert (nicht vorgebaut).
+
 ## Prüfen
 
 ```bash
 npm install         # playwright-core
-npm test            # tests/smoke.mjs — echter Browser, 106 Zusicherungen
-npm run gegenprobe  # 46 eingebaute Fehler, jeder muss seine rote Zeile werfen
+npm test            # tests/smoke.mjs — echter Browser, 222 Zusicherungen
+npm run gegenprobe  # 85 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor

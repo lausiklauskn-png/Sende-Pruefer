@@ -113,7 +113,6 @@
     umschalten: function () { setze(!an); },
     funde: function () { return funde.slice(); },
     abo: function (f) { abos.push(f); },
-    melde: function () { if (funde.length) melde(); },
     AUS: AUS, SPUREN: SPUREN,
   };
 })(window);

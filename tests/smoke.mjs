@@ -122,9 +122,37 @@ ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · 
   manifest.display === "standalone" && !manifest.display_override);
 ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
+/* ── Handbuch (Klaus 2026-09-29): gebaut aus der echten App, Szene für Szene ── */
+const hb = existsSync(join(WURZEL, "handbuch.html")) ? readFileSync(join(WURZEL, "handbuch.html"), "utf8") : "";
+const hbJson = existsSync(join(WURZEL, "handbuch", "szenen.json")) ? JSON.parse(readFileSync(join(WURZEL, "handbuch", "szenen.json"), "utf8")).szenen : [];
+const { SZENEN } = await import(new URL("../tools/handbuch-szenen.mjs", import.meta.url));
+ok("oben in der Kopfleiste steht ? und führt zum Handbuch",
+  /<a class="rund" id="hilfe" href="handbuch\.html"[^>]*>\?<\/a>/.test(html.split("</header>")[0]));
+ok("das Handbuch ist gebaut und trägt jede Szene der Liste (sonst ist es veraltet: node tools/handbuch-bauen.mjs)",
+  SZENEN.length >= 8 && hbJson.length === SZENEN.length && SZENEN.every((z) => hb.includes('data-szene="' + z.id + '"') && hb.includes(z.sprech.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"))),
+  SZENEN.length + " / " + hbJson.length);
+ok("… jedes Bild liegt da, und jede Szene hat einen Sprechtext fürs Video",
+  hbJson.length > 0 && hbJson.every((z) => existsSync(join(WURZEL, z.bild)) && hb.includes('src="' + z.bild + '"') && z.sprech.length > 30));
+ok("… jeder Leuchtring liegt im Bild", hbJson.length > 0 && hbJson.every((z) => z.ring.w > 0 && z.ring.h > 0 && z.ring.x + z.ring.w <= 100.1 && z.ring.y + z.ring.h <= 100.1),
+  JSON.stringify(hbJson.map((z) => z.ring)));
+ok("… holt nichts aus dem Netz (keine fremde Adresse in src oder href)", hb.length > 0 && !/(?:src|href)="https?:/i.test(hb));
+ok("… und liest nur mit einer Stimme auf dem Gerät vor (localService)", /v\.localService/.test(hb));
+/* ── Icons und das große Bild (Klaus 2026-09-29) ── */
+const mIcons = (manifest.icons || []);
+ok("das Manifest nennt 192, 512 und ein maskierbares Icon, und alle Dateien liegen da",
+  ["192x192", "512x512"].every((g) => mIcons.some((i) => i.sizes === g && i.purpose === "any")) && mIcons.some((i) => i.purpose === "maskable")
+  && mIcons.every((i) => existsSync(join(WURZEL, i.src))), JSON.stringify(mIcons));
+ok("Favicon und Apple-Icon stehen im Kopf der Seite und liegen da",
+  /<link rel="icon" href="icons\/favicon-32\.png"/.test(kopfTeil) && /<link rel="apple-touch-icon" href="icons\/apple-touch-icon\.png">/.test(kopfTeil)
+  && ["favicon-32.png", "favicon-48.png", "apple-touch-icon.png", "marke-72.png", "sende-pruefer-bild.webp", "sende-pruefer-bild-gross.webp"].every((f) => existsSync(join(WURZEL, "icons", f))));
+ok("der Lichtkegel wird im Schild größer (Lichtbrechung) und danach wieder klein",
+  /50%\{transform:translateX\(70%\) scale\(1\.7\)/.test(html) && /64%\{transform:translateX\(105%\) scale\(1\)\}/.test(html) && /36%\{transform:translateX\(35%\) scale\(1\)\}/.test(html));
+ok("… und steht bei „weniger Bewegung“ still", /prefers-reduced-motion:reduce\)\{\.bild-buehne::after,\.bild-buehne::before\{animation:none/.test(html));
+ok("das Handbuch steht im Offline-Vorrat", /"handbuch\.html"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
+
 /* ── Server auf Port 0 — ein fester Port kollidiert mit einem zweiten Lauf ─ */
 const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
-  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml" };
+  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 const server = http.createServer((q, a) => {
   const p = decodeURIComponent(new URL(q.url, "http://x").pathname).replace(/^\/+/, "") || "index.html";
   try { const b = readFileSync(join(WURZEL, p)); a.writeHead(200, { "content-type": TYP[extname(p)] || "application/octet-stream" }); a.end(b); }
@@ -167,7 +195,9 @@ try {
   await page.waitForFunction(() => location.pathname.endsWith("sende-pruefer.html"));
   await bereit(page);
   ok("index.html leitet auf die Seite weiter", page.url().endsWith("sende-pruefer.html"));
-  ok("beim Laden geht kein Aufruf nach draußen", draussen.length === 0, draussen.map((d) => d.url).join(", "));
+  await page.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(300);
+  ok("beim Laden geht kein Aufruf nach draußen, auch nicht, wenn der Knoten gestartet ist", draussen.length === 0, draussen.map((d) => d.url).join(", "));
 
   /* ── das Postfach: Ordner, Beispiele beim ersten Öffnen ─────────────── */
   const ordner = await page.evaluate(() => [...document.querySelectorAll("#ordnerliste [data-ordner]")].map((e) => e.dataset.ordner));
@@ -607,6 +637,85 @@ try {
     await fr.evaluate(() => SendeAbschirmung.funde().length === 1 && document.getElementById("lamp-fremd").classList.contains("bad")));
   await frCtx.close();
 
+} catch (e) {
+  rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
+}
+/* Ein Stolpern vorn darf die Prüfungen dahinter nicht mitnehmen: Handbuch und
+   Netz-Leiste laufen in einem eigenen Block (Gegenprobe 2026-09-29 — ein
+   aufgeklapptes Menü verdeckte die Seite, und die Leisten-Wächter liefen nie). */
+try {
+  const bereit = (p) => p.waitForFunction(() => window.SendePruefer && window.SendePruefer.bereit === true);
+  /* ── das große Bild im leeren Raum, und sein Flug in die Kopfleiste ── */
+  for (const ruhig of [false, true]) {
+    const bCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1280, height: 800 }, reducedMotion: ruhig ? "reduce" : "no-preference" });
+    const b = await bCtx.newPage(); await b.goto(BASIS + "sende-pruefer.html"); await bereit(b);
+    const leer = await b.evaluate(async () => { const i = document.querySelector(".bild-buehne[data-licht] .leer-bild"); if (!i) return null;
+      try { await i.decode(); } catch (_e) {} return { sicht: i.checkVisibility(), w: i.naturalWidth, marke: document.querySelector(".marke-bild").checkVisibility() }; });
+    if (!ruhig) {
+      ok("ohne gewählte Mail steht das große Bild im Lesebereich, mit Lichtkegel", !!leer && leer.sicht && leer.w > 0, JSON.stringify(leer));
+      ok("… und oben steht es klein als Marke neben dem Namen", !!leer && leer.marke);
+    }
+    await b.click("#liste .zeile");
+    const flug = await b.waitForSelector("[data-flug]", { timeout: 1500 }).then(() => true, () => false);
+    if (!ruhig) {
+      ok("öffnet man eine Mail, fliegt das Bild in die Kopfleiste", flug);
+      ok("… und ist danach wieder weg (kein Rest über der Seite)", await b.waitForSelector("[data-flug]", { state: "detached", timeout: 3000 }).then(() => true, () => false));
+    } else ok("bei „weniger Bewegung“ fliegt nichts", !flug);
+    await bCtx.close();
+  }
+
+  /* ── das Handbuch im echten Browser ─────────────────────────────────── */
+  for (const [breite, mitJs] of [[1280, true], [380, true], [380, false]]) {
+    const hCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: breite, height: 800 }, javaScriptEnabled: mitJs });
+    const h = await hCtx.newPage();
+    const hDraussen = []; await h.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => { hDraussen.push(r.request().url()); r.abort(); });
+    if (mitJs) await h.addInitScript(() => {
+      window.__gesprochen = [];
+      const stimmen = [{ name: "Netz-Stimme", lang: "de-DE", localService: false }];
+      /* speechSynthesis ist ein Getter ohne Setter — eine Zuweisung liefe still ins Leere,
+         und die Probe mäße die echte (leere) Stimmenliste des Browsers. */
+      Object.defineProperty(window, "speechSynthesis", { configurable: true, value: { getVoices: () => stimmen, speak: (u) => { window.__gesprochen.push(u.voice && u.voice.name); setTimeout(() => u.onend && u.onend(), 30); }, cancel: () => {} } });
+      window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+      window.__stimmen = stimmen;
+    });
+    await h.goto(BASIS + "handbuch.html", { waitUntil: "load" });
+    const was = mitJs ? " (mit Skript)" : " (OHNE Skript)";
+    const hb2 = await h.evaluate(async () => { const imgs = [...document.querySelectorAll(".szene img")];
+      for (const i of imgs) { i.loading = "eager"; i.scrollIntoView(); try { await i.decode(); } catch (_e) {} }
+      window.scrollTo(0, 0);
+      return { n: imgs.length, geladen: imgs.filter((i) => i.naturalWidth > 0).length, ueber: document.documentElement.scrollWidth - document.documentElement.clientWidth }; });
+    ok(breite + " px" + was + ": jedes Bild des Handbuchs lädt", hb2.n >= 8 && hb2.geladen === hb2.n, JSON.stringify(hb2));
+    ok(breite + " px" + was + ": … nichts läuft quer über den Rand", hb2.ueber <= 0, hb2.ueber);
+    ok(breite + " px" + was + ": … kein Aufruf nach draußen", hDraussen.length === 0, hDraussen.join(", "));
+    if (!mitJs) {
+      const blass = await h.evaluate(() => [...document.querySelectorAll(".szene")].filter((x) => getComputedStyle(x).opacity !== "1").length);
+      ok("ohne Skript steht jede Szene voll da (nichts wartet auf ein Einblenden)", blass === 0, blass);
+    } else if (breite === 1280) {
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => /Keine Stimme|Vorgelesen/.test(document.getElementById("stimme").textContent));
+      ok("▶ Vorführen zeigt die Untertitel-Leiste mit dem Sprechtext der ersten Szene",
+        await h.evaluate(() => !document.getElementById("buehne").hidden && document.getElementById("ut").textContent.length > 30 && document.querySelector(".szene.aktiv") === document.querySelector(".szene")));
+      ok("… eine Netz-Stimme liest NICHT vor — dann gibt es nur Untertitel",
+        await h.evaluate(() => window.speechSynthesis.getVoices() === window.__stimmen && window.__gesprochen.length === 0 && /Keine Stimme/.test(document.getElementById("stimme").textContent)));
+      await h.click("#stopp");
+      ok("■ Stopp beendet die Vorführung", await h.evaluate(() => document.getElementById("buehne").hidden && !window.__handbuch.laeuft()));
+      await h.evaluate(() => window.__stimmen.push({ name: "Geräte-Stimme", lang: "de-DE", localService: true }));
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => window.__gesprochen.length >= 1);
+      ok("… eine Stimme auf dem Gerät liest den Sprechtext vor", await h.evaluate(() => window.__gesprochen[0] === "Geräte-Stimme"));
+      await h.keyboard.press("Escape");
+      ok("… Esc beendet sie ebenfalls", await h.evaluate(() => !window.__handbuch.laeuft()));
+    }
+    await hCtx.close();
+  }
+  {
+    const qCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true });
+    const q = await qCtx.newPage(); await q.goto(BASIS + "sende-pruefer.html"); await bereit(q);
+    await q.click("#hilfe"); await q.waitForURL(/handbuch\.html$/);
+    ok("320 px: ein Tipp auf ? öffnet das Handbuch", q.url().endsWith("handbuch.html"));
+    await qCtx.close();
+  }
+
   /* ── die Netz-Leiste: fest im Kopf, am Handy nur die Lampen (Klaus 2026-09-29) ── */
   const sichtbarIn = (p, sel) => p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null;
     const r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), sicht: e.checkVisibility() }; }, sel);
@@ -622,8 +731,9 @@ try {
         blase: !!document.querySelector("[data-sbkim-mycel-platz] [data-sbkim-angedockt]") }; });
     ok(breite + " px: die Netz-Leiste steht IN der Kopfleiste, und nichts läuft über den Rand", lage.inKopf && lage.ueber === 0, JSON.stringify(lage));
     ok(breite + " px: … das Suchfeld behält mindestens 60 px", lage.suche >= 60, lage.suche);
-    const hoehen = await n.evaluate(() => [...document.querySelectorAll("header.kopf > *")].filter((e) => e.checkVisibility()).map((e) => Math.round(e.getBoundingClientRect().height)).filter((h, i, l) => h > 0));
-    ok(breite + " px: … Lampen, Suchfeld und Knöpfe sind gleich hoch (Klaus: nicht abgehackt)", hoehen.length >= 5 && new Set(hoehen.filter((h) => h > 30)).size === 1, JSON.stringify(hoehen));
+    ok(breite + " px: … das ? zum Handbuch steht sichtbar in der Kopfleiste", (await sichtbarIn(n, "#hilfe") || {}).sicht === true);
+    const hoehen = await n.evaluate(() => [...document.querySelectorAll("#lampen, header.kopf > .suche, header.kopf > .rund")].filter((e) => e.checkVisibility()).map((e) => (e.id || e.className) + ":" + Math.round(e.getBoundingClientRect().height)));
+    ok(breite + " px: … Lampen, Suchfeld und Knöpfe sind gleich hoch (Klaus: nicht abgehackt)", hoehen.length >= 5 && new Set(hoehen.map((h) => h.split(":")[1])).size === 1, JSON.stringify(hoehen));
     ok(breite + " px: … die Mycel-Blase ist in ihrem Platz angedockt, nicht fliegend", lage.blase);
     const badge = await sichtbarIn(n, "#sbkim-siegel-badge");
     if (!handy) {
