@@ -201,6 +201,16 @@ Kim Hub Company … dann nur noch den kurzen Code eingeben."* Unter dem Schlüss
 - ⚠ **Ein kurzer Code lässt sich durchprobieren**, wenn jemand die Ablage kopiert — das
   steht in LIESMICH Grenze 9 und im Hinweis am Feld.
 
+## Die Erklärseite des Siegels (Klaus 2026-09-29)
+
+„Ausführlich erklärt → So funktioniert das Mycel" im Siegel (Modul 16b, byte-1:1) legt
+`sicherheit.html` als iframe in die Seite — die Datei fehlte, Klaus sah GitHubs 404. Sie ist
+aus Kim-Bell übernommen (nur Titel, Kopf und Rückweg angepasst) und steht im Vorrat. Die
+Abschirmung meldete dieses Fenster zugleich als „fremd"; `eigenesFenster()` nimmt jetzt genau
+die eigene `sicherheit.html` aus (gleiche Herkunft, gleicher Ordner) — ein leeres oder fremdes
+iframe wird weiter gemeldet. ⚠ Andere Knoten ohne `sicherheit.html` (PWA-Toolpoint,
+Auslieferung-Pruefer …) haben denselben 404 — nicht untersucht.
+
 ## Prüfen
 
 ```bash
@@ -210,7 +220,7 @@ npm run gegenprobe  # 96 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, max_tokens für Mistral): **287 grün · 0 ROT** · `NUR_ANKER` **126 · 0 tot** · neuer Fall `LIMIT:` gefangen (erst ein toter Anker: die Zeile stand wortgleich bei Anthropic). Davor (2026-09-29, 429 einmal wiederholen): **286 grün · 0 ROT** · `NUR_ANKER` **125 · 0 tot** · `LIMIT:` **4 gefangen** · `TARIF:` (jetzt in `assets/ablehnung.js`) **1 gefangen**. Davor (2026-09-29, Tresor + Mistral small): **282 grün · 0 ROT** · `NUR_ANKER` **121 · 0 tot** · `TRESOR:` **6 gefangen** (einer erst blind: der Wächter prüfte vor Ende der 600 000 Runden, geschärft) · `TARIF:` **1 gefangen**. Davor (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, fünf Anbieter + Erklärseite): **303 grün · 0 ROT** · `NUR_ANKER` **133 · 0 tot** · neue Fälle `ANB:` 5 · `EIGEN:` 2 · `HOL:`/`LIMIT:` nachgezogen: alle gefangen, 0 blind. Davor (2026-09-29, max_tokens für Mistral): **287 grün · 0 ROT** · `NUR_ANKER` **126 · 0 tot** · neuer Fall `LIMIT:` gefangen (erst ein toter Anker: die Zeile stand wortgleich bei Anthropic). Davor (2026-09-29, 429 einmal wiederholen): **286 grün · 0 ROT** · `NUR_ANKER` **125 · 0 tot** · `LIMIT:` **4 gefangen** · `TARIF:` (jetzt in `assets/ablehnung.js`) **1 gefangen**. Davor (2026-09-29, Tresor + Mistral small): **282 grün · 0 ROT** · `NUR_ANKER` **121 · 0 tot** · `TRESOR:` **6 gefangen** (einer erst blind: der Wächter prüfte vor Ende der 600 000 Runden, geschärft) · `TARIF:` **1 gefangen**. Davor (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
@@ -234,17 +244,26 @@ zusammen wegzunehmen misst etwas.
   `PROBE.md`) müssen **zusammen unter 96 KB** bleiben — die Probe misst es.
   Bis 2026-09-28 waren es 48 KB; Klaus hat für das Postfach auf 96 KB angehoben.
   Die Grenze gilt dem Code und der Anleitung, **nicht** den Mails (IndexedDB).
-- **Die Anbieter stehen NUR in `ANBIETER`.** Ein freies Adressfeld ist die
-  Hintertür durch die ganze Seite; die Probe besteht darauf, dass es keins gibt
-  und dass jede API-Adresse im Code in der Konstante steht.
-- **Zwei Protokolle:** Anthropic (Messages) und Mistral (OpenAI-Form) — zwei
-  Anfrage- und zwei Antwortformen. Nicht nur die Adresse tauschen.
+- **Die Anbieter stehen NUR in `assets/anbieter.js`** (seit 2026-09-29, vorher in der
+  Seite — dort war kein Platz mehr). Reihenfolge = Auswahl: Claude · ChatGPT · Gemini ·
+  OpenRouter · Mistral (Klaus: „Mistral ganz weit unten"). Ein freies Adressfeld ist die
+  Hintertür durch die ganze Seite; die Probe besteht darauf, dass es keins gibt und die
+  Seite selbst keine KI-Adresse trägt. Fehlt die Datei, geht nur Kopieren.
+- **Zwei Protokolle:** Anthropic (Messages) und die OpenAI-Form (alle übrigen). `grenze`
+  nennt das Feld für die Antwortlänge — `gpt-5-mini` lehnt `max_tokens` ab und will
+  `max_completion_tokens`. Gemini liefert Fehler als LISTE; die Seite liest das erste Element.
+- ⚠ **Belegt ist nur Claude** (an Klaus' Tablet gesendet). Gemini: CORS-Vorabfrage aus
+  dem Behälter geprüft, angenommen. ChatGPT, OpenRouter: aus dem Behälter nicht erreichbar
+  (Proxy 403), Adressen und Modelle nicht geprüft. Mistral: 429 an Klaus' Konto, danach
+  Organisation gelöscht.
 - **Modell-Vorgabe `claude-opus-5`**, aus der Anbieter-Liste des Auftrags. Im
   Zieltext des Auftrags stand `claude-haiku-4-5`. Gewählt ist die Liste, weil sie
   das Datum trägt; Klaus kann das in einer Zeile ändern.
 - **Der Köder** trägt `# BEFUNDE: <Zahl>` im Kopf. Wer einen Fall ergänzt, zieht
   die Zahl nach, sonst wird der Selbsttest zu Recht rot.
 - **Cache-Bump:** `CACHE_VERSION` in `sw.js`, wenn eine Datei aus `CORE` sich ändert.
+- **Ein KI-Abo ist kein Schlüssel.** ChatGPT Plus, Claude Pro, Gemini Advanced bezahlen die
+  Chat-Oberfläche; die Schnittstelle wird getrennt abgerechnet. Dafür ist der Kopieren-Weg da.
 - **Speicher-Schlüssel app-eigen:** `sendepruefer_tresor_<anbieter>` (nur verschlossen) —
   `github.io` ist eine geteilte Adresse.
 

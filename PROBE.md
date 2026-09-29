@@ -34,7 +34,7 @@ Die ersten zwei Vorbedingungen sind der Grund, warum die übrigen etwas bedeuten
 ## Was damit NICHT gemessen ist
 
 - **Ein Tablet, ein echter Nutzer.** Headless beweist die Logik, nicht wie es sich am Gerät anfühlt. Klaus' Sichttest steht aus.
-- **Ein echter Senden-Aufruf.** Beide Anbieter sind in der Probe abgefangen (`page.route`). Geprüft sind Adresse, Kopfzeilen und dass nur die verdeckte Fassung hinausgeht, nicht, ob der Anbieter sie annimmt. Das zeigt erst ein echter Schlüssel.
+- **Ein echter Senden-Aufruf.** Alle Anbieter sind in der Probe abgefangen (`page.route`). Geprüft sind Adresse, Kopfzeilen und dass nur die verdeckte Fassung hinausgeht, nicht, ob der Anbieter sie annimmt. Das zeigt erst ein echter Schlüssel.
 - **Ein echter Text aus dem Alltag.** Der Tausenderpunkt-Fehler ist am 2026-09-21 an einem Text aufgefallen, den kein Köder enthielt. Der nächste solche Fund kommt wieder aus einem echten Text.
 
 Wer den Selbsttest am eigenen Gerät fährt, trägt das Ergebnis hier ein, mit Browser und Datum.

@@ -303,11 +303,26 @@ fall "HOL: der Link gibt window.opener her" $H \
   'target: "_blank", rel: "noopener noreferrer", style' 'target: "_blank", style' 'window.opener nicht her'
 fall "HOL: der Link wechselt nicht mit dem Anbieter" $H \
   '  $("schluessel-holen").href = a.holen;' '  $("schluessel-holen").href = $("schluessel-holen").href || a.holen;' 'wechselt mit dem Anbieter'
-fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
-  '    holen: "https://console.mistral.ai/api-keys" })' '    holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'je Anbieter eine'
+N=assets/anbieter.js
+fall "HOL: eine Schlüssel-Seite steht ausserhalb der Liste" $N \
+  '      holen: "https://console.mistral.ai/api-keys" })' '      holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'eine Schlüssel-Seite'
+fall "ANB: Claude steht nicht mehr oben" $N \
+  '    anthropic: f({ name: "Claude (Anthropic)",' '    claude: f({ name: "Claude (Anthropic)",' 'Claude steht oben'
+fall "ANB: ChatGPT bekommt max_tokens statt max_completion_tokens" $N \
+  ' grenze: "max_completion_tokens",' '' 'max_completion_tokens'
+fall "ANB: eine KI-Adresse steht in der Seite statt in der Liste" $H \
+  'const ANBIETER = window.SPAnbieter || Object.freeze({});' 'const ANBIETER = window.SPAnbieter || Object.freeze({ notfall: { adresse: "https://api.openai.com/v1/chat/completions" } });' 'keine KI-Adresse'
+fall "ANB: eine Ablehnung als Liste wird nicht gelesen" $H \
+  ' if (Array.isArray(j)) j = j[0] || {};' '' 'als Liste'
+fall "EIGEN: jedes sicherheit.html gilt als eigen" assets/abschirmung.js \
+  ' && u.pathname.replace(' ' && true || u.pathname.replace(' 'anderen Ordner'
+fall "EIGEN: die Erklärseite fehlt im Offline-Vorrat" sw.js \
+  ', "sicherheit.html"]' ']' 'Erklärseite des Siegels'
+fall "ANB: die Seite lädt die Liste nicht" $H \
+  '<script src="assets/anbieter.js"></script>' '' 'lädt die Liste'
 
 fall "LIMIT: Mistral bekommt keine Ausgabe-Grenze" $H \
-  'body: { max_tokens: 4096, model: a.modell,' 'body: { model: a.modell,' 'Ausgabe-Grenze'
+  'body: { [a.grenze || "max_tokens"]: 4096, model: a.modell,' 'body: { model: a.modell,' 'Ausgabe-Grenze'
 A=assets/ablehnung.js
 fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $A \
   'if (/subscription tier|not available/i.test(grund))' 'if (false)' 'nicht das Guthaben'

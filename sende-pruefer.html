@@ -296,23 +296,14 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
 <script src="assets/abschirmung.js"></script>
 <script src="assets/schluesseltresor.js"></script>
 <script src="assets/tresor-ui.js"></script>
+<script src="assets/anbieter.js"></script>
 <script src="assets/ablehnung.js"></script>
 <script src="assets/sbkim-init.js"></script>
 <script>
 "use strict";
-/* ══ DIE GESCHLOSSENE LISTE DER ANBIETER
-   Abgeschrieben aus dem Auftrag (Kimhub/auftraege/sende-pruefer.json,
-   `_anbieter`, Stand 2026-09-21). Ein freies Adressfeld gibt es nicht: wer eine
-   Adresse eintippen kann, kann den Text irgendwohin schicken. Wer einen
-   Anbieter ergänzt, trägt ihn HIER ein, mit Beleg. */
-const ANBIETER = Object.freeze({
-  anthropic: Object.freeze({ name: "Claude (Anthropic)", adresse: "https://api.anthropic.com/v1/messages",
-    modell: "claude-opus-5", beginnt: "sk-ant-", protokoll: "messages",
-    holen: "https://console.anthropic.com/settings/keys" }),
-  mistral: Object.freeze({ name: "Mistral (EU)", adresse: "https://api.mistral.ai/v1/chat/completions",
-    modell: "mistral-small-latest", beginnt: null, protokoll: "openai",
-    holen: "https://console.mistral.ai/api-keys" })
-});
+/* ══ DIE ANBIETER stehen in assets/anbieter.js, sonst nirgends. Fehlt die
+   Datei, gibt es nur den Kopieren-Weg. */
+const ANBIETER = window.SPAnbieter || Object.freeze({});
 const SCHLUESSEL_PREFIX = "sendepruefer_key_";
 const THEMA_KEY = "sendepruefer_thema";
 const SAAT_KEY = "sendepruefer_beispiele_v1";
@@ -727,7 +718,7 @@ function kiKasten(m) {
       el("button", { class: "knopf", id: "aufgabe-merken", type: "button", onclick: () => { const t = eigen.value.trim(), n = "★ " + t.slice(0, 24); if (t) merke(eigeneAufgaben().filter((x) => x[0] !== n).concat([[n, t]])); } }, "Als Knopf merken")));
   const auswahl = el("select", { id: "anbieter", onchange: () => { schreib(SCHLUESSEL_PREFIX + "wahl", auswahl.value); anbieterZeigen(); } });
   for (const [k, a] of Object.entries(ANBIETER)) auswahl.append(el("option", { value: k }, a.name));
-  auswahl.value = ANBIETER[lies(SCHLUESSEL_PREFIX + "wahl")] ? lies(SCHLUESSEL_PREFIX + "wahl") : "anthropic";
+  auswahl.value = ANBIETER[lies(SCHLUESSEL_PREFIX + "wahl")] ? lies(SCHLUESSEL_PREFIX + "wahl") : Object.keys(ANBIETER)[0] || "";
   const ein = el("textarea", { id: "antwort-ein", rows: "4", spellcheck: "false", oninput: (e) => { m.antwortRoh = e.target.value; geaendert(m, true); } });
   ein.value = m.antwortRoh || "";
   const schl = el("input", { id: "schluessel", type: "password", autocomplete: "off", spellcheck: "false" });
@@ -825,11 +816,12 @@ async function kopieren(m) {
     e.className = "meldung warn"; e.textContent = "Der Browser hat das Kopieren verweigert. Öffnen Sie „Was die KI sieht“, markieren Sie den Text und kopieren Sie ihn von Hand.";
   }
 }
-const anbieterJetzt = () => ANBIETER[($("anbieter") || {}).value] || ANBIETER.anthropic;
+const anbieterJetzt = () => ANBIETER[($("anbieter") || {}).value] || Object.values(ANBIETER)[0];
 const schluesselName = () => SCHLUESSEL_PREFIX + (($("anbieter") || {}).value || "anthropic");
 function anbieterZeigen() {
   if (!$("anbieter")) return;
   const a = anbieterJetzt();
+  if (!a) { $("ziel-adresse").textContent = "keine Anbieter-Liste geladen — nur Kopieren geht"; return; }
   $("ziel-adresse").textContent = a.adresse + " · " + a.modell;
   $("schluessel-holen").href = a.holen;
   $("schluessel").value = lies(schluesselName());
@@ -846,7 +838,7 @@ function anfrage(a, schluessel, text) {
       body: { model: a.modell, max_tokens: 4096, messages: [{ role: "user", content: text }] } };
   }
   return { headers: { "content-type": "application/json", "authorization": "Bearer " + schluessel },
-    body: { max_tokens: 4096, model: a.modell, messages: [{ role: "user", content: text }] } };
+    body: { [a.grenze || "max_tokens"]: 4096, model: a.modell, messages: [{ role: "user", content: text }] } };
 }
 function antwortText(a, j) {
   if (a.protokoll === "messages") return (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n");
@@ -855,6 +847,7 @@ function antwortText(a, j) {
 async function senden(m) {
   const e = $("sende-meldung"), a = anbieterJetzt(), schluessel = $("schluessel").value.trim();
   e.className = "meldung warn";
+  if (!a) { e.textContent = "Keine Anbieter-Liste geladen. Nehmen Sie den Kopieren-Weg daneben."; return; }
   const r = bereit(m, (t) => { e.textContent = "Nicht gesendet: " + t; });
   if (!r) return;
   if (!schluessel) { e.textContent = "Es fehlt ein Schlüssel für " + a.name + ". Tragen Sie ihn oben ein, oder nehmen Sie den Kopieren-Weg daneben."; return; }
@@ -865,7 +858,7 @@ async function senden(m) {
   try {
     const H = window.SPAblehnung, init = { method: "POST", headers: q.headers, body: JSON.stringify(q.body) };
     const antwort = await (H ? H.holen(a.adresse, init, (t) => { e.textContent = t; }) : fetch(a.adresse, init));
-    const j = await antwort.json().catch(() => ({}));
+    let j = await antwort.json().catch(() => ({})); if (Array.isArray(j)) j = j[0] || {};
     if (!antwort.ok) {
       const grund = (j.error && (j.error.message || j.error.type)) || j.message || ("HTTP " + antwort.status);
       e.className = "meldung warn"; e.textContent = "Der Anbieter hat abgelehnt (" + antwort.status + "): " + grund
