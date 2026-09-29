@@ -12,7 +12,16 @@
  *     abgespielt — der Schein läuft ohne Halt und ohne Tempo-Sprung.
  *   - kegel: groß an Start, Mitte und Ende („aufblitzen"), dazwischen klein.
  *     In der Mitte über die ganze Höhe des Icons.
- *   - aufleuchten: das Schild leuchtet, wenn der Schein die Mitte erreicht.
+ *   - aufleuchten: das Schild leuchtet, wenn der Schein die Mitte erreicht,
+ *     und der Boden darunter strahlt zurück: nicht als Fleck, sondern die hellen,
+ *     farbigen Streifen der Spiegelung leuchten heller (Klaus 2026-09-29). Dafür
+ *     liegt das Bild selbst ein zweites Mal darüber (plus-lighter: hell wird
+ *     heller, dunkel bleibt dunkel), sichtbar nur durch die Maske Schild + Boden.
+ *   - wackeln: das Icon hängt lose wie die Glas-Knöpfe in family-project
+ *     (assets/app.js, wireHoloButtons): die Stelle, auf die der Schein fällt,
+ *     gibt nach hinten nach. Der Mittelpunkt des Scheins spielt die Maus;
+ *     dieselbe Rechnung: rotateY = (x − ½)·2·Max, rotateX = −(y − ½)·2·Max.
+ *     Am Anfang und Ende jedes Durchlaufs schwingt es sanft auf null.
  *
  *   node tools/lichtweg.mjs              schreibt den Block in beide Dateien
  *   node tools/lichtweg.mjs --pruefen    sagt nur, ob beide auf dem Stand sind
@@ -24,11 +33,13 @@ import { fileURLToPath } from "node:url";
 export const WEG = {
   start: [4.4, 58.6], bogen1: [31.5, 48.1], mitte: [52.5, 45.7], bogen2: [86.6, 52.6], ende: [88.8, 35.6],
 };
-export const DAUER = 7;          // Sekunden je Durchlauf
+export const DAUER = 3.5;        // Sekunden je Durchlauf (Klaus: „doppelte Geschwindigkeit")
 export const SCHRITTE = 48;      // Punkte auf dem Weg
 export const GRUND = 14;         // Größe des Scheins unterwegs, % vom Icon
 export const BLITZ = 4;          // an Start, Mitte, Ende: das Vierfache (Klaus: „mindestens")
 export const MITTE_HOCH = 100;   // in der Mitte: die ganze Höhe des Icons, in %
+export const NEIGUNG = 12;       // Grad: so weit gibt das Icon unter dem Schein nach (family-project: 9 bei Knöpfen)
+export const BODEN = { x: 50, y: 87, breite: 44, hoehe: 14 };  // wo der Boden zurückstrahlt, % vom Icon
 
 const kontroll = (a, b, g) => [2 * g[0] - (a[0] + b[0]) / 2, 2 * g[1] - (a[1] + b[1]) / 2];
 const quad = (a, k, b, t) => { const u = 1 - t; return [u * u * a[0] + 2 * u * t * k[0] + t * t * b[0], u * u * a[1] + 2 * u * t * k[1] + t * t * b[1]]; };
@@ -67,13 +78,23 @@ export function cssBlock() {
     `${z(m + (100 - m) / 2)}%{scale:1}97%{opacity:1}100%{scale:${BLITZ};opacity:0}`;
   const leuchten = `0%,${z(m - 12)}%{opacity:0}${z(m)}%{opacity:.85}${z(m + 14)}%,100%{opacity:0}`;
   const [s0] = punkte;
+  const glatt = (x) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+  const wackeln = punkte.map((p, i) => {
+    const f = i / SCHRITTE, e = Math.min(glatt(f / 0.1), glatt((1 - f) / 0.1));
+    const ry = (p[0] / 100 - 0.5) * 2 * NEIGUNG * e, rx = -(p[1] / 100 - 0.5) * 2 * NEIGUNG * e;
+    return `${z(f * 100, 2)}%{transform:perspective(900px) rotateX(${z(rx, 2)}deg) rotateY(${z(ry, 2)}deg)}`;
+  }).join("");
+  const B = BODEN;
   return [
     "/* LICHTWEG-ANFANG — gebaut von tools/lichtweg.mjs, nicht von Hand ändern.",
     "   Klaus' Weg (2026-09-29): unten links hinein, im Bogen zur Mitte, im Bogen oben rechts hinaus.",
     "   Gleicher Abstand je Schritt, linear: kein Halt. Groß an Start, Mitte, Ende; in der Mitte die ganze Höhe. */",
     `.bild-buehne::after{content:"";position:absolute;left:${z(s0[0])}%;top:${z(s0[1])}%;width:${GRUND}%;height:${GRUND}%;border-radius:50%;translate:-50% -50%;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.75),rgb(255 255 255/.28) 45%,rgb(143 228 234/.14) 70%,transparent);animation:licht-weg ${DAUER}s linear infinite,kegel ${DAUER}s ease-in-out infinite}`,
-    "/* … und das Schild leuchtet auf, wenn der Schein die Mitte erreicht */",
-    `.bild-buehne::before{content:"";position:absolute;left:34%;top:18%;width:32%;height:60%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.9),rgb(143 228 234/.35) 50%,transparent);animation:aufleuchten ${DAUER}s ease-in-out infinite}`,
+    "/* … das Schild leuchtet auf, wenn der Schein die Mitte erreicht, und die Streifen am Boden strahlen heller zurück */",
+    `.bild-buehne::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(16% 30% at 50% 48%,rgb(255 255 255/.7),transparent),url(icons/sende-pruefer-bild.webp) 0 0/100% 100%;mix-blend-mode:plus-lighter;filter:saturate(1.3);-webkit-mask:radial-gradient(18% 32% at 50% 48%,#000 60%,transparent),radial-gradient(${B.breite / 2}% ${B.hoehe / 2}% at ${B.x}% ${B.y}%,#000 55%,transparent);mask:radial-gradient(18% 32% at 50% 48%,#000 60%,transparent),radial-gradient(${B.breite / 2}% ${B.hoehe / 2}% at ${B.x}% ${B.y}%,#000 55%,transparent);animation:aufleuchten ${DAUER}s ease-in-out infinite}`,
+    "/* … und das Icon gibt unter dem Schein nach wie ein lose aufgehängter Knopf */",
+    `.bild-buehne{--wackeln:wackeln ${DAUER}s linear infinite;animation:var(--wackeln)}`,
+    `@keyframes wackeln{${wackeln}}`,
     `@keyframes licht-weg{${weg}}`,
     `@keyframes kegel{${kegel}}`,
     `@keyframes aufleuchten{${leuchten}}`,

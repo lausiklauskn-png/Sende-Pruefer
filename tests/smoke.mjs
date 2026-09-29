@@ -160,7 +160,7 @@ ok("… folgt Klaus' Weg: Start unten links, durch die Mitte, Ende oben rechts",
   `${lwWeg.length} Punkte`);
 const lwAbst = lwWeg.slice(1).map((p, i) => Math.hypot(p[1] - lwWeg[i][1], p[2] - lwWeg[i][2]));
 ok("… läuft ohne Halt: gleicher Abstand je Schritt, linear abgespielt",
-  lwAbst.length > 0 && Math.max(...lwAbst) / Math.min(...lwAbst) < 1.3 && /animation:licht-weg \d+s linear infinite/.test(html),
+  lwAbst.length > 0 && Math.max(...lwAbst) / Math.min(...lwAbst) < 1.3 && /animation:licht-weg [\d.]+s linear infinite/.test(html),
   lwAbst.length ? `${Math.min(...lwAbst).toFixed(2)}–${Math.max(...lwAbst).toFixed(2)}` : "kein Weg");
 const kg = (html.match(/@keyframes kegel\{(.*?)\}\}/) || ["", ""])[1] + "}";
 const skalen = [...kg.matchAll(/([\d.]+)%\{scale:([\d.]+)(?: ([\d.]+))?/g)].map((m) => ({ t: Number(m[1]), x: Number(m[2]), y: Number(m[3] || m[2]) }));
@@ -170,6 +170,33 @@ ok("… blitzt am Start und am Ende mindestens vierfach auf",
 ok("… nimmt in der Mitte die ganze Höhe des Icons ein",
   skalen.some((s) => s.t > 30 && s.t < 70 && s.x >= 4 && s.y * 14 >= 99), kg);
 ok("… und wird dazwischen wieder klein", skalen.filter((s) => s.x === 1 && s.y === 1).length >= 2, kg);
+ok("… läuft doppelt so schnell wie zuerst (3,5 statt 7 Sekunden)",
+  lw.DAUER === 3.5 && /animation:licht-weg 3\.5s linear infinite,kegel 3\.5s/.test(html));
+/* Klaus 2026-09-29: steht der Schein in der Mitte, strahlt der Boden kurz zurück — in
+   Schild-Breite, und zwar die hellen, farbigen Streifen der Spiegelung, kein Fleck. */
+const vorher = (html.match(/\.bild-buehne::before\{[^}]*\}/) || [""])[0];
+const boden = [...vorher.matchAll(/radial-gradient\(([\d.]+)% ([\d.]+)% at 50% (\d+)%/g)].find((m) => Number(m[3]) >= 80);
+ok("… und in der Mitte strahlt der Boden kurz zurück, in Schild-Breite: die hellen Streifen des Bildes leuchten heller",
+  !!boden && Number(boden[3]) >= 80 && Number(boden[1]) * 2 >= 30 && /animation:aufleuchten/.test(vorher)
+  && /url\(icons\/sende-pruefer-bild\.webp\) 0 0\/100% 100%/.test(vorher) && /mix-blend-mode:plus-lighter/.test(vorher)
+  && /(^|;)mask:[^;]*at 50% [89]\d%/.test(vorher.replace(/^[^{]*\{/, "")), vorher.slice(0, 120));
+/* Klaus 2026-09-29: das Icon hängt lose wie die Wackel-Knöpfe in family-project; der
+   Schein spielt die Maus. Die Stelle, auf die er fällt, gibt nach hinten nach. */
+const wk = [...((html.match(/@keyframes wackeln\{(.*?)\}\}/) || ["", ""])[1] + "}").matchAll(/([\d.]+)%\{transform:perspective\(\d+px\) rotateX\((-?[\d.]+)deg\) rotateY\((-?[\d.]+)deg\)\}/g)]
+  .map((m) => ({ t: Number(m[1]), rx: Number(m[2]), ry: Number(m[3]) }));
+const zuPunkt = (w) => lwWeg.find((p) => Math.abs(p[0] - w.t) < 0.01);
+const passt = wk.filter((w) => w.t > 12 && w.t < 88).every((w) => { const p = zuPunkt(w);
+  return p && (Math.abs(p[1] - 50) < 5 || Math.sign(w.ry) === Math.sign(p[1] - 50)) && (Math.abs(p[2] - 50) < 5 || Math.sign(w.rx) === Math.sign(50 - p[2])); });
+ok("das Icon wackelt genau an der Stelle, auf die der Schein fällt (sie gibt nach hinten nach)",
+  wk.length === lwWeg.length && passt, `${wk.length} Stellungen`);
+ok("… sichtbar weit, in der Mitte kaum, und am Anfang und Ende wieder gerade",
+  wk.length > 0 && Math.max(...wk.map((w) => Math.abs(w.ry))) >= 6
+  && wk.filter((w) => zuPunkt(w) && nahe(zuPunkt(w), lw.WEG.mitte)).every((w) => Math.abs(w.rx) < 3 && Math.abs(w.ry) < 3)
+  && wk[0].rx === 0 && wk[0].ry === 0 && wk[wk.length - 1].rx === 0 && wk[wk.length - 1].ry === 0);
+ok("… und das Schweben stört das Wackeln nicht (Schweben über translate, beides zugleich)",
+  /\.bild-buehne\{animation:var\(--wackeln\),schweben /.test(html) && /@keyframes schweben\{0%,100%\{translate:0 0\}50%\{translate:0 -8px\}\}/.test(html));
+ok("… auch im Handbuch steht das Icon bei „weniger Bewegung“ still",
+  /prefers-reduced-motion:reduce\)\{\.bild-buehne\{animation:none\}\}/.test(readFileSync(join(WURZEL, "tools", "handbuch-vorlage.html"), "utf8")));
 ok("… und steht bei „weniger Bewegung“ still", /prefers-reduced-motion:reduce\)\{\.bild-buehne::after,\.bild-buehne::before\{animation:none/.test(html));
 ok("das Handbuch steht im Offline-Vorrat", /"handbuch\.html"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
 
