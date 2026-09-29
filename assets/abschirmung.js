@@ -7,7 +7,8 @@
  *      <grammarly-desktop-integration>) oder setzt ihre Marken an Feld,
  *      body oder html (data-gr-ext-installed, data-lt-tmp-id …), wird das
  *      als Fund gemeldet — Banner, Knopf-Zahl und die FREMD-Lampe im Widget.
- *      Die Seite selbst legt nie ein iframe und nie ein eigenes Element an.
+ *      Die Seite selbst legt nie ein iframe an — ausser dem Siegel-Fenster
+ *      mit der eigenen sicherheit.html (siehe eigenesFenster).
  *
  *  2 · ABSCHIRMEN mit einem Klick: an jedem Schreibfeld Rechtschreibprüfung,
  *      Autokorrektur und die KI-Schreibhilfe des Browsers aus
@@ -48,9 +49,18 @@
     melde();
   }
 
+  /* Das Siegel (Modul 16b) zeigt „So funktioniert das Mycel" als iframe mit
+     sicherheit.html — eine eigene Seite dieser App. Nur GENAU diese gilt als
+     eigen; ein leeres oder fremdes Fenster wird weiter gemeldet (Klaus 2026-09-29). */
+  function eigenesFenster(el) {
+    try { var u = new URL(el.getAttribute("src") || "", g.location.href);
+      return u.origin === g.location.origin && /\/sicherheit\.html$/.test(u.pathname) && u.pathname.replace(/sicherheit\.html$/, "") === g.location.pathname.replace(/[^/]*$/, ""); }
+    catch (_e) { return false; }
+  }
   function pruefe(el) {
     if (!el || el.nodeType !== 1) return;
     var tag = el.tagName.toLowerCase();
+    if (tag === "iframe" && eigenesFenster(el)) return;
     if (tag === "iframe") fund("iframe:" + (el.src || "leer"), "Ein fremdes Fenster (iframe) wurde in die Seite gelegt" + (el.src ? ": " + String(el.src).slice(0, 80) : "") + ".");
     else if (tag.indexOf("-") > 0) fund("tag:" + tag, "Ein fremdes Element wurde in die Seite gehängt: <" + tag + ">.");
     for (var a in SPUREN) if (el.hasAttribute(a)) fund("attr:" + a, SPUREN[a] + " liest in dieser Seite mit (Marke „" + a + "“).");

@@ -41,15 +41,24 @@ ok("keine fremde Quelle im Markup (src/href nach draußen außer Links zum Ankli
   !/<(?:script|link|img|iframe)[^>]+(?:src|href)=["']https?:/i.test(html));
 ok("kein Eingabefeld für eine Adresse (keine type=url, kein Feld namens adresse/url/endpoint)",
   !/<input[^>]+(?:type=["']url["']|id=["'](?:adresse|url|endpoint)["'])/i.test(html));
-const anbieterBlock = (html.match(/const ANBIETER = Object\.freeze\(\{([\s\S]*?)\n\}\);/) || [])[1] || "";
-ok("die Anbieter stehen als benannte, eingefrorene Konstante",
-  /anthropic:/.test(anbieterBlock) && /mistral:/.test(anbieterBlock));
-const adressen = [...html.matchAll(/https:\/\/api\.[a-z.]+\/[a-z/]+/g)].map((m) => m[0]);
-ok("jede API-Adresse im Code steht in dieser Konstante",
-  adressen.length >= 2 && adressen.every((a) => anbieterBlock.includes(a)), adressen.join(", "));
-const konsolen = [...html.matchAll(/https:\/\/console\.[a-z.]+\/[a-z/-]+/g)].map((m) => m[0]);
-ok("jede Schlüssel-Seite im Code steht in dieser Konstante, je Anbieter eine",
-  konsolen.length === 2 && konsolen.every((a) => anbieterBlock.includes(a)) && (anbieterBlock.match(/holen: "https:/g) || []).length === 2, konsolen.join(", "));
+const anbieterBlock = readFileSync(join(WURZEL, "assets/anbieter.js"), "utf8");
+const anbieterNamen = [...anbieterBlock.matchAll(/^    ([a-z]+): f\(\{/gm)].map((m) => m[1]);
+ok("die Anbieter stehen als benannte, eingefrorene Liste in assets/anbieter.js",
+  /window\.SPAnbieter = f\(\{/.test(anbieterBlock) && anbieterNamen.length >= 5, anbieterNamen.join(", "));
+ok("Claude steht oben, Mistral ganz unten (Klaus 2026-09-29)",
+  anbieterNamen[0] === "anthropic" && anbieterNamen[anbieterNamen.length - 1] === "mistral", anbieterNamen.join(", "));
+ok("ChatGPT, Gemini und OpenRouter sind wählbar", ["openai", "gemini", "openrouter"].every((n) => anbieterNamen.includes(n)));
+const vonNamen = (anbieterBlock.match(/adresse: "https:\/\//g) || []).length;
+ok("je Anbieter genau eine Adresse, ein Modell und eine Schlüssel-Seite",
+  vonNamen === anbieterNamen.length && (anbieterBlock.match(/modell: "/g) || []).length === anbieterNamen.length
+  && (anbieterBlock.match(/holen: "https:/g) || []).length === anbieterNamen.length);
+const ki = /https:\/\/(?:api\.[a-z.]+|generativelanguage\.googleapis\.com|openrouter\.ai\/api)\/[a-z0-9/.]+/g;
+ok("die Seite selbst trägt keine KI-Adresse — sie stehen nur in der Liste",
+  !ki.test(html) && !/const ANBIETER = Object\.freeze\(\{\s*\w+:/.test(html));
+ok("die Seite lädt die Liste vor dem eigenen Skript",
+  html.indexOf('src="assets/anbieter.js"') > 0 && html.indexOf('src="assets/anbieter.js"') < html.indexOf("const ANBIETER = window.SPAnbieter"));
+ok("die neueren OpenAI-Modelle bekommen max_completion_tokens statt max_tokens",
+  /openai: f\(\{[^}]*grenze: "max_completion_tokens"/.test(anbieterBlock) && /\[a\.grenze \|\| "max_tokens"\]: 4096/.test(html));
 const liesmich = readFileSync(join(WURZEL, "LIESMICH.md"), "utf8");
 const grenzen = ((liesmich.split(/## Grenzen/)[1] || "").split(/\n## /)[0].match(/^\d+\. /gm) || []).length;
 ok(`LIESMICH nennt mindestens fünf Grenzen (${grenzen})`, grenzen >= 5);
@@ -132,6 +141,9 @@ ok("… und sagt, was er NICHT ist (kein Virenscanner)", /kein Virenscanner/.tes
 const manifest = JSON.parse(readFileSync(join(WURZEL, "manifest.json"), "utf8"));
 ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · Schließen (display: standalone)",
   manifest.display === "standalone" && !manifest.display_override);
+ok("die Erklärseite des Siegels (sicherheit.html) liegt da und steht im Offline-Vorrat",
+  existsSync(join(WURZEL, "sicherheit.html")) && readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"sicherheit.html"') && /iframe\.src = "sicherheit\.html"/.test(readFileSync(join(WURZEL, "modules/16b_andock_wizard.js"), "utf8")));
+ok("die Anbieter-Liste steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"assets/anbieter.js"'));
 ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
 /* ── Handbuch (Klaus 2026-09-29): gebaut aus der echten App, Szene für Szene ── */
@@ -268,6 +280,12 @@ try {
           headers: { "retry-after": "1", "access-control-expose-headers": "retry-after" },
           body: JSON.stringify({ message: "Rate limit exceeded" }) });
     }
+    if (q.url().startsWith("https://generativelanguage.googleapis.com/") && /FEHL/.test(q.headers().authorization || ""))
+      return route.fulfill({ status: 400, contentType: "application/json",   // Gemini antwortet mit einer LISTE
+        body: JSON.stringify([{ error: { code: 400, message: "API key not valid. Please pass a valid API key." } }]) });
+    if (q.url().startsWith("https://api.openai.com/"))
+      return route.fulfill({ status: 200, contentType: "application/json",
+        body: JSON.stringify({ choices: [{ message: { content: "Gruß an ⟦MAIL-1⟧." } }] }) });
     if (q.url().startsWith("https://api.mistral.ai/"))
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ choices: [{ message: { content: "Bitte an ⟦MAIL-1⟧ antworten." } }] }) });
@@ -558,6 +576,33 @@ try {
     (await page.textContent("#antwort-klar")) === "Bitte an ⟦MAIL-1⟧ antworten.");
   ok("es ging insgesamt genau zweimal etwas hinaus", draussen.length === 2, draussen.length);
 
+  /* ── Weitere Anbieter (Klaus 2026-09-29): ChatGPT und Gemini ─────────── */
+  draussen.splice(0);
+  await page.selectOption("#anbieter", "openai");
+  await page.fill("#schluessel", "sk-PROBEnichtECHT0000");
+  await page.click("#senden");
+  await page.waitForFunction(() => /Antwort erhalten|abgelehnt|Keine Verbindung/.test(document.getElementById("sende-meldung").textContent));
+  const oa = draussen[0] || { headers: {}, body: "{}" };
+  const oaB = (() => { try { return JSON.parse(oa.body); } catch (_e) { return {}; } })();
+  ok("ChatGPT bekommt seine Adresse, eine Bearer-Kopfzeile und das Modell aus der Liste",
+    oa.url === "https://api.openai.com/v1/chat/completions" && oa.headers.authorization === "Bearer sk-PROBEnichtECHT0000" && oaB.model === "gpt-5-mini", oa.url);
+  ok("… mit max_completion_tokens statt max_tokens", oaB.max_completion_tokens === 4096 && !("max_tokens" in oaB), oa.body.slice(0, 120));
+  ok("… und die Antwort wird aufgedeckt", /Antwort erhalten/.test(await page.textContent("#sende-meldung")));
+  await page.selectOption("#anbieter", "gemini");
+  ok("der Schlüssel-Link wechselt auf Google AI Studio",
+    (await page.getAttribute("#schluessel-holen", "href")) === "https://aistudio.google.com/apikey");
+  await page.fill("#schluessel", "sk-falsch");
+  await page.click("#senden");
+  ok("ein Gemini-Schlüssel muss mit AIza beginnen", /beginnt mit AIza/.test(await page.textContent("#sende-meldung")));
+  await page.fill("#schluessel", "AIzaFEHL0000");
+  await page.click("#senden");
+  await page.waitForFunction(() => /abgelehnt|Antwort erhalten|Keine Verbindung/.test(document.getElementById("sende-meldung").textContent));
+  const gm = await page.textContent("#sende-meldung");
+  ok("eine Gemini-Ablehnung (als Liste) wird mit ihrem Grund gezeigt", /\(400\): API key not valid/.test(gm), gm);
+  ok("Gemini geht an seine eigene Adresse",
+    (draussen[1] || {}).url === "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+  await page.fill("#schluessel", ""); await page.selectOption("#anbieter", "anthropic");
+
   /* ── Beispiel-E-Mail (Klaus 2026-09-28): ein Tipp zeigt den ganzen Weg ── */
   await page.click("#menue");
   await page.click("#beispiel");
@@ -798,6 +843,17 @@ try {
   ok("… die FREMD-Lampe in der Kopfleiste leuchtet rot", await ab.evaluate(() => document.getElementById("lamp-fremd").classList.contains("bad")
     && document.querySelector('[data-lampe-kopie="lamp-fremd"]').classList.contains("bad")));
   ok("… und der Schild-Knopf zeigt die Zahl", (await ab.textContent("#schild-zahl")).trim() === "1");
+  /* Das Siegel legt sicherheit.html als iframe hinein — das ist die eigene Seite (Klaus 2026-09-29). */
+  const vorEigen = await ab.evaluate(() => SendeAbschirmung.funde().length);
+  await ab.evaluate(() => { const f = document.createElement("iframe"); f.src = "sicherheit.html"; f.style.display = "none"; document.body.append(f); });
+  await ab.evaluate(() => { const f = document.createElement("iframe"); f.src = "/Fremd/sicherheit.html"; f.style.display = "none"; document.body.append(f); });
+  await ab.waitForFunction((n) => SendeAbschirmung.funde().length > n, vorEigen).catch(() => {});
+  const eigenFunde = await ab.evaluate(() => SendeAbschirmung.funde().map((f) => f.was));
+  ok("das Siegel-Fenster mit der eigenen sicherheit.html gilt NICHT als fremd",
+    !eigenFunde.some((w) => /iframe/.test(w) && /sicherheit\.html/.test(w) && !/Fremd/.test(w)), eigenFunde.join(" | "));
+  ok("… ein sicherheit.html aus einem anderen Ordner schon", eigenFunde.some((w) => /Fremd\/sicherheit\.html/.test(w)), eigenFunde.join(" | "));
+  const sicherStatus = await ab.evaluate(() => fetch("sicherheit.html").then((r) => r.status));
+  ok("sicherheit.html wird ausgeliefert (der Link Ausführlich erklärt im Siegel)", sicherStatus === 200, sicherStatus);
   await ab.evaluate(() => { const f = document.createElement("iframe"); f.style.display = "none"; document.body.append(f); });
   await ab.waitForFunction(() => SendeAbschirmung.funde().length > 1).catch(() => {});
   ok("ein eingelegtes iframe wird erkannt", await ab.evaluate(() => SendeAbschirmung.funde().some((f) => /iframe/.test(f.was))));
@@ -810,8 +866,9 @@ try {
       ac: t.getAttribute("autocorrect"), banner: document.getElementById("fremd-banner").hidden, n: SendeAbschirmung.funde().length }; });
   ok("ein Klick schirmt ab: KI-Schreibhilfe, Grammarly-Marke, Autokorrektur aus",
     zu.an === "1" && zu.ws === "false" && zu.g === "false" && zu.ac === "off", JSON.stringify(zu));
-  ok("… das Banner geht weg, der Befund bleibt gezählt", zu.banner === true && zu.n === 3);
-  ok("… die eigenen Marken melden sich nicht selbst als Fund", zu.n === 3);
+  /* 4 Funde: Grammarly-Element · fremdes sicherheit.html · leeres iframe · LanguageTool */
+  ok("… das Banner geht weg, der Befund bleibt gezählt", zu.banner === true && zu.n === 4);
+  ok("… die eigenen Marken melden sich nicht selbst als Fund", zu.n === 4);
   await verfassen(ab);
   ok("ein Feld, das DANACH entsteht, ist auch abgeschirmt", await ab.evaluate(() => document.getElementById("text").getAttribute("writingsuggestions") === "false"));
   await ab.reload(); await bereit(ab);

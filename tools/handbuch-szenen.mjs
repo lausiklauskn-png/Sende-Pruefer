@@ -63,7 +63,7 @@ export const SZENEN = [
   },
   {
     id: "wege", titel: "Zwei Wege hinaus",
-    text: "<b>Kopieren</b> für Ihr eigenes KI-Abo: in ChatGPT, Claude oder Le Chat einfügen, ohne Schlüssel und ohne zusätzliche Kosten. <b>Senden</b> geht direkt an Anthropic oder Mistral, mit Ihrem eigenen Schlüssel — es kostet, was Ihr Schlüssel kostet. Beide Wege sind gleichrangig; hinaus geht nur der verdeckte Text, und nur auf Knopfdruck.",
+    text: "<b>Kopieren</b> für Ihr eigenes KI-Abo: in ChatGPT, Claude oder Le Chat einfügen, ohne Schlüssel und ohne zusätzliche Kosten. <b>Senden</b> geht direkt an Claude, ChatGPT, Gemini, OpenRouter oder Mistral, mit Ihrem eigenen Schlüssel — es kostet, was Ihr Schlüssel kostet. Beide Wege sind gleichrangig; hinaus geht nur der verdeckte Text, und nur auf Knopfdruck.",
     sprech: "Zwei Wege, beide gleichwertig: kopieren für Ihr eigenes KI-Abo, oder direkt senden mit Ihrem Schlüssel. Hinaus geht nur der geschützte Text, und nur, wenn Sie tippen.",
     ansicht: breit, ziel: ".zwei",
     aufbau: async (p) => { await beispiel(p); await p.click('[data-sicht="ki"]'); },
