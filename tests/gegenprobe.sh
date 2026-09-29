@@ -297,5 +297,14 @@ fall "AUF: ✕ vergisst die Aufgabe nicht" $H \
 fall "AUF: Anweisung bauen nimmt den eingetragenen Text nicht" $H \
   'onclick: () => setze(eigen.value.trim() || "…") }, "Anweisung bauen")' 'onclick: () => setze("…") }, "Anweisung bauen")' 'selbst eingetragene'
 
+fall "HOL: der Link zur Schlüssel-Seite fehlt" $H \
+  '        el("a", { id: "schluessel-holen",' '        null && el("a", { id: "schluessel-holen",' 'sichtbarer Link zur Schlüssel-Seite'
+fall "HOL: der Link gibt window.opener her" $H \
+  'target: "_blank", rel: "noopener noreferrer", style' 'target: "_blank", style' 'window.opener nicht her'
+fall "HOL: der Link wechselt nicht mit dem Anbieter" $H \
+  '  $("schluessel-holen").href = a.holen;' '  $("schluessel-holen").href = $("schluessel-holen").href || a.holen;' 'wechselt mit dem Anbieter'
+fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
+  '    holen: "https://console.mistral.ai/api-keys" })' '    holen: ["https://console.mistral.ai", "/api-keys"].join("") })' 'je Anbieter eine'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

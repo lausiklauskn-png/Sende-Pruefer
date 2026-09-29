@@ -304,9 +304,11 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
    Anbieter ergänzt, trägt ihn HIER ein, mit Beleg. */
 const ANBIETER = Object.freeze({
   anthropic: Object.freeze({ name: "Claude (Anthropic)", adresse: "https://api.anthropic.com/v1/messages",
-    modell: "claude-opus-5", beginnt: "sk-ant-", protokoll: "messages" }),
+    modell: "claude-opus-5", beginnt: "sk-ant-", protokoll: "messages",
+    holen: "https://console.anthropic.com/settings/keys" }),
   mistral: Object.freeze({ name: "Mistral (EU)", adresse: "https://api.mistral.ai/v1/chat/completions",
-    modell: "mistral-large-latest", beginnt: null, protokoll: "openai" })
+    modell: "mistral-large-latest", beginnt: null, protokoll: "openai",
+    holen: "https://console.mistral.ai/api-keys" })
 });
 const SCHLUESSEL_PREFIX = "sendepruefer_key_";
 const THEMA_KEY = "sendepruefer_thema";
@@ -742,6 +744,7 @@ function kiKasten(m) {
         el("label", { for: "schluessel" }, "Ihr Schlüssel für diesen Anbieter"),
         el("p", { class: "gedaempft", "data-schluessel-zweck": true }, "Damit die Seite die verdeckte Fassung selbst abschickt und Sie nichts kopieren müssen. Er bleibt in diesem Browser und geht nur an den gewählten Anbieter."),
         schl,
+        el("a", { id: "schluessel-holen", target: "_blank", rel: "noopener noreferrer", style: "display:inline-block;margin-top:8px" }, "🔑 Schlüssel beim Anbieter erzeugen\u00a0↗"),
         el("div", { class: "werkzeug", style: "margin:8px 0 0" },
           el("button", { class: "knopf haupt", id: "senden", type: "button", onclick: () => senden(m) }, "Senden"),
           el("button", { class: "knopf", id: "schluessel-weg", type: "button", onclick: schluesselLoeschen }, "Schlüssel löschen")),
@@ -825,6 +828,7 @@ function anbieterZeigen() {
   if (!$("anbieter")) return;
   const a = anbieterJetzt();
   $("ziel-adresse").textContent = a.adresse + " · " + a.modell;
+  $("schluessel-holen").href = a.holen;
   $("schluessel").value = lies(schluesselName());
   $("sende-meldung").textContent = "";
 }

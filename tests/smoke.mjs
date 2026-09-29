@@ -47,6 +47,9 @@ ok("die Anbieter stehen als benannte, eingefrorene Konstante",
 const adressen = [...html.matchAll(/https:\/\/api\.[a-z.]+\/[a-z/]+/g)].map((m) => m[0]);
 ok("jede API-Adresse im Code steht in dieser Konstante",
   adressen.length >= 2 && adressen.every((a) => anbieterBlock.includes(a)), adressen.join(", "));
+const konsolen = [...html.matchAll(/https:\/\/console\.[a-z.]+\/[a-z/-]+/g)].map((m) => m[0]);
+ok("jede Schlüssel-Seite im Code steht in dieser Konstante, je Anbieter eine",
+  konsolen.length === 2 && konsolen.every((a) => anbieterBlock.includes(a)) && (anbieterBlock.match(/holen: "https:/g) || []).length === 2, konsolen.join(", "));
 const liesmich = readFileSync(join(WURZEL, "LIESMICH.md"), "utf8");
 const grenzen = ((liesmich.split(/## Grenzen/)[1] || "").split(/\n## /)[0].match(/^\d+\. /gm) || []).length;
 ok(`LIESMICH nennt mindestens fünf Grenzen (${grenzen})`, grenzen >= 5);
@@ -399,6 +402,20 @@ try {
   await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith("sendepruefer_key_")) localStorage.removeItem(k); });
   await page.selectOption("#anbieter", "anthropic");
   await page.fill("#schluessel", "");
+  /* Der Weg zum Schlüssel: ein Link zur Seite des Anbieters, gemessen am
+     Element, und die Adresse muss die aus der Konstante sein. */
+  const holen = async () => page.evaluate(() => { const l = document.getElementById("schluessel-holen");
+    return l ? { href: l.getAttribute("href"), t: l.target, rel: l.rel, sicht: l.checkVisibility() && l.getClientRects().length > 0,
+      soll: window.SendePruefer.ANBIETER[document.getElementById("anbieter").value].holen } : null; });
+  const h1 = await holen();
+  ok("beim Schlüsselfeld steht ein sichtbarer Link zur Schlüssel-Seite des Anbieters",
+    !!h1 && h1.sicht && h1.href === "https://console.anthropic.com/settings/keys" && h1.href === h1.soll, JSON.stringify(h1));
+  ok("… er öffnet einen neuen Tab und gibt window.opener nicht her",
+    !!h1 && h1.t === "_blank" && /noopener/.test(h1.rel) && /noreferrer/.test(h1.rel), JSON.stringify(h1));
+  await page.selectOption("#anbieter", "mistral");
+  const h2 = await holen();
+  ok("… und er wechselt mit dem Anbieter", !!h2 && h2.href === "https://console.mistral.ai/api-keys" && h2.href === h2.soll, JSON.stringify(h2));
+  await page.selectOption("#anbieter", "anthropic");
   await page.click("#senden");
   const ohne = await page.textContent("#sende-meldung");
   ok("ohne Schlüssel sagt Senden, was fehlt, und nennt den Kopieren-Weg",
