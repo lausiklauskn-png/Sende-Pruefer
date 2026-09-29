@@ -846,7 +846,7 @@ function anfrage(a, schluessel, text) {
       body: { model: a.modell, max_tokens: 4096, messages: [{ role: "user", content: text }] } };
   }
   return { headers: { "content-type": "application/json", "authorization": "Bearer " + schluessel },
-    body: { model: a.modell, messages: [{ role: "user", content: text }] } };
+    body: { max_tokens: 4096, model: a.modell, messages: [{ role: "user", content: text }] } };
 }
 function antwortText(a, j) {
   if (a.protokoll === "messages") return (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n");

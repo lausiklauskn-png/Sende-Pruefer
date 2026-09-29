@@ -539,6 +539,8 @@ try {
     m.url === "https://api.mistral.ai/v1/chat/completions" && m.headers.authorization === "Bearer mistral-PROBE-0000");
   ok("… im OpenAI-Protokoll, mit der verdeckten Fassung",
     JSON.parse(m.body).messages?.[0]?.content === befund.verdeckt && JSON.parse(m.body).model === "mistral-small-latest");
+  ok("… mit einer Ausgabe-Grenze (max_tokens 4096) — ohne sie rechnet Mistral die volle Länge gegen die Tokens pro Minute",
+    JSON.parse(m.body).max_tokens === 4096, m.body.slice(0, 120));
   ok("die Mistral-Antwort wird gelesen und aufgedeckt",
     (await page.textContent("#antwort-klar")) === "Bitte an erika@beispiel.test antworten.");
 
