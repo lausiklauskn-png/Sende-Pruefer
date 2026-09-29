@@ -165,6 +165,26 @@ BookLedgerPro schon benutzen. Kommt diese Ablehnung wieder, nennt die Meldung Mo
 und Tarif („am Guthaben liegt es nicht"). Die Doku des Anbieters ist aus dem Behälter
 gesperrt; ob small in seinem Tarif geht, zeigt erst sein nächster Versuch.
 
+## Tresor für den KI-Schlüssel (Klaus 2026-09-29)
+
+Klaus: *„API-Schlüssel speichern mit dem eigenen Tresor … mit einem Code, so wie bei
+Kim Hub Company … dann nur noch den kurzen Code eingeben."* Unter dem Schlüsselfeld:
+**Tresor-Code** · **🔒 Im Tresor ablegen** · **🔓 Mit Code öffnen**.
+
+- Das Schloss ist `assets/schluesseltresor.js`, **byte-1:1 aus kim-hub-company**
+  (`1a4528d`, AES-256-GCM, PBKDF2-SHA256 600 000 Runden), in `tests/smoke.mjs` per SHA
+  gepinnt (`TRESOR_SHA`). Genutzt werden nur `zu`/`auf`/`istPaketForm` — dessen
+  `pruefeForm` kennt nur Anthropic-Schlüssel. **Nie hier abwandeln.**
+- Klebstoff `assets/tresor-ui.js` (app-eigen, außerhalb der 96 KB): Paket je Anbieter
+  unter `sendepruefer_tresor_<anbieter>`; Code und offener Schlüssel nur im Speicher,
+  solange die Seite offen ist. Code mindestens 4 Zeichen.
+- ⚠ **TAFEL-EVOLUTION: der Schlüssel wird nie mehr offen abgelegt.** Bis dahin schrieb
+  die Seite ihn im Klartext nach `sendepruefer_key_<anbieter>` — auf `github.io` liest
+  jede Geschwister-App mit. Ein alter Klartext-Eintrag wird noch gelesen und beim
+  Ablegen im Tresor gelöscht. „Schlüssel löschen" nimmt auch den Tresor weg.
+- ⚠ **Ein kurzer Code lässt sich durchprobieren**, wenn jemand die Ablage kopiert — das
+  steht in LIESMICH Grenze 9 und im Hinweis am Feld.
+
 ## Prüfen
 
 ```bash
@@ -174,7 +194,7 @@ npm run gegenprobe  # 96 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, Tresor + Mistral small): **282 grün · 0 ROT** · `NUR_ANKER` **121 · 0 tot** · `TRESOR:` **6 gefangen** (einer erst blind: der Wächter prüfte vor Ende der 600 000 Runden, geschärft) · `TARIF:` **1 gefangen**. Davor (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
@@ -209,7 +229,7 @@ zusammen wegzunehmen misst etwas.
 - **Der Köder** trägt `# BEFUNDE: <Zahl>` im Kopf. Wer einen Fall ergänzt, zieht
   die Zahl nach, sonst wird der Selbsttest zu Recht rot.
 - **Cache-Bump:** `CACHE_VERSION` in `sw.js`, wenn eine Datei aus `CORE` sich ändert.
-- **Speicher-Schlüssel app-eigen:** `sendepruefer_key_<anbieter>` —
+- **Speicher-Schlüssel app-eigen:** `sendepruefer_tresor_<anbieter>` (nur verschlossen) —
   `github.io` ist eine geteilte Adresse.
 
 ## Netzweit
