@@ -13,8 +13,11 @@
  * Excel, PowerPoint) gibt sie heraus; wer ihn weiterprüft, entscheidet die App.
  *
  * ⚠ KEIN VIRENSCANNER. ⚠ BENANNTE GRENZEN: Text IN einem Bild
- * (Texterkennung), in Bildpunkten versteckte Botschaften und der Seitentext
- * eines PDFs werden NICHT gelesen.
+ * (Texterkennung) und in Bildpunkten versteckte Botschaften werden NICHT
+ * gelesen. Der Seitentext eines PDFs wird seit Stufe 2 D (2026-09-29) gelesen
+ * — mit pdf.js, das die App nachlädt (pfade({pdfjs})). Fehlt es, bleibt der
+ * Seitentext UNGEPRÜFT und das steht da. Gescannte Seiten ohne Textebene
+ * werden benannt, nicht gelesen.
  *
  * ausMail(roh) packt die Anhänge einer Mail aus: base64 und quoted-printable,
  * Namen nach RFC 2047/2231. Nichts davon wird ausgeführt oder angezeigt; eine
@@ -27,7 +30,7 @@
 
   var BEFUNDE = ["ANHANG-TARNUNG", "ANHANG-PROGRAMM", "BILD-ANHAENGSEL", "BILD-METADATEN",
     "SVG-SKRIPT", "SVG-VERWEIS", "OFFICE-MAKRO", "OFFICE-VERWEIS", "OFFICE-EINBETTUNG",
-    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG"];
+    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG"];
 
   function alsBytes(b) { return b instanceof Uint8Array ? b : new Uint8Array(b || []); }
   function latin1(b, von, bis) {
@@ -238,12 +241,85 @@
     });
   }
 
+  /* ══ DER SEITENTEXT EINES PDFs (Stufe 2 D, Klaus 2026-09-29)
+   * pdf.js liest die Textebene jeder Seite. Es wird NICHT mitgeliefert (1,5 MB),
+   * sondern von der App nachgeladen: pfade({pdfjs: "<Ordner>/"}) — im Netz
+   * liegt es neben Workflow PDF. Steht schon ein pdfjsLib da (Node-Probe),
+   * wird das genommen.
+   * ⚠ isEvalSupported: false. pdf.js 3.x konnte mit einer präparierten Schrift
+   *   eigenen Code ausführen (CVE-2024-4367); ohne eval geht dieser Weg nicht.
+   * ⚠ Höchstens SEITEN_TEXT_MAX Seiten; was dahinter liegt, wird benannt.
+   * Die Anweisungen an eine KI sucht dieselbe Liste wie im Mail-Eingang
+   * (PrueferMail) — eine zweite Liste liefe auseinander. Fehlt sie, steht das da. */
+  var SEITEN_TEXT_MAX = 100, PFADE = { pdfjs: null }, pdfjsVersprechen = null;
+  function pfade(neu) { for (var k in neu || {}) PFADE[k] = neu[k]; return PFADE; }
+  function pdfjsHolen() {
+    if (welt.pdfjsLib) return Promise.resolve(welt.pdfjsLib);
+    if (!PFADE.pdfjs || !welt.document) return Promise.reject(new Error("pdf.js ist nicht erreichbar"));
+    if (pdfjsVersprechen) return pdfjsVersprechen;
+    pdfjsVersprechen = new Promise(function (ok, nein) {
+      var s = welt.document.createElement("script"), uhr = setTimeout(function () { nein(new Error("pdf.js kam nicht an")); }, 20000);
+      s.src = PFADE.pdfjs + "pdf.min.js";
+      s.onload = function () {
+        clearTimeout(uhr);
+        if (!welt.pdfjsLib) return nein(new Error("pdf.js meldet sich nicht"));
+        welt.pdfjsLib.GlobalWorkerOptions.workerSrc = PFADE.pdfjs + "pdf.worker.min.js";
+        ok(welt.pdfjsLib);
+      };
+      s.onerror = function () { clearTimeout(uhr); nein(new Error("pdf.js kam nicht an")); };
+      welt.document.head.appendChild(s);
+    });
+    pdfjsVersprechen.catch(function () { pdfjsVersprechen = null; });   // ein späterer Versuch darf es neu holen
+    return pdfjsVersprechen;
+  }
+  function pdfSeitentext(b) {
+    return pdfjsHolen().then(function (L) {
+      return L.getDocument({ data: b.slice(0), isEvalSupported: false }).promise;
+    }).then(function (doc) {
+      var n = Math.min(doc.numPages, SEITEN_TEXT_MAX), seiten = [], kette = Promise.resolve();
+      for (var i = 1; i <= n; i++) (function (nr) {
+        kette = kette.then(function () { return doc.getPage(nr); }).then(function (pg) { return pg.getTextContent(); })
+          .then(function (t) {
+            var zeilen = [], z = "";
+            t.items.forEach(function (it) { z += it.str; if (it.hasEOL) { zeilen.push(z); z = ""; } else if (it.str) z += " "; });
+            if (z) zeilen.push(z);
+            seiten.push({ seite: nr, text: zeilen.map(function (x) { return x.replace(/\s+/g, " ").trim(); }).filter(Boolean).join("\n") });
+          });
+      })(i);
+      return kette.then(function () { var alle = doc.numPages; doc.destroy(); return { seiten: seiten, alle: alle }; });
+    });
+  }
+  function pdfTextPruefen(b, melde, hinweise) {
+    var frist = new Promise(function (_ok, nein) { setTimeout(function () { nein(new Error("Zeit abgelaufen")); }, 60000); });
+    return Promise.race([pdfSeitentext(b), frist]).then(function (r) {
+      var leer = r.seiten.filter(function (x) { return !x.text; }).map(function (x) { return x.seite; });
+      var PM = welt.PrueferMail;
+      if (!PM) hinweise.push("Der Seitentext wurde gelesen, aber die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — auf Anweisungen an eine KI ist er ungeprüft.");
+      else r.seiten.forEach(function (x) {
+        if (!x.text) return;
+        PM.pruefeMail(x.text).stellen.forEach(function (st) {
+          if (st.kennung !== "KI-ANWEISUNG") return;
+          melde("PDF-KI-ANWEISUNG", st.satz + " (Seite " + x.seite + ", Zeile " + st.zeile + ")");
+        });
+      });
+      hinweise.push("Seitentext gelesen: " + r.seiten.length + " von " + r.alle + " Seite(n).");
+      if (r.alle > r.seiten.length) hinweise.push("Seiten " + (r.seiten.length + 1) + "–" + r.alle + " wurden NICHT gelesen (höchstens " + SEITEN_TEXT_MAX + ") — dort ungeprüft, nicht sauber.");
+      if (leer.length) hinweise.push(leer.length + " Seite(n) ohne Textebene (z. B. gescannt: " + leer.slice(0, 8).join(", ") + (leer.length > 8 ? " …" : "") + ") — deren Text wird in dieser Fassung nicht gelesen.");
+      return r.seiten.filter(function (x) { return x.text; });
+    }, function (e) {
+      var grund = /password/i.test((e && (e.name + e.message)) || "") ? "das PDF ist mit einem Passwort geschützt" : (e && e.message) || "unbekannt";
+      hinweise.push("Der Seitentext des PDFs wurde NICHT gelesen (" + grund + ") — er ist ungeprüft, nicht sauber.");
+      return null;
+    });
+  }
+
   /* ══ DIE EINE TÜR
    * @returns Promise<{art, artName, befunde:[{kennung,satz}], text:string|null,
-   *                   hinweise:[], sicher:boolean}>
-   * text: was Modul 25 danach lesen soll (null = kein Text gelesen). */
+   *                   seiten:[{seite,text}]|null, hinweise:[], sicher:boolean}>
+   * text: was Modul 25 danach lesen soll (null = kein Text gelesen).
+   * seiten: beim PDF der Text je Seite, damit ein Fund seine Seite nennt. */
   function pruefe(name, bytes) {
-    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null;
+    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null, seiten = null;
     function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
     name = String(name || "");
     var endung = (/\.([A-Za-z0-9]{1,6})$/.exec(name) || [])[1];
@@ -271,11 +347,13 @@
         r.stellen.forEach(function (x) { melde(x.kennung, x.satz + " (" + x.stelle + ")"); });
         hinweise.push.apply(hinweise, r.hinweise);
       });
-      hinweise.push("Der Seitentext eines PDFs wird in dieser Fassung nicht gelesen.");
+      weiter = weiter.then(function () { return pdfTextPruefen(b, melde, hinweise); }).then(function (s) {
+        if (s && s.length) { seiten = s; text = s.map(function (x) { return x.text; }).join("\n"); }
+      });
     }
     if (/^(png|jpeg|webp|gif)$/.test(art)) hinweise.push("Text im Bild (Texterkennung) wird in dieser Fassung nicht gelesen.");
     return weiter.then(function () {
-      return { art: art, artName: ART_NAME[art] || art, befunde: befunde, text: text, hinweise: hinweise,
+      return { art: art, artName: ART_NAME[art] || art, befunde: befunde, text: text, seiten: seiten, hinweise: hinweise,
         sicher: /^(png|jpeg|webp|gif|svg)$/.test(art) };
     });
   }
@@ -343,7 +421,7 @@
   }
 
   var API = { pruefe: pruefe, artVon: artVon, zipEintraege: zipEintraege, ausMail: ausMail,
-    BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX };
+    BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX };
   welt.PrueferAnhang = API;
   welt.SPAnhang = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
