@@ -29,7 +29,7 @@ erzwingen; der Browser merkt sich die Größe. `fullscreen` nähme die Knöpfe w
 (`tomy-ui/theme.css`: innere Schatten, Glanzpunkt folgt `--mx/--my`), in
 Petrol statt Tomys Farben.
 
-**Nächste Arbeit:** Anhänge prüfen (Brief `docs/BRIEF_2026-09-29_postfach-umbau.md`,
+**Nächste Arbeit:** Anhänge prüfen (Brief `docs/BRIEF_2026-09-29_naechste-schritte.md`,
 Stufe 2), danach Impressum/Datenschutz und Marktplatz-Einträge.
 
 ## Herkunft
