@@ -83,26 +83,42 @@
   },
   {
    "nr": 6,
-   "id": "wege",
-   "titel": "Zwei Wege hinaus",
-   "sprech": "Zwei Wege, beide gleichwertig: kopieren für Ihr eigenes KI-Abo, oder direkt senden mit Ihrem Schlüssel. Hinaus geht nur der geschützte Text, und nur, wenn Sie tippen.",
-   "bild": "handbuch/06-wege.jpg",
+   "id": "aufgaben",
+   "titel": "Was soll die KI tun?",
+   "sprech": "Was soll die KI tun? Eine Aufgabe antippen, etwa Rechnung oder Mahnung, oder selbst eintragen. Daraus entsteht die ganze Anweisung. Eigene Aufgaben lassen sich als Knopf merken.",
+   "bild": "handbuch/06-aufgaben.jpg",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
    "ring": {
     "x": 43.1,
-    "y": 17.6,
+    "y": 49.1,
+    "w": 53.3,
+    "h": 18.6
+   }
+  },
+  {
+   "nr": 7,
+   "id": "wege",
+   "titel": "Zwei Wege hinaus",
+   "sprech": "Zwei Wege, beide gleichwertig: kopieren für Ihr eigenes KI-Abo, oder direkt senden mit Ihrem Schlüssel. Hinaus geht nur der geschützte Text, und nur, wenn Sie tippen.",
+   "bild": "handbuch/07-wege.jpg",
+   "breite": 1280,
+   "hoehe": 800,
+   "handy": false,
+   "ring": {
+    "x": 43.1,
+    "y": 17.5,
     "w": 53.3,
     "h": 72.5
    }
   },
   {
-   "nr": 7,
+   "nr": 8,
    "id": "antwort",
    "titel": "Die Antwort kommt mit Klartext zurück",
    "sprech": "Die Antwort der KI kommt mit Platzhaltern zurück. Der Sende-Prüfer setzt die echten Angaben wieder ein, und Sie können sie ablegen, speichern oder teilen.",
-   "bild": "handbuch/07-antwort.jpg",
+   "bild": "handbuch/08-antwort.jpg",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -114,11 +130,11 @@
    }
   },
   {
-   "nr": 8,
+   "nr": 9,
    "id": "abschirmen",
    "titel": "Abschirmen",
    "sprech": "Abschirmen hält Schreib-Helfer und die KI-Schreibhilfe des Browsers aus den Feldern heraus. Liest etwas Fremdes mit, leuchtet die Lampe fremd.",
-   "bild": "handbuch/08-abschirmen.jpg",
+   "bild": "handbuch/09-abschirmen.jpg",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -130,11 +146,11 @@
    }
   },
   {
-   "nr": 9,
+   "nr": 10,
    "id": "knoten",
    "titel": "Ein eigener Knoten im Netz",
    "sprech": "Oben die Netz-Leiste: drei Lampen, das Siegel und die Mycel-Blase. Der Sende-Prüfer ist ein eigener Knoten. Ins Netz geht er nur, wenn Sie es wollen, und nie mit Ihren Mails.",
-   "bild": "handbuch/09-knoten.jpg",
+   "bild": "handbuch/10-knoten.jpg",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -146,11 +162,11 @@
    }
   },
   {
-   "nr": 10,
+   "nr": 11,
    "id": "handy",
    "titel": "Am Handy",
    "sprech": "Am Handy zeigen oben drei Punkte den Zustand. Ein Tipp klappt Siegel und Netz auf. Die Ordner liegen unten.",
-   "bild": "handbuch/10-handy.jpg",
+   "bild": "handbuch/11-handy.jpg",
    "breite": 390,
    "hoehe": 844,
    "handy": true,
@@ -162,11 +178,11 @@
    }
   },
   {
-   "nr": 11,
+   "nr": 12,
    "id": "selbsttest",
    "titel": "Der Selbsttest",
    "sprech": "Der Selbsttest im Menü prüft den Prüfer an einem Köder. So sehen Sie selbst, dass er hält, was er verspricht.",
-   "bild": "handbuch/11-selbsttest.jpg",
+   "bild": "handbuch/12-selbsttest.jpg",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,

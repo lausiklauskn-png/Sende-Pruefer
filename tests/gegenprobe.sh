@@ -283,5 +283,19 @@ fall "ANL: am Handy läuft die Tabelle quer" anleitung.html \
 fall "ANL: der lange Inhalts-Link bricht nicht mehr um" anleitung.html \
   ' .film a{flex:0 1 auto;min-width:0}' ' .film a{flex:none;white-space:nowrap}' 'Tabelle nicht'
 
+# ── Aufgaben an die KI (Klaus 2026-09-29) ──
+fall "AUF: die Anweisung verlangt nicht mehr, Platzhalter zu übernehmen" $H \
+  'Übernimm jeden Platzhalter in ⟦ ⟧ genau so, wie er steht, und erfinde' 'Erfinde' 'ganze Anweisung'
+fall "AUF: die eigene Aufgabe geht am Verdecken vorbei" $H \
+  'function hinaus(m) { const b = String(m.bitte || "").trim(); return ganzeMail(m) + (b ? "\n\n---\n" + b : ""); }' 'function hinaus(m) { return ganzeMail(m); }' 'verdeckt hinaus|trägt sie unter'
+fall "AUF: an einer eingefügten Mail fehlt die Mahnung" $H \
+  '  ["⏰ Mahnung", ' '  ["⏰ Erinnerung", ' 'Mahnung und Angebot'
+fall "AUF: gemerkte Aufgaben werden nicht gespeichert" $H \
+  'const merke = (l) => { schreib(EIGENE, JSON.stringify(l)); reiheZeichnen(); };' 'const merke = (l) => { reiheZeichnen(); };' 'Knopf merken'
+fall "AUF: ✕ vergisst die Aufgabe nicht" $H \
+  'e.stopPropagation(); merke(ei.filter((x) => x[0] !== n));' 'e.stopPropagation();' 'vergisst'
+fall "AUF: Anweisung bauen nimmt den eingetragenen Text nicht" $H \
+  'onclick: () => setze(eigen.value.trim() || "…") }, "Anweisung bauen")' 'onclick: () => setze("…") }, "Anweisung bauen")' 'selbst eingetragene'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

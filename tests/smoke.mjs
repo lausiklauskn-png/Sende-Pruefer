@@ -365,6 +365,35 @@ try {
   ok("eine eingefügte Antwort kommt mit den echten Werten zurück",
     (await page.textContent("#antwort-klar")) === "Liebe Erika Musterfrau, wir buchen 1.248,50 EUR zurück.");
 
+  /* ── Aufgaben an die KI (Klaus 2026-09-29): antippen oder selbst eintragen ── */
+  const chips = await page.evaluate(() => [...document.querySelectorAll("#aufgaben [data-aufgabe]")].map((b) => b.dataset.aufgabe));
+  ok("an einem Entwurf stehen die Aufgaben zum Überarbeiten zum Antippen da", chips.length === 3 && chips.includes("✂ Kürzen"), chips.join(" · "));
+  await page.click('[data-aufgabe="✂ Kürzen"]');
+  const gekuerzt = await page.inputValue("#bitte");
+  ok("ein Tipp auf eine Aufgabe baut die ganze Anweisung: Aufgabe, Platzhalter bleiben, nichts erfinden, nur der Text",
+    /^Aufgabe: Schreibe diesen Entwurf auf das Nötige gekürzt\./.test(gekuerzt) && /Platzhalter in ⟦ ⟧ genau so/.test(gekuerzt)
+    && /erfinde keine/.test(gekuerzt) && /\[bitte ergänzen/.test(gekuerzt) && /nur den fertigen Text/.test(gekuerzt), gekuerzt);
+  ok("… und „Was die KI sieht“ trägt sie unter der Mail", /\n---\nAufgabe: Schreibe diesen Entwurf auf das Nötige/.test(await page.textContent("#verdeckt")));
+  await page.fill("#aufgabe-eigen", "Mahnung an Erika Musterfrau über 1.248,50 EUR");
+  await page.click("#aufgabe-bauen");
+  ok("eine selbst eingetragene Aufgabe wird zur ganzen Anweisung",
+    /^Aufgabe: Schreibe Mahnung an Erika Musterfrau über 1\.248,50 EUR\.\n/.test(await page.inputValue("#bitte")));
+  await page.click("#kopieren");
+  const mitAufgabe = await page.evaluate(() => navigator.clipboard.readText());
+  ok("… und was darin an Namen und Beträgen steht, geht verdeckt hinaus",
+    /\n---\nAufgabe: Schreibe Mahnung an ⟦NAME-\d+⟧ über ⟦BETRAG-\d+⟧\./.test(mitAufgabe) && !/Musterfrau|1\.248,50/.test(mitAufgabe), mitAufgabe.split("---")[1]);
+  await page.fill("#aufgabe-eigen", "Rechnung für die Schrankmontage");
+  await page.click("#aufgabe-merken");
+  const gemerkt = await page.evaluate(() => ({ knopf: !!document.querySelector('[data-aufgabe="★ Rechnung für die Schrank"]'),
+    ablage: localStorage.getItem("sendepruefer_aufgaben") || "" }));
+  ok("„Als Knopf merken“ legt die eigene Aufgabe als Knopf an und merkt sie auf diesem Gerät",
+    gemerkt.knopf && /Rechnung für die Schrankmontage/.test(gemerkt.ablage), JSON.stringify(gemerkt));
+  await page.click('[data-aufgabe="★ Rechnung für die Schrank"]');
+  ok("… ein Tipp darauf baut die Anweisung mit dem ganzen Text", /^Aufgabe: Schreibe Rechnung für die Schrankmontage\./.test(await page.inputValue("#bitte")));
+  await page.click('[data-weg="★ Rechnung für die Schrank"]');
+  ok("… und ✕ vergisst sie wieder", await page.evaluate(() => !document.querySelector('[data-aufgabe^="★"]') && (localStorage.getItem("sendepruefer_aufgaben") || "[]") === "[]"));
+  await page.fill("#bitte", "Überarbeiten Sie diesen E-Mail-Entwurf: freundlich, klar und kurz.");
+
   /* ── Senden ohne Schlüssel: der Knopf sagt, was fehlt ────────────────── */
   await page.fill("#antwort-ein", "");
   await page.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith("sendepruefer_key_")) localStorage.removeItem(k); });
@@ -569,6 +598,10 @@ try {
   ok("ein Tipp auf eine Mail zeigt sie allein, mit „Zurück“",
     !(await sichtbar(page, "section.liste")) && (await sichtbar(page, "main.lesen")) && (await sichtbar(page, ".knopf.zurueck")));
   await page.click("#ki-oeffnen");
+  const einChips = await page.evaluate(() => ({ ki: document.getElementById("ki-oeffnen").textContent,
+    chips: [...document.querySelectorAll("#aufgaben [data-aufgabe]")].map((b) => b.dataset.aufgabe) }));
+  ok("an einer eingefügten Mail stehen Antwort, Rechnung, Mahnung und Angebot zum Antippen da",
+    /beantworten/.test(einChips.ki) && ["💬 Antwort", "🧾 Rechnung", "⏰ Mahnung", "📋 Angebot"].every((c) => einChips.chips.includes(c)), JSON.stringify(einChips));
   ok("bei 360 px läuft nichts quer", await page.evaluate(() => document.documentElement.scrollWidth <= 360));
   await page.click(".knopf.zurueck");
   ok("„Zurück“ bringt die Liste wieder", await sichtbar(page, "section.liste"));

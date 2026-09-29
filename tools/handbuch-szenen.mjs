@@ -55,6 +55,13 @@ export const SZENEN = [
     aufbau: async (p) => { await beispiel(p); await p.click('[data-sicht="ki"]'); },
   },
   {
+    id: "aufgaben", titel: "Was soll die KI tun?",
+    text: "Unter <b>Was soll die KI tun?</b> eine Aufgabe antippen — <b>Antwort</b>, <b>Rechnung</b>, <b>Mahnung</b>, <b>Angebot</b>, <b>Auftragsbestätigung</b>, <b>Termin</b> — oder selbst eintragen und <b>Anweisung bauen</b>. Daraus entsteht die ganze Anweisung: Platzhalter bleiben, nichts wird erfunden, Fehlendes wird als [bitte ergänzen] markiert. <b>Als Knopf merken</b> legt eigene Aufgaben als Knopf an. Auch die Anweisung geht nur verdeckt hinaus.",
+    sprech: "Was soll die KI tun? Eine Aufgabe antippen, etwa Rechnung oder Mahnung, oder selbst eintragen. Daraus entsteht die ganze Anweisung. Eigene Aufgaben lassen sich als Knopf merken.",
+    ansicht: breit, ziel: "#s-ki > div:first-of-type",
+    aufbau: async (p) => { await beispiel(p); await p.click('[data-aufgabe="🧾 Rechnung"]'); },
+  },
+  {
     id: "wege", titel: "Zwei Wege hinaus",
     text: "<b>Kopieren</b> für Ihr eigenes KI-Abo: in ChatGPT, Claude oder Le Chat einfügen, ohne Schlüssel und ohne zusätzliche Kosten. <b>Senden</b> geht direkt an Anthropic oder Mistral, mit Ihrem eigenen Schlüssel — es kostet, was Ihr Schlüssel kostet. Beide Wege sind gleichrangig; hinaus geht nur der verdeckte Text, und nur auf Knopfdruck.",
     sprech: "Zwei Wege, beide gleichwertig: kopieren für Ihr eigenes KI-Abo, oder direkt senden mit Ihrem Schlüssel. Hinaus geht nur der geschützte Text, und nur, wenn Sie tippen.",
