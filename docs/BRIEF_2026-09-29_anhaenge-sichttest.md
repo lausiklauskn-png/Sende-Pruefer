@@ -40,7 +40,7 @@ Dazu offen: Anhänge beim `.eml`-Export mitgeben.
 
 ## Danach (eigene Schritte)
 
-1. Impressum + Datenschutz mit echten Angaben (§ 5 DDG); Datenschutz nennt die Anhänge
+2. ✅ family-project: Nutzen-Kasten, zweisprachig — erledigt 2026-09-29 (family-project #333, Cache v134)
 2. family-project: Nutzen-Kasten, zweisprachig
 3. Marktplatz-Einträge in PWA-Toolpoint und family-project
 
