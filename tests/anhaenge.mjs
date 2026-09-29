@@ -11,7 +11,7 @@ import { pathToFileURL } from "node:url";
 import * as M from "./anhang-muster.mjs";
 
 /* byte-1:1 aus Auslieferung-Pruefer (6ba2d11) — dort pflegen, hier neu kopieren */
-export const FORMATE_SHA = "cea2272ad9267db4bf59841ab528ad3a610dc263cd62902d058cc11feb6491d3";
+export const FORMATE_SHA = "35c306737446e93326f6d7c6cd8c7a91d04a02b53755a4bd2da0e26d46c16e84";
 
 /* byte-1:1 aus Auslieferung-Pruefer (bb0ad61) — dort pflegen, hier neu kopieren */
 export const ANHANG_SHA = "b5ba293c5bfd82b8a63b5d3b6231b1204e96570c2b91ba3dbd4af890f7ebf044";

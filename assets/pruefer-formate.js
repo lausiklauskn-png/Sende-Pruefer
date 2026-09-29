@@ -307,7 +307,11 @@
       return Promise.resolve().then(function () {
         var ds = new welt.DecompressionStream("deflate");
         var w = ds.writable.getWriter();
-        w.write(bytes); w.close();
+        /* ⚠ write() und close() liefern eigene Versprechen. Ein kaputter Strom
+           lehnt sie ab — unbehandelt riss das unter Node den ganzen Lauf mit
+           (gemessen 2026-09-29), im Browser landete es als roter Fehler in der
+           Konsole. Abgefangen; das Ergebnis meldet readable ohnehin. */
+        w.write(bytes).catch(function () {}); w.close().catch(function () {});
         return new Response(ds.readable).arrayBuffer();
       }).then(function (b) { return new Uint8Array(b); }, function () { return null; });
     }
@@ -332,6 +336,87 @@
     { re: /\/RichMedia\b/,   was: "eingebettete Medien mit eigener Abspiel-Logik" },
     { re: /\/GoToR\b/,       was: "ein Sprung in eine andere Datei" }
   ];
+
+  /* -- Zeichenketten eines PDFs ------------------------------------------
+     Klaus 2026-09-29, an einer echten Word-PDF: „þÿMicrosoft® Word LTSC" und
+     „MicrosoftÂ®". Beides waren richtige Angaben, falsch gelesen: eine
+     Zeichenkette, die mit den Bytes FE FF beginnt, ist UTF-16 (þÿ sind genau
+     diese zwei Bytes, als Latin-1 angezeigt), und XMP ist UTF-8 (Â® ist ein
+     UTF-8-®, als Latin-1 angezeigt). Dazu stehen in einer Literal-Zeichenkette
+     Escapes (\n, \( , \ooo) und geklammerte Klammern — ein Muster [^)] brach
+     an der ersten schliessenden Klammer ab. */
+  function bytesAus(s) {
+    var b = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i) & 255;
+    return b;
+  }
+
+  function dekodiere(b) {
+    if (b.length >= 2 && b[0] === 0xFE && b[1] === 0xFF) {
+      var t = "";
+      for (var i = 2; i + 1 < b.length; i += 2) t += String.fromCharCode((b[i] << 8) | b[i + 1]);
+      return t;
+    }
+    if (b.length >= 3 && b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) return utf8(b.subarray(3));
+    return alsLatin1(b);
+  }
+
+  function utf8(b) {
+    if (typeof welt.TextDecoder !== "function") return alsLatin1(b);
+    var t = new welt.TextDecoder("utf-8").decode(b);
+    return t.indexOf("\uFFFD") === -1 ? t : alsLatin1(b);
+  }
+
+  /* Liest die Literal-Zeichenkette, deren "(" bei `pos` steht. */
+  function literal(text, pos) {
+    var tiefe = 0, aus = "", i = pos, ESC = { n: "\n", r: "\r", t: "\t", b: "\b", f: "\f" };
+    for (; i < text.length && aus.length < 2000; i++) {
+      var c = text[i];
+      if (c === "\\") {
+        var d = text[++i];
+        if (d === undefined) break;
+        if (ESC[d]) aus += ESC[d];
+        else if (/[0-7]/.test(d)) {
+          var okt = d;
+          while (okt.length < 3 && /[0-7]/.test(text[i + 1] || "")) okt += text[++i];
+          aus += String.fromCharCode(parseInt(okt, 8) & 255);
+        } else if (d === "\r") { if (text[i + 1] === "\n") i++; }
+        else if (d !== "\n") aus += d;
+        continue;
+      }
+      if (c === "(") { if (tiefe++ === 0) continue; }
+      else if (c === ")") { if (--tiefe === 0) break; }
+      aus += c;
+    }
+    return dekodiere(bytesAus(aus));
+  }
+
+  function hexZk(hex) {
+    hex = hex.replace(/\s+/g, "");
+    if (hex.length % 2) hex += "0";
+    var b = new Uint8Array(hex.length / 2);
+    for (var i = 0; i < b.length; i++) b[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return dekodiere(b);
+  }
+
+  /* Der Wert hinter `/Feld` — Literal oder Hex, oder null. */
+  function zkWert(text, m) {
+    var rest = m.index + m[0].length;
+    if (text[rest] === "(") return literal(text, rest);
+    var h = /^<([0-9A-Fa-f\s]{0,2000})>/.exec(text.slice(rest, rest + 2004));
+    return h && text[rest + 1] !== "<" ? hexZk(h[1]) : null;
+  }
+
+  function sauberZk(w) {
+    return String(w).replace(/[\u0000-\u001F\u007F]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function ohneEntities(s) {
+    return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+            .replace(/&apos;/g, "'").replace(/&#(\d+);/g, function (_, n) { return String.fromCharCode(+n); })
+            .replace(/&#x([0-9a-fA-F]+);/g, function (_, n) { return String.fromCharCode(parseInt(n, 16)); })
+            .replace(/&amp;/g, "&");
+  }
 
   var PDF_METAFELDER = ["Author", "Creator", "Producer", "Title", "Subject", "Keywords"];
 
@@ -393,8 +478,12 @@
     /* -- Anhänge ---------------------------------------------------------- */
     if (/\/EmbeddedFile\b|\/FileAttachment\b|\/Filespec\b/.test(roh)) {
       var ap = roh.search(/\/EmbeddedFile\b|\/FileAttachment\b|\/Filespec\b/);
-      var namen = [], nre = /\/(?:UF|F)\s*\(([^)]{1,200})\)/g, nm, zaehler = 0;
-      while ((nm = nre.exec(roh)) !== null && zaehler < 6) { namen.push(nm[1]); zaehler++; }
+      var namen = [], nre = /\/(?:UF|F)\s*(?=[(<])/g, nm, zaehler = 0;
+      while ((nm = nre.exec(roh)) !== null && zaehler < 6) {
+        var nw = zkWert(roh, nm);
+        if (nw === null || !sauberZk(nw) || namen.indexOf(sauberZk(nw)) !== -1) continue;
+        namen.push(sauberZk(nw).slice(0, 200)); zaehler++;
+      }
       melde(ap, "PDF-ANHANG", "An der Datei hängt eine weitere Datei" +
             (namen.length ? " (" + namen.join(", ") + ")" : "") +
             " — sie wird mit ausgeliefert, ohne im Dokument sichtbar zu sein.");
@@ -404,9 +493,11 @@
     function metaIn(text, versatz, herkunft) {
       for (var i = 0; i < PDF_METAFELDER.length; i++) {
         var feld = PDF_METAFELDER[i];
-        var re = new RegExp("/" + feld + "\\s*\\(([^)]{1,300})\\)", "g"), m;
+        var re = new RegExp("/" + feld + "\\s*(?=[(<])", "g"), m;
         while ((m = re.exec(text)) !== null) {
-          var wert = m[1].replace(/\\([()\\])/g, "$1").trim();
+          var wert = zkWert(text, m);
+          if (wert === null) continue;
+          wert = sauberZk(wert);
           if (!wert) continue;
           melde(versatz + m.index, "PDF-METADATEN",
                 feld + ": " + (wert.length > 120 ? wert.slice(0, 120) + " …" : wert) + herkunft);
@@ -417,7 +508,8 @@
          gesprächigere: dort steht das Programm samt Fassung und die Uhrzeit. */
       var xre = /<(dc:creator|xmp:CreatorTool|pdf:Producer|xmp:CreateDate)[^>]*>([\s\S]{1,300}?)<\/\1>/g, xm;
       while ((xm = xre.exec(text)) !== null) {
-        var inhalt = xm[2].replace(/<[^>]*>/g, "").trim();
+        /* XMP ist UTF-8 (Standard). Gelesen wurde es als Latin-1 — daher Â®. */
+        var inhalt = sauberZk(ohneEntities(utf8(bytesAus(xm[2].replace(/<[^>]*>/g, " ")))));
         if (!inhalt) continue;
         melde(versatz + xm.index, "PDF-METADATEN",
               xm[1] + ": " + (inhalt.length > 120 ? inhalt.slice(0, 120) + " …" : inhalt) + herkunft);
@@ -448,16 +540,35 @@
      * Seit PDF 1.5 stecken ganze Objekte in gepackten Strömen (`/ObjStm`) —
      * darunter die Metadaten. Ein Leser, der nur den Klartext ansieht, meldet
      * dort NICHTS und sieht dabei aus, als sei die Datei sauber. */
-    var stroeme = [], sre = /stream\r?\n?/g, sm;
+    /* ⚠ ZWEI FEHLER, AN KLAUS' WORD-PDF GEFUNDEN (2026-09-29): „3 gepackte
+       Ströme geöffnet, 2 davon NICHT lesbar".
+       · Die Suche ging nach jedem Strom bei `endstream` weiter — und fand das
+         „stream" IN „endstream". Daraus wurde ein Scheinstrom vom Ende des einen
+         bis zum Ende des nächsten, und der war natürlich nicht zu entpacken.
+       · Ob ein Strom gepackt ist, wurde an den 400 Zeichen davor abgelesen — dort
+         steht oft das /FlateDecode des NACHBARN.
+       Jetzt zählt nur ein `stream` direkt hinter dem `>>` seines Wörterbuchs, und
+       der Filter wird aus genau diesem Wörterbuch gelesen. Ein Deckel bleibt, aber
+       er wird genannt, statt still abzuschneiden. */
+    var STROM_DECKEL = 400;
+    var stroeme = [], sre = />>\s*stream(?:\r\n|\n|\r)/g, sm, uebrig = 0;
     while ((sm = sre.exec(roh)) !== null) {
       var beginn = sm.index + sm[0].length;
-      var ende = roh.indexOf("endstream", beginn);
-      if (ende === -1) continue;
-      var kopf = roh.slice(Math.max(0, sm.index - 400), sm.index);
-      if (!/\/FlateDecode/.test(kopf)) { sre.lastIndex = ende; continue; }
+      var objAnf = roh.lastIndexOf(" obj", sm.index);
+      var wb = roh.slice(objAnf === -1 ? Math.max(0, sm.index - 2000) : objAnf, sm.index + 2);
+      var laenge = /\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(wb);
+      var ende = -1;
+      if (laenge) {
+        var bis = beginn + (+laenge[1]);
+        if (/^\s*endstream/.test(roh.slice(bis, bis + 16))) ende = bis;
+      }
+      if (ende === -1) ende = roh.indexOf("endstream", beginn);
+      if (ende === -1) break;
+      sre.lastIndex = ende + 9;
+      var filter = /\/Filter\s*(?:\[\s*)?\/(\w+)/.exec(wb);
+      if (!filter || filter[1] !== "FlateDecode") continue;
+      if (stroeme.length >= STROM_DECKEL) { uebrig++; continue; }
       stroeme.push({ von: beginn, bis: ende });
-      sre.lastIndex = ende;
-      if (stroeme.length >= 60) break;
     }
 
     var nichtLesbar = 0;
@@ -474,6 +585,10 @@
       if (stroeme.length) {
         hinweise.push(stroeme.length + " gepackte Ströme geöffnet" +
           (nichtLesbar ? ", " + nichtLesbar + " davon NICHT lesbar — die sind ungeprüft, nicht sauber" : "") + ".");
+      }
+      if (uebrig) {
+        hinweise.push(uebrig + " weitere gepackte Ströme NICHT geöffnet (Deckel " + STROM_DECKEL +
+                      ") — die sind ungeprüft, nicht sauber.");
       }
       /* Doppelte Meldungen zusammenfassen: derselbe Befund kann im Klartext UND
          im gepackten Strom stehen. Zweimal dasselbe zu melden lässt eine Datei
@@ -496,6 +611,6 @@
     BEFUNDE_TEXT: BEFUNDE_TEXT,
     BEFUNDE_PDF: BEFUNDE_PDF,
     FREI_PFADE: FREI_PFADE,
-    _meta: { herkunft: "PWA Toolpoint 2026-08-23", fassung: "1" }
+    _meta: { herkunft: "PWA Toolpoint 2026-08-23", fassung: "2" }
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -237,7 +237,7 @@ dem Gerät geprüft. Eine `.eml` mit Anhang bringt ihre Dateien mit.
 | Bild (PNG, JPEG, WebP) | Daten hinter dem Bildende (Bewegungsfoto, Samsung-Zusatz, ZIP/PDF) · EXIF (GPS nur, wenn IFD0 den Verweis 0x8825 trägt) · XMP · PNG-Textfelder |
 | SVG | `<script>`, `on…=`, `javascript:`, `<foreignObject>`, fremde `href/src`; der Text geht an Modul 25 |
 | Office / ZIP | Makros (`vbaProject.bin`), eingebettete Dateien, externe Verweise (`TargetMode="External"`), Programme im Archiv; Text + Verfasser → Modul 25 |
-| PDF | über `assets/pruefer-formate.js` (**byte-1:1 aus Auslieferung-Pruefer `6ba2d11`**, SHA-gepinnt in `tests/anhaenge.mjs`) — dort pflegen, hier neu kopieren |
+| PDF | über `assets/pruefer-formate.js` (**byte-1:1 aus Auslieferung-Pruefer `e9c4b06`, Fassung 2: UTF-16, Hex, XMP als UTF-8, keine Scheinströme**, SHA-gepinnt in `tests/anhaenge.mjs`) — dort pflegen, hier neu kopieren |
 | alle | Programm am Dateikopf (MZ/ELF/#!) oder an der Endung · Endung ⟷ Dateikopf |
 
 **🧼 Sichere Fassung** (Bilder und SVG): auf einer Leinwand neu gezeichnet, als
@@ -251,7 +251,7 @@ Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
   und hat einen Eingang „Datei prüfen".
 - `assets/anhaenge.js` ist seitdem **nur noch die Oberfläche** und lädt den Kern
   nach (`bereit`). Fehlt er, heißt jeder Anhang **„ungeprüft"**, nie „sauber".
-  Cache `sende-pruefer-v24`, beide Dateien in `CORE`.
+  Cache `sende-pruefer-v25`, beide Dateien in `CORE`.
 - Stufe 2 (Bildpunkte, Text im Bild, PDF-Seitentext) ist **vorbereitet, nicht gebaut**:
   `docs/BRIEF_2026-09-29_anhaenge-stufe2.md`.
 - `assets/anhaenge.js` (app-eigen, außerhalb der 96 KB). Die Seite trägt nur eine
