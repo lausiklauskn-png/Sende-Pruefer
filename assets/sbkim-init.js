@@ -143,6 +143,43 @@
     /* FREMD — rot bei einem Fremdzugriff: Modul 15 (fremde Nachricht) oder die
        Abschirmung (fremdes Element, Marke eines Schreib-Helfers). */
     window.addEventListener("sbkim:fremd-alert", function () { lampe("lamp-fremd", "bad"); });
+    /* Das Fremdzugriff-Fenster (Modul 15, byte-1:1) zählt nur fremde
+       NACHRICHTEN. Die Funde der Abschirmung stehen dort nicht — Klaus sah
+       „0 Einträge", während die Lampe wegen der Abschirmung rot war
+       (2026-09-29). Nach dem Öffnen hängt dieser Klebstoff sie darunter. */
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest || !e.target.closest("#lamp-fremd")) return;
+      setTimeout(abschirmFundeInsFenster, 0);
+    });
+  }
+  function abschirmFundeInsFenster() {
+    var zeile = document.querySelector("[data-membran-summary]"), AB = window.SendeAbschirmung;
+    if (!zeile || !AB) return;
+    var alt = document.querySelector("[data-abschirm-im-fenster]"); if (alt) alt.remove();
+    var f = AB.funde(), box = document.createElement("div");
+    box.setAttribute("data-abschirm-im-fenster", "");
+    box.style.cssText = "margin:0 0 .8rem;padding:.6rem .8rem;border:1px solid rgba(255,255,255,.18);border-radius:10px;font-size:.86rem";
+    var kopf = document.createElement("b");
+    kopf.textContent = "Abschirmung: " + (f.length ? f.length + " Fund(e) in dieser Seite" : "nichts Fremdes gefunden");
+    box.appendChild(kopf);
+    if (f.length) {
+      var ul = document.createElement("ul"); ul.style.cssText = "margin:.4rem 0 0;padding-left:1.2rem";
+      f.forEach(function (x) { var li = document.createElement("li"); li.textContent = x.was; ul.appendChild(li); });
+      box.appendChild(ul);
+    }
+    /* Klaus 2026-09-29: direkt hier abschirmen können, wie oben über 🛡 —
+       derselbe Schalter, keine zweite Fassung. */
+    var k = document.createElement("button");
+    k.type = "button"; k.setAttribute("data-abschirm-knopf", "");
+    k.style.cssText = "margin-top:.5rem;padding:.35rem .8rem;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:inherit;cursor:pointer";
+    k.textContent = AB.an() ? "Abschirmung aufheben" : "🛡 Jetzt abschirmen";
+    k.addEventListener("click", function () { AB.umschalten(); abschirmFundeInsFenster(); });
+    box.appendChild(k);
+    var hin = document.createElement("div"); hin.style.cssText = "margin-top:.4rem;opacity:.75";
+    hin.textContent = (AB.an() ? "Abgeschirmt: Schreib-Helfer und KI-Schreibhilfe des Browsers bleiben von den Schreibfeldern fern. " : "") +
+      "Abschirmen hält fern, was eine Webseite fernhalten kann — Erweiterungen dürfen es übergehen. Die Tabelle darunter zählt nur Nachrichten fremder Seiten.";
+    box.appendChild(hin);
+    zeile.parentNode.insertBefore(box, zeile.nextSibling);
   }
 
   /* ---- Auf- und Zuklappen der Leiste (am Handy nur die Lampen) ----------- */

@@ -33,6 +33,7 @@
 
   var funde = [], gesehen = {}, alt = new WeakMap(), an = false, abos = [];
 
+  var stillBis = 0;
   function lies() { try { return g.localStorage.getItem(KEY) === "an"; } catch (_e) { return false; } }
   function schreib(v) { try { g.localStorage.setItem(KEY, v ? "an" : "aus"); } catch (_e) { /* fail-soft */ } }
 
@@ -96,6 +97,10 @@
     an = !!v; schreib(an);
     g.document.documentElement.dataset.abschirmung = an ? "an" : "aus";
     felder(g.document).forEach(an ? schirme : oeffne);
+    /* Klaus 2026-09-29: man muss die Abschirmung auch wieder ausschalten
+       können (Rechtschreibprüfung, Google darf mitlesen). Der Knopf sagt es. */
+    var k = g.document.getElementById("schild");
+    if (k) k.title = an ? "Abgeschirmt. Nochmal tippen hebt die Abschirmung auf (Rechtschreibprüfung und Schreibhilfen wieder erlaubt)." : "Schreib-Helfer und KI-Schreibhilfe des Browsers von den Schreibfeldern fernhalten";
     abos.forEach(function (f) { try { f(); } catch (_e) { /* fail-soft */ } });
   }
 
@@ -122,6 +127,10 @@
     setze: setze,
     umschalten: function () { setze(!an); },
     funde: function () { return funde.slice(); },
+    /* Klaus 2026-09-29: die Warnzeile muss sich wegklicken lassen, ohne
+       abzuschirmen. Ausgeblendet bleibt sie, bis ein NEUER Fund kommt. */
+    ausblenden: function () { stillBis = funde.length; abos.forEach(function (f) { try { f(); } catch (_e) { /* fail-soft */ } }); },
+    ausgeblendet: function () { return funde.length <= stillBis; },
     abo: function (f) { abos.push(f); },
     AUS: AUS, SPUREN: SPUREN,
   };
