@@ -151,6 +151,7 @@
       el("h2", null, "📎 Anhänge"),
       el("p", { class: "gedaempft", "data-anhang-zweck": "" }, "Damit eine Datei nicht mehr verrät, als Sie weitergeben wollen: jeder Anhang wird hier auf dem Gerät geprüft — auf versteckte Daten hinter einem Bild, Metadaten wie Ort und Kamera, Skripte, Makros, Verweise nach außen und Angaben im Text. Bilder lassen sich als sichere Fassung neu zeichnen."),
       liste,
+      m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
       el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern und der Seitentext von PDFs werden noch nicht gelesen. An die KI geht nur der Mailtext, keine Datei."));
   }
@@ -160,6 +161,7 @@
     if (!box || !aktuell) return;
     var m = aktuell(), alt = document.getElementById("anhaenge");
     if (!m) { if (alt) alt.remove(); return; }
+    mitnehmen(m);
     var neu = abschnitt(m);
     if (alt) { alt.replaceWith(neu); return; }
     var ki = document.getElementById("ki-oeffnen"), anker = ki && ki.closest(".werkzeug");
@@ -219,11 +221,102 @@
   }
   API.emlAnhaenge = emlAnhaenge; API.sichereFassung = sichereFassung;
 
+  /* ══ ANHÄNGE GEHEN MIT HINAUS (Klaus 2026-09-29: „beim Teilen der E-Mail
+   * wird der Anhang nicht mitgenommen … die .eml im Mail-Programm geöffnet,
+   * der Anhang ist nicht da"). Die Seite baut .eml und Teilen nur aus dem
+   * Text; hier werden ihre zwei Wege ersetzt, sobald eine Mail Anhänge hat.
+   * Ohne Anhang läuft ihr eigener Weg unverändert.
+   *
+   * Eine KI-Antwort übernimmt die Anhänge der Mail, aus der sie entstand —
+   * EINMAL, als eigene Kopie, sichtbar in ihrem 📎-Abschnitt und dort zu
+   * entfernen. Wer sie entfernt, bekommt sie nicht wieder. */
+  function mitnehmen(m) {
+    if (!m) return [];
+    if ((!m.anhaenge || !m.anhaenge.length) && !m.anhaengeGeerbt && m.bezug) {
+      var b = (g("MAILS") || []).filter(function (x) { return x.id === m.bezug; })[0];
+      if (b && b.anhaenge && b.anhaenge.length) {
+        m.anhaenge = b.anhaenge.map(function (a) { return { id: neueId(), name: a.name, typ: a.typ, groesse: a.groesse, blob: a.blob }; });
+        m.anhaengeGeerbt = b.id; speichern(m);
+      }
+    }
+    return m.anhaenge || [];
+  }
+  function zahlText(n) { return n === 1 ? "1 Anhang" : n + " Anhänge"; }
+  function b64(bytes) {
+    var s = "", i;
+    for (i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s).replace(/.{76}/g, "$&\r\n");
+  }
+  function kopfName(n) {
+    n = String(n || "anhang");
+    if (/^[\x20-\x7e]*$/.test(n)) return n.replace(/["\\]/g, "_");
+    var enc = g("b64utf8");
+    return enc ? "=?UTF-8?B?" + enc(n) + "?=" : n.replace(/[^\x20-\x7e]|["\\]/g, "_");
+  }
+  /* multipart/mixed: der Text wie bisher, jeder Anhang base64. Name im
+     kodierten Wort (RFC 2047) UND in filename* (RFC 2231) — Outlook, Gmail
+     und Thunderbird lesen jeweils eines davon. */
+  function emlMitAnhang(m, liste) {
+    var roh = g("emlBauen")(m), i = roh.indexOf("\r\n\r\n"), grenze = "----=_SendePruefer_" + neueId();
+    var kopf = roh.slice(0, i).replace(/^Content-Type: [^\r\n]*/m, 'Content-Type: multipart/mixed; boundary="' + grenze + '"')
+      .replace(/^Content-Transfer-Encoding: [^\r\n]*\r\n/m, "");
+    return Promise.all(liste.map(function (a) { return a.blob.arrayBuffer(); })).then(function (inhalte) {
+      var teile = [kopf, "", "--" + grenze, "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: 8bit", "", roh.slice(i + 4)];
+      liste.forEach(function (a, k) {
+        var nm = kopfName(a.name), stern = "UTF-8''" + encodeURIComponent(String(a.name || "anhang")).replace(/['()*]/g, function (z) { return "%" + z.charCodeAt(0).toString(16).toUpperCase(); });
+        teile.push("--" + grenze, "Content-Type: " + (a.typ || "application/octet-stream") + '; name="' + nm + '"', "Content-Transfer-Encoding: base64",
+          'Content-Disposition: attachment; filename="' + nm + '"; filename*=' + stern, "", b64(new Uint8Array(inhalte[k])));
+      });
+      teile.push("--" + grenze + "--", "");
+      return teile.join("\r\n");
+    });
+  }
+  function melde(t, gut) { var f = g("meldeAktion"); if (f) f(t, gut); }
+  function namenListe(l) { return l.map(function (x) { return x.name; }).join(", "); }
+  function exportEinbauen() {
+    var altSpeichern = g("emlSpeichern"), altTeilen = g("teilen"), emlName = g("emlName");
+    if (!altSpeichern || !altTeilen || !emlName || !g("emlBauen")) return;
+    welt.emlSpeichern = function (m) {
+      var L = mitnehmen(m);
+      if (!L.length) return altSpeichern(m);
+      return emlMitAnhang(m, L).then(function (roh) {
+        var f = new File([roh], emlName(m), { type: "message/rfc822" });
+        herunterladen(f, f.name);
+        welt.__letzteEml = { name: f.name, weg: "download", anhaenge: L.map(function (x) { return x.name; }) };
+        var ex = g("exportiert"); if (ex) ex(m);
+        melde("Gespeichert als " + f.name + ", mit " + zahlText(L.length) + " (" + namenListe(L) + "). Öffnen Sie die Datei, dann zeigt Ihr Mail-Programm sie als Entwurf.", true);
+      }, function (e) { melde("Die Anhänge ließen sich nicht lesen (" + (e && e.message || e) + "). Nichts gespeichert.", false); });
+    };
+    welt.teilen = function (m) {
+      var L = mitnehmen(m);
+      if (!L.length || !navigator.share) return altTeilen(m);
+      var d = { title: m.betreff || "E-Mail", text: String(m.text || "") }, geht = [], nicht = [];
+      L.forEach(function (a) {                 // ohne Warten: Teilen braucht den frischen Tipp
+        var f = new File([a.blob], a.name, { type: a.typ || a.blob.type || "" }), ja = false;
+        try { ja = !!navigator.canShare && navigator.canShare({ files: [f] }); } catch (_e) {}
+        (ja ? geht : nicht).push(f);
+      });
+      if (geht.length) d.files = geht;
+      var an = m.anAdr ? " Den Empfänger (" + m.anAdr + ") tragen Sie im Mail-Programm ein." : "";
+      var rest = nicht.length ? " NICHT mitgenommen, weil das Gerät diese Art beim Teilen nicht zulässt: " + namenListe(nicht) + ". Speichern Sie die Mail dafür mit „Als .eml speichern“ — dort ist alles dabei." : "";
+      return navigator.share(d).then(function () {
+        welt.__letzteEml = { name: emlName(m), weg: "teilen", anhaenge: geht.map(function (x) { return x.name; }) };
+        var ex = g("exportiert"); if (ex) ex(m);
+        melde("Geteilt: Betreff, Text" + (geht.length ? " und " + zahlText(geht.length) + " (" + namenListe(geht) + ")" : ", ohne Anhang") + "." + rest + an, !nicht.length);
+      }, function (x) {
+        if (x && x.name === "AbortError") return;
+        melde("Das Teilen ging nicht (" + (x && x.name || x) + "). Speichern Sie die Mail mit „Als .eml speichern“ — die Anhänge sind dabei.", false);
+      });
+    };
+  }
+  API.emlMitAnhang = emlMitAnhang; API.mitnehmen = mitnehmen;
+
   function start() {
     document.head.append(el("style", null, ".anhang-liste{list-style:none;padding:0;margin:8px 0}.anhang{border-top:1px solid color-mix(in srgb,currentColor 15%,transparent);padding:8px 0}.anhang-name{overflow-wrap:anywhere}.anhang-befunde{margin:6px 0 0}"));
     if (!welt.PrueferFormate) {
       var s = document.createElement("script"); s.src = "assets/pruefer-formate.js"; document.head.append(s);
     }
+    exportEinbauen();
     beobachten();
   }
   /* SOFORT, nicht erst nach dem Laden: das Seiten-Skript leert das Feld in

@@ -144,6 +144,32 @@ export async function imBrowser(ok, browser, BASIS) {
   const rest = await page.evaluate(() => [...document.querySelectorAll(".anhang-name")].map((x) => x.textContent));
   ok("Anhänge: „Entfernen“ nimmt genau diesen einen weg", rest.length === 4 && !rest.includes("r.pdf"), JSON.stringify(rest));
 
+  /* Hinaus MIT Anhang (Klaus 2026-09-29): „die .eml im Mail-Programm
+     geöffnet, der Anhang ist nicht da" · „beim Teilen der E-Mail wird der
+     Anhang nicht mitgenommen". Gemessen an der Datei selbst, nicht am Knopf. */
+  const [dlA] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }).catch(() => null), page.click("#eml")]);
+  const emlA = dlA ? readFileSync(await dlA.path(), "utf8") : "";
+  const hin = await page.evaluate(async (roh) => {
+    const m = window.eval("aktuell")(), zurueck = window.SPAnhangUI.emlAnhaenge(roh), txt = window.SendePruefer.mailLesen(roh);
+    const gleich = await Promise.all(m.anhaenge.map(async (a) => { const f = zurueck.find((x) => x.name === a.name); if (!f) return false;
+      const x = new Uint8Array(await a.blob.arrayBuffer()), y = new Uint8Array(await f.arrayBuffer()); return x.length === y.length && x.every((v, i) => v === y[i]); }));
+    return { n: m.anhaenge.length, namen: zurueck.map((f) => f.name), gleich, text: txt.text, meldung: document.getElementById("aktion-meldung").textContent };
+  }, emlA);
+  ok(".eml speichern: die Datei ist multipart/mixed und trägt JEDEN Anhang", /^Content-Type: multipart\/mixed; boundary=/m.test(emlA) && hin.namen.length === hin.n && hin.n === 4, JSON.stringify(hin.namen));
+  ok(".eml speichern: jeder Anhang kommt Byte für Byte zurück, samt Namen", hin.gleich.length === 4 && hin.gleich.every(Boolean), JSON.stringify(hin.gleich));
+  ok(".eml speichern: der Text steht weiter darin, und der Kopf bleibt ASCII", /Hallo, anbei die Unterlagen\./.test(hin.text || "") && /^[\x00-\x7f]*$/.test(emlA.split("\r\n\r\n")[0]), hin.text);
+  ok(".eml speichern: die Meldung nennt die Anhänge", /mit 4 Anhänge/.test(hin.meldung) && /brief\.docx/.test(hin.meldung), hin.meldung);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: (d) => !d.files || d.files.every((f) => /\.png$/.test(f.name)) });
+    Object.defineProperty(navigator, "share", { configurable: true, value: async (d) => { window.__geteiltA = { title: d.title, text: d.text, files: (d.files || []).map((f) => f.name) }; } });
+  });
+  await page.click("#teilen");
+  await page.waitForFunction(() => window.__geteiltA, null, { timeout: 4000 }).catch(() => {});
+  const ge = (await page.evaluate(() => window.__geteiltA)) || {};
+  const geM = await page.textContent("#aktion-meldung");
+  ok("Teilen: die Anhänge, die das Gerät annimmt, gehen mit — samt Text", JSON.stringify(ge.files) === JSON.stringify(["foto.png", "<b>fett</b>.png"]) && /anbei die Unterlagen/.test(ge.text || ""), JSON.stringify(ge));
+  ok("Teilen: was das Gerät nicht annimmt, wird beim Namen genannt, mit dem Weg über .eml", /NICHT mitgenommen/.test(geM) && /logo\.svg/.test(geM) && /brief\.docx/.test(geM) && /eml/.test(geM), geM);
+
   /* .eml mit Anhang: die Datei kommt mit an die neue Mail */
   const docx = M.docxBoese().toString("base64").replace(/.{76}/g, "$&\r\n");
   const eml = ["From: Petra Beispiel <petra@musterbau.example>", "To: buero@beispiel.example", "Subject: Unterlagen",
@@ -158,5 +184,18 @@ export async function imBrowser(ok, browser, BASIS) {
   ok(".eml mit Anhang: der Mailtext kommt an wie vorher", /Anbei der Vertrag/.test(ein.text || ""), JSON.stringify(ein));
   ok(".eml mit Anhang: die Datei hängt an der neuen Mail, mit kodiertem Namen richtig gelesen", ein.anh.length === 1 && ein.anh[0].name === "Vertrag ä.docx", JSON.stringify(ein.anh));
   ok(".eml mit Anhang: … und ist geprüft (Makro, Angaben)", !!ein.anh[0] && ein.anh[0].k.includes("OFFICE-MAKRO") && ein.anh[0].k.includes("ANHANG-ANGABEN"), JSON.stringify(ein.anh));
+
+  /* Die KI-Antwort auf diese Mail übernimmt den Anhang — sichtbar, einmal */
+  const erb = await page.evaluate(() => {
+    const e = window.eval("aktuell")(), a = window.eval("antwortMail")(e);
+    window.eval("st.ordner='antwort';oeffne")(a.id);
+    return a.id;
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#anhang-liste > li[data-befunde]").length === 1, null, { timeout: 10000 }).catch(() => {});
+  const erbe = await page.evaluate(() => ({ namen: [...document.querySelectorAll(".anhang-name")].map((x) => x.textContent), hin: !!document.querySelector("[data-anhang-geerbt]") }));
+  ok("KI-Antwort: der Anhang der ursprünglichen Mail steht in ihrem 📎-Abschnitt, mit Hinweis", JSON.stringify(erbe.namen) === '["Vertrag ä.docx"]' && erbe.hin, JSON.stringify(erbe));
+  await page.locator("#anhang-liste > li [data-weg]").click();
+  await page.evaluate((i) => window.eval("oeffne")(i), erb);
+  ok("KI-Antwort: ein entfernter Anhang kommt nicht wieder", (await page.locator("#anhang-liste > li").count()) === 0);
   await ctx.close();
 }
