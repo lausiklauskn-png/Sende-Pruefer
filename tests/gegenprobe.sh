@@ -309,5 +309,21 @@ fall "HOL: eine Schlüssel-Seite steht ausserhalb der Konstante" $H \
 fall "TARIF: eine Tarif-Ablehnung sagt nicht, woran es liegt" $H \
   '(/subscription tier|not available/i.test(grund) ?' '(false ?' 'nicht das Guthaben'
 
+T=assets/tresor-ui.js
+fall "TRESOR: die Seite legt den Schlüssel beim Senden wieder offen ab" $H \
+  'schluessel = $("schluessel").value.trim();' 'schluessel = $("schluessel").value.trim(); schreib(schluesselName(), schluessel);' 'nirgends offen in den Speicher'
+fall "TRESOR: ein zu kurzer Code wird angenommen" $T \
+  'if (code.length < MIN) return' 'if (false) return' 'zu kurzer Code'
+fall "TRESOR: der alte Klartext-Eintrag bleibt liegen" $T \
+  'weg(KLAR + p());' ';' 'alte Klartext-Eintrag ist weg'
+fall "TRESOR: der Code wird mit abgelegt" $T \
+  'offen[p()] = schl; $("tresor-code").value = "";
+      zeigen(); sag("Im Tresor' 'offen[p()] = schl; localStorage.setItem("sendepruefer_tresor_code", code); $("tresor-code").value = "";
+      zeigen(); sag("Im Tresor' 'auch der Code'
+fall "TRESOR: Schlüssel löschen lässt den Tresor stehen" $T \
+  'weg(PREFIX + p()); delete offen[p()];' 'delete offen[p()];' 'nimmt auch den Tresor'
+fall "TRESOR: das Schloss wird abgewandelt" assets/schluesseltresor.js \
+  'var RUNDEN = 600000;' 'var RUNDEN = 1000;' 'schluesseltresor.js ist unver'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

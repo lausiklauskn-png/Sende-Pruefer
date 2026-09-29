@@ -99,6 +99,15 @@ for (const [datei, sha] of Object.entries(KNOTEN_PINS)) {
   const neben = join(WURZEL, "..", "Sage-Protokol", "src", "modules", datei);
   if (existsSync(neben)) ok("… und byte-gleich mit Sage-Protokol daneben", !!b && readFileSync(neben).equals(b));
 }
+/* ── das Schloss für den KI-Schlüssel: byte-1:1 aus kim-hub-company (1a4528d) ── */
+const TRESOR_SHA = "eaed30e8f3921835a3f58b69f89d9b008831f69f164ad1dfec630fa43161f666";
+{ const b = (() => { try { return readFileSync(join(WURZEL, "assets", "schluesseltresor.js")); } catch { return null; } })();
+  ok("assets/schluesseltresor.js ist unverändert (SHA-256 gepinnt)", !!b && createHash("sha256").update(b).digest("hex") === TRESOR_SHA);
+  const neben = join(WURZEL, "..", "kim-hub-company", "schluesseltresor.js");
+  if (existsSync(neben)) ok("… und byte-gleich mit kim-hub-company daneben", !!b && readFileSync(neben).equals(b)); }
+ok("Schloss und Tresor stehen im Offline-Vorrat",
+  /"assets\/schluesseltresor\.js"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")) && /"assets\/tresor-ui\.js"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
+ok("die Seite schreibt den Schlüssel nirgends offen in den Speicher", !/schreib\(schluesselName\(\), (?!"")/.test(html));
 ok("Modul 17 (das fliegende Widget) liegt NICHT mehr bei — die Leiste steht fest im Kopf",
   !existsSync(join(WURZEL, "modules", "17_floating_widget.js")) && !/17_floating_widget/.test(html + readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8")));
 const glue = readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8");
@@ -444,8 +453,27 @@ try {
   ok("die Antwort kommt mit den echten Werten zurück",
     (await page.textContent("#antwort-klar")) === "Liebe Erika Musterfrau, die Summe 1.248,50 EUR ist erledigt.");
   ok("die Seite zeigt, was gesendet wurde", (await page.textContent("#gesendet")) === befund.verdeckt);
-  ok("der Schlüssel liegt unter einem app-eigenen Namen",
-    await page.evaluate(() => localStorage.getItem("sendepruefer_key_anthropic")) === "sk-ant-api03-PROBEnichtECHT0000000000");
+  /* ── Tresor (Klaus 2026-09-29): nie offen abgelegt, verschlossen mit Code ── */
+  const ablage = () => page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)]))));
+  ok("nach dem Senden liegt der Schlüssel NICHT offen im Browser-Speicher",
+    !(await ablage()).includes("PROBEnichtECHT"), await ablage());
+  const tMeld = () => page.textContent("#tresor-meldung");
+  ok("unter dem Schlüssel steht der Tresor mit Code-Feld und Ablegen-Knopf",
+    await page.evaluate(() => !!document.getElementById("tresor-code") && document.getElementById("tresor-zu").checkVisibility()));
+  await page.fill("#tresor-code", "12");
+  await page.click("#tresor-zu");
+  await page.waitForFunction(() => /braucht mindestens|abgelegt/.test(document.getElementById("tresor-meldung").textContent), null, { timeout: 30000 }).catch(() => {});
+  ok("ein zu kurzer Code wird abgewiesen und nichts abgelegt",
+    /braucht mindestens 4/.test(await tMeld()) && await page.evaluate(() => localStorage.getItem("sendepruefer_tresor_anthropic")) === null, await tMeld());
+  await page.evaluate(() => localStorage.setItem("sendepruefer_key_anthropic", "sk-ant-api03-PROBEnichtECHT0000000000"));   // ein alter Klartext-Eintrag
+  await page.fill("#tresor-code", "4711");
+  await page.click("#tresor-zu");
+  await page.waitForFunction(() => /abgelegt|ging nicht/.test(document.getElementById("tresor-meldung").textContent), null, { timeout: 30000 });
+  const pk = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem("sendepruefer_tresor_anthropic")); } catch (_e) { return null; } });
+  ok("abgelegt wird ein verschlossenes Paket (v · salt · iv · ct)",
+    !!pk && pk.v === 1 && [pk.salt, pk.iv, pk.ct].every((x) => typeof x === "string" && x.length > 8), JSON.stringify(pk));
+  ok("… und nirgends im Browser-Speicher steht der Schlüssel offen — der alte Klartext-Eintrag ist weg", !(await ablage()).includes("PROBEnichtECHT"));
+  ok("… auch der Code steht nirgends", !(await ablage()).includes("4711"));
 
   /* ── Speichern: nach dem Neuladen ist die Mail samt Antwort noch da ───── */
   await page.waitForTimeout(400);   // Sorte B: das verzögerte Speichern soll WIRKLICH verstrichen sein
@@ -457,6 +485,18 @@ try {
   await page.click(`#liste .zeile[data-id="${gerettet && gerettet.id}"]`);
   ok("die gespeicherte Antwort wird wieder mit echten Werten gezeigt",
     (await page.textContent("#antwort-klar")) === "Liebe Erika Musterfrau, die Summe 1.248,50 EUR ist erledigt.");
+  await page.waitForSelector("#tresor-code");
+  ok("nach dem Neuladen ist das Schlüsselfeld leer und „Mit Code öffnen“ steht da",
+    (await page.inputValue("#schluessel")) === "" && await page.evaluate(() => document.getElementById("tresor-auf").checkVisibility()));
+  await page.fill("#tresor-code", "0000");
+  await page.click("#tresor-auf");
+  await page.waitForFunction(() => /passt nicht|Geöffnet/.test(document.getElementById("tresor-meldung").textContent), null, { timeout: 30000 });
+  ok("ein falscher Code öffnet nichts", /passt nicht/.test(await tMeld()) && (await page.inputValue("#schluessel")) === "", await tMeld());
+  await page.fill("#tresor-code", "4711");
+  await page.press("#tresor-code", "Enter");
+  await page.waitForFunction(() => /Geöffnet|passt nicht/.test(document.getElementById("tresor-meldung").textContent) && document.getElementById("schluessel").value, null, { timeout: 30000 }).catch(() => {});
+  ok("der richtige Code (Enter genügt) setzt den Schlüssel wieder ein",
+    (await page.inputValue("#schluessel")) === "sk-ant-api03-PROBEnichtECHT0000000000", await tMeld());
 
   /* ── Senden an Mistral: das andere Protokoll ─────────────────────────── */
   await page.selectOption("#anbieter", "mistral");
@@ -482,6 +522,12 @@ try {
   /* ── Schlüssel löschen, Zuordnung verwerfen ──────────────────────────── */
   await page.click("#schluessel-weg");
   ok("Schlüssel löschen entfernt ihn", await page.evaluate(() => localStorage.getItem("sendepruefer_key_mistral")) === null);
+  await page.selectOption("#anbieter", "anthropic");
+  ok("zurück beim ersten Anbieter steht der geöffnete Schlüssel wieder im Feld",
+    (await page.inputValue("#schluessel")) === "sk-ant-api03-PROBEnichtECHT0000000000");
+  await page.click("#schluessel-weg");
+  ok("Schlüssel löschen nimmt auch den Tresor dieses Anbieters weg",
+    await page.evaluate(() => localStorage.getItem("sendepruefer_tresor_anthropic")) === null && (await page.inputValue("#schluessel")) === "");
   await page.click("#verwerfen");
   ok("nach dem Verwerfen setzt die Seite keine Werte mehr ein",
     (await page.textContent("#antwort-klar")) === "Bitte an ⟦MAIL-1⟧ antworten.");
