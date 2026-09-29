@@ -664,6 +664,41 @@ try {
     await bCtx.close();
   }
 
+  /* ── kein weißer Saum am Rand der Bilder (Klaus 2026-09-29: „weiße Blitzer
+     an den runden Ecken, überall, wo das Icon ist"). Gezählt werden fast weiße,
+     sichtbare Pixel in einem Band neben der durchsichtigen Fläche. Gemessen im
+     Browser über ein Canvas, weil Node keine Bilder lesen kann. ── */
+  {
+    const sCtx = await browser.newContext({ serviceWorkers: "block" });
+    const s = await sCtx.newPage(); await s.goto(BASIS + "sende-pruefer.html");
+    for (const f of ["icons/sende-pruefer-bild-gross.webp", "icons/sende-pruefer-bild.webp", "icons/marke-72.png",
+                     "icons/icon-512.png", "icons/icon-192.png", "icons/favicon-48.png", "icons/favicon-32.png"]) {
+      /* apple-touch-icon und maskable sind randlos gefüllt — dort gibt es keinen Rand zum Grund. */
+      const r = await s.evaluate(async (src) => {
+        const i = new Image(); i.src = src; try { await i.decode(); } catch (_e) { return null; }
+        const w = i.naturalWidth, h = i.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = h;
+        const x = c.getContext("2d"); x.drawImage(i, 0, 0); const d = x.getImageData(0, 0, w, h).data;
+        const k = Math.max(2, Math.floor(w / 80)), T = new Int32Array((w + 1) * (h + 1));
+        for (let y = 0; y < h; y++) for (let q = 0; q < w; q++)
+          T[(y + 1) * (w + 1) + q + 1] = (d[(y * w + q) * 4 + 3] < 10 ? 1 : 0) + T[y * (w + 1) + q + 1] + T[(y + 1) * (w + 1) + q] - T[y * (w + 1) + q];
+        /* Außerhalb des Bildes zählt als durchsichtig — dort sieht man den Grund. */
+        const summe = (x0, y0, x1, y1) => (x0 < 0 || y0 < 0 || x1 > w || y1 > h) ? 1 :
+          T[y1 * (w + 1) + x1] - T[y0 * (w + 1) + x1] - T[y1 * (w + 1) + x0] + T[y0 * (w + 1) + x0];
+        let saum = 0, rand = 0;
+        for (let y = 0; y < h; y++) for (let q = 0; q < w; q++) {
+          const o = (y * w + q) * 4, a = d[o + 3]; if (a < 30) continue;
+          if (!summe(q - k, y - k, q + k + 1, y + k + 1)) continue;
+          rand++;
+          const mn = Math.min(d[o], d[o + 1], d[o + 2]), mx = Math.max(d[o], d[o + 1], d[o + 2]);
+          if (mn > 150 && mx - mn < 60) saum++;
+        }
+        return { w, saum, rand };
+      }, BASIS + f);
+      ok("kein weißer Saum am Rand: " + f, !!r && r.rand > 0 && r.saum <= Math.ceil(r.rand * 0.002), JSON.stringify(r));
+    }
+    await sCtx.close();
+  }
+
   /* ── das Handbuch im echten Browser ─────────────────────────────────── */
   for (const [breite, mitJs] of [[1280, true], [380, true], [380, false]]) {
     const hCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: breite, height: 800 }, javaScriptEnabled: mitJs });
