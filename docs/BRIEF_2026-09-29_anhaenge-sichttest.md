@@ -31,13 +31,12 @@ Frisch von `origin/main` abzweigen.
 Klaus' Worte wörtlich in den Forschungseintrag (Herkunft `klaus`). Was er
 findet, wird zuerst behoben. ✅ in CLAUDE.md nur für das, was er gesehen hat.
 
-## Schritt 2 — Anhänge, Stufe 2 (nur wenn Klaus es will)
+## Schritt 2 — Anhänge, Stufe 2 (Klaus will es, 2026-09-29)
 
-- Text in Bildern: Tesseract liegt in `Workflow-PDF/vendor/tesseract/` (21 MB, gleiche
-  Adresse) — nachladen wie die WorkFlohs, Ergebnis → Modul 25. Nicht im Vorrat.
-- PDF-Seitentext: pdf.js ebenfalls von Workflow-PDF nachladen.
-- Anhänge beim `.eml`-Export mitgeben.
-- ⚠ Weiter gilt: keine Datei geht an die KI; kein Virenscanner.
+Eigener Plan: **`docs/BRIEF_2026-09-29_anhaenge-stufe2.md`** — PDF-Seitentext,
+Text im Bild, fast unsichtbarer Text, Verdacht auf Botschaften in den Bildpunkten.
+Gebaut wird im **Auslieferungsprüfer** (`assets/pruefer-anhang.js`), hierher kopiert.
+Dazu offen: Anhänge beim `.eml`-Export mitgeben.
 
 ## Danach (eigene Schritte)
 

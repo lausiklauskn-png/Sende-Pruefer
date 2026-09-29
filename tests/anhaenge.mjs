@@ -13,20 +13,29 @@ import * as M from "./anhang-muster.mjs";
 /* byte-1:1 aus Auslieferung-Pruefer (6ba2d11) — dort pflegen, hier neu kopieren */
 export const FORMATE_SHA = "cea2272ad9267db4bf59841ab528ad3a610dc263cd62902d058cc11feb6491d3";
 
+/* byte-1:1 aus Auslieferung-Pruefer (bb0ad61) — dort pflegen, hier neu kopieren */
+export const ANHANG_SHA = "b5ba293c5bfd82b8a63b5d3b6231b1204e96570c2b91ba3dbd4af890f7ebf044";
+
 const kennungen = (r) => r.befunde.map((x) => x.kennung);
 
 export async function ohneBrowser(ok, WURZEL) {
   const b = readFileSync(join(WURZEL, "assets/pruefer-formate.js"));
   ok("assets/pruefer-formate.js ist unverändert (SHA-256 gepinnt, aus dem Auslieferungsprüfer)", createHash("sha256").update(b).digest("hex") === FORMATE_SHA);
   const sw = readFileSync(join(WURZEL, "sw.js"), "utf8"), html = readFileSync(join(WURZEL, "sende-pruefer.html"), "utf8");
-  ok("die Anhang-Prüfung und der PDF-Prüfer stehen im Offline-Vorrat", sw.includes('"assets/anhaenge.js"') && sw.includes('"assets/pruefer-formate.js"'));
+  ok("assets/pruefer-anhang.js ist unverändert (SHA-256 gepinnt, aus dem Auslieferungsprüfer)", createHash("sha256").update(readFileSync(join(WURZEL, "assets/pruefer-anhang.js"))).digest("hex") === ANHANG_SHA);
+  ok("die Anhang-Prüfung, ihr Prüfteil und der PDF-Prüfer stehen im Offline-Vorrat", sw.includes('"assets/anhaenge.js"') && sw.includes('"assets/pruefer-anhang.js"') && sw.includes('"assets/pruefer-formate.js"'));
   ok("die Seite lädt die Anhang-Prüfung vor ihrem eigenen Skript",
     html.indexOf('<script src="assets/anhaenge.js"></script>') > 0 && html.indexOf('<script src="assets/anhaenge.js"></script>') < html.indexOf("<script>\n\"use strict\""));
-  delete globalThis.SPAnhang; delete globalThis.PrueferFormate;
+  delete globalThis.SPAnhang; delete globalThis.PrueferAnhang; delete globalThis.PrueferFormate;
   await import(pathToFileURL(join(WURZEL, "assets/pruefer-formate.js")).href + "?" + Date.now());
+  await import(pathToFileURL(join(WURZEL, "assets/pruefer-anhang.js")).href + "?" + Date.now());
   await import(pathToFileURL(join(WURZEL, "assets/anhaenge.js")).href + "?" + Date.now());
-  const A = globalThis.SPAnhang;
-  ok("assets/anhaenge.js lädt auch ohne Browser (SPAnhang.pruefe)", !!A && typeof A.pruefe === "function");
+  const A = globalThis.PrueferAnhang;
+  ok("der Prüfteil lädt auch ohne Browser (PrueferAnhang.pruefe) — genau die Kopie, die der Browser nachlädt", !!A && typeof A.pruefe === "function");
+  /* Die Oberfläche trägt keinen eigenen Prüfteil mehr: eine zweite Fassung liefe auseinander. */
+  const ui = readFileSync(join(WURZEL, "assets/anhaenge.js"), "utf8");
+  ok("assets/anhaenge.js trägt keine eigene Prüfung mehr, sondern lädt pruefer-anhang.js nach",
+    !/function (pngPruefen|jpegPruefen|svgPruefen|officePruefen|zipEintraege)\b/.test(ui) && /s\.src = "assets\/pruefer-anhang\.js"/.test(ui));
   if (!A) return;
   const p = (n, x) => A.pruefe(n, x);
 
@@ -118,7 +127,7 @@ export async function imBrowser(ok, browser, BASIS) {
     const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }).catch(() => null), li.locator("[data-sicher]").click()]);
     let neu = null;
     if (dl) { const pfad = await dl.path(); neu = pfad ? readFileSync(pfad) : null; }
-    const r = neu ? await page.evaluate(async (b) => { const x = await window.SPAnhang.pruefe("x." + "png", Uint8Array.from(b)); return { art: x.art, k: x.befunde.map((y) => y.kennung) }; }, [...neu]) : null;
+    const r = neu ? await page.evaluate(async (b) => { const x = await window.PrueferAnhang.pruefe("x." + "png", Uint8Array.from(b)); return { art: x.art, k: x.befunde.map((y) => y.kennung) }; }, [...neu]) : null;
     ok("sichere Fassung von " + name + ": ein " + art.toUpperCase() + " ohne jeden Befund", !!r && r.art === art && r.k.length === 0, JSON.stringify(r));
     ok("… und die Meldung sagt, was entfernt ist", /entfernt ist: .*(BILD|SVG)/.test(await li.locator("[data-anhang-meldung]").textContent()));
   }
