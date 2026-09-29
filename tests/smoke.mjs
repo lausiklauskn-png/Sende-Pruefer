@@ -137,6 +137,23 @@ ok("… jeder Leuchtring liegt im Bild", hbJson.length > 0 && hbJson.every((z) =
   JSON.stringify(hbJson.map((z) => z.ring)));
 ok("… holt nichts aus dem Netz (keine fremde Adresse in src oder href)", hb.length > 0 && !/(?:src|href)="https?:/i.test(hb));
 ok("… und liest nur mit einer Stimme auf dem Gerät vor (localService)", /v\.localService/.test(hb));
+/* ── Anleitung und Grenzen als Seite (Klaus 2026-09-29): gebaut aus LIESMICH.md ── */
+const anlPfad = join(WURZEL, "anleitung.html");
+const anl = existsSync(anlPfad) ? readFileSync(anlPfad, "utf8") : "";
+const anlBau = await import(pathToFileURL(join(WURZEL, "tools", "anleitung-bauen.mjs")).href);
+ok("anleitung.html ist genau das, was aus LIESMICH.md gebaut wird (sonst: node tools/anleitung-bauen.mjs)",
+  anl.length > 0 && anl === anlBau.bauen(liesmich));
+const anlGrenzen = ((anl.split('<ol class="grenzen">')[1] || "").split("</ol>")[0].match(/<li>/g) || []).length;
+ok(`… trägt jede Grenze aus LIESMICH.md (${anlGrenzen} von ${grenzen})`, grenzen >= 5 && anlGrenzen === grenzen);
+ok("… jede Sorte der Tabelle steht als Zeile da",
+  ["SCHLUESSEL", "MAIL", "TELEFON", "IBAN", "BETRAG", "RECHNUNG", "NAME"].every((x) => anl.includes('<span class="sorte">' + x + "</span>")));
+ok("… Text wird maskiert, nicht als HTML gelesen",
+  !/<b>x<\/b>|<script/.test(anlBau.bauen("# T\n\n## A\n\nein <b>x</b> <script>y</script>")) && /&lt;b&gt;x/.test(anlBau.bauen("# T\n\n## A\n\nein <b>x</b>")));
+ok("… holt nichts aus dem Netz", anl.length > 0 && !/(?:src|href)="https?:/i.test(anl));
+ok("die Seite verlinkt „Anleitung und Grenzen“ auf die gestaltete Seite, nicht auf die Rohdatei",
+  /<a href="anleitung\.html">Anleitung und Grenzen<\/a>/.test(html) && !/href="LIESMICH\.md"/.test(html));
+ok("… das Handbuch ebenso", /<a class="knopf" href="anleitung\.html">Anleitung und Grenzen<\/a>/.test(hb) && !/href="LIESMICH\.md"/.test(hb));
+ok("die Anleitung steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"anleitung.html"'));
 /* ── Icons und das große Bild (Klaus 2026-09-29) ── */
 const mIcons = (manifest.icons || []);
 ok("das Manifest nennt 192, 512 und ein maskierbares Icon, und alle Dateien liegen da",
@@ -798,6 +815,17 @@ try {
     const q = await qCtx.newPage(); await q.goto(BASIS + "sende-pruefer.html"); await bereit(q);
     await q.click("#hilfe"); await q.waitForURL(/handbuch\.html$/);
     ok("320 px: ein Tipp auf ? öffnet das Handbuch", q.url().endsWith("handbuch.html"));
+    for (const [w, handy] of [[1280, false], [380, true], [320, true]]) {
+      const ap = await browser.newPage({ viewport: { width: w, height: 800 }, hasTouch: handy, isMobile: handy });
+      const aDraussen = []; ap.on("request", (r) => { if (!r.url().startsWith(BASIS)) aDraussen.push(r.url()); });
+      await ap.goto(BASIS + "anleitung.html", { waitUntil: "load" });
+      const a = await ap.evaluate(() => ({ ueber: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        teile: document.querySelectorAll("section.teil").length, bild: document.querySelector(".held img").naturalWidth,
+        breiteTab: Math.round(document.querySelector(".tabelle table").getBoundingClientRect().right) }));
+      ok(w + " px: die Anleitung läuft nicht quer über den Rand, auch die Tabelle nicht (nichts abgeschnitten)", a.ueber <= 0 && a.breiteTab <= w, JSON.stringify(a));
+      ok(w + " px: … alle Abschnitte und das Icon stehen da, nichts geht nach draußen", a.teile >= 5 && a.bild > 0 && aDraussen.length === 0, JSON.stringify(a) + aDraussen.join(","));
+      await ap.close();
+    }
     await qCtx.close();
   }
 

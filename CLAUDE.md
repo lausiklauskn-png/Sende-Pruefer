@@ -125,6 +125,16 @@ aufgebaut, dass später eine Videosequenz es besser erklärt"*.
 - ⚠ Das große Bild ist nur **1254 px** breit — bis Tablet-Breite scharf, darüber nicht.
 - Ein Video wird eingebaut, sobald Klaus eins liefert (nicht vorgebaut).
 
+## Anleitung als Seite (seit 2026-09-29)
+
+Klaus: *„Das ist eine MD-Datei. Ich hätte gern … im Stile des gesamten Handbuches."*
+`anleitung.html` wird aus `LIESMICH.md` **gebaut** (`node tools/anleitung-bauen.mjs`),
+nie von Hand. LIESMICH.md bleibt die Quelle und zählt weiter zu den vier Dateien unter
+96 KB; `anleitung.html` nicht. Alle Links „Anleitung und Grenzen" zeigen auf die Seite.
+Die Tabelle wird am Handy zu Karten; gemessen wird die Tabelle selbst, nicht ihr Kasten
+(`overflow:hidden` hätte eine zu breite Tabelle still abgeschnitten — so war ein
+Gegenprobe-Fall zuerst blind). Wer LIESMICH.md ändert, baut neu, sonst wird die Probe rot.
+
 ## Prüfen
 
 ```bash
