@@ -316,6 +316,19 @@ fall "ANB: eine Ablehnung als Liste wird nicht gelesen" $H \
   ' if (Array.isArray(j)) j = j[0] || {};' '' 'als Liste'
 fall "EIGEN: jedes sicherheit.html gilt als eigen" assets/abschirmung.js \
   ' && u.pathname.replace(' ' && true || u.pathname.replace(' 'anderen Ordner'
+# ── Klaus 2026-09-29: Warnzeile wegklicken, Abschirmung aufheben, Funde im Fremdzugriff-Fenster ──
+fall "WEG: das Wegklicken schirmt stattdessen ab" sende-pruefer.html \
+  '$("fremd-weg").addEventListener("click", AB.ausblenden);' '$("fremd-weg").addEventListener("click", () => AB.setze(true));' 'schirmt NICHT ab'
+fall "WEG: ausgeblendet bleibt es auch bei neuen Funden" assets/abschirmung.js \
+  'return funde.length <= stillBis;' 'return stillBis > 0;' 'NEUER Fund bringt sie'
+fall "WEG: der Knopf sagt nicht, dass er aufhebt" assets/abschirmung.js \
+  'k.title = an ?' 'k.title = false ?' 'zweiter Tipp es aufhebt'
+fall "WEG: das Fremdzugriff-Fenster bekommt die Funde nicht" assets/sbkim-init.js \
+  'setTimeout(abschirmFundeInsFenster, 0);' 'void 0;' 'nennt die Funde der Abschirmung'
+fall "WEG: die Funde gehen als HTML ins Fenster" assets/sbkim-init.js \
+  'li.textContent = x.was;' 'li.innerHTML = "<i>" + x.was + "</i>";' 'als Text, nicht als HTML'
+fall "WEG: der Knopf im Fremdzugriff-Fenster schaltet nicht" assets/sbkim-init.js \
+  'k.addEventListener("click", function () { AB.umschalten();' 'k.addEventListener("click", function () {' 'im Fenster lässt sich abschirmen'
 fall "EIGEN: die Erklärseite fehlt im Offline-Vorrat" sw.js \
   ', "sicherheit.html"]' ']' 'Erklärseite des Siegels'
 fall "ANB: die Seite lädt die Liste nicht" $H \

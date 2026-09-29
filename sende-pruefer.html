@@ -237,7 +237,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
   <button class="rund" id="menue" type="button" aria-label="Menü: Beispiele, Selbsttest, Anleitung" title="Beispiele, Selbsttest, Anleitung">⚙</button>
  </header>
  <div class="bannerplatz">
- <p class="banner fremd" id="fremd-banner" data-fremd-banner hidden><span id="fremd-banner-text"></span> <button class="knopf haupt" id="fremd-schirmen" type="button">🛡 Jetzt abschirmen</button> <button class="knopf" id="fremd-mehr" type="button">Was heißt das?</button></p>
+ <p class="banner fremd" id="fremd-banner" data-fremd-banner hidden><span id="fremd-banner-text"></span> <button class="knopf haupt" id="fremd-schirmen" type="button">🛡 Jetzt abschirmen</button> <button class="knopf" id="fremd-mehr" type="button">Was heißt das?</button> <button class="knopf" id="fremd-weg" type="button" aria-label="Meldung ausblenden">✕</button></p>
  <p class="banner" id="modul-fehlt" data-modul-fehlt hidden>Der Prüfkern (modules/25_pseudonym.js) wurde nicht geladen. Deshalb wird nichts erkannt, nichts kopiert und nichts gesendet. Laden Sie die Seite neu; liegt sie als Datei vor, muss der Ordner „modules“ daneben liegen.</p>
  </div>
  <nav class="ordner" aria-label="Ordner">
@@ -1076,7 +1076,7 @@ function abschirmZeichnen() {
   $("schild").setAttribute("aria-pressed", String(anJ));
   $("schild-text").textContent = anJ ? " Abgeschirmt" : " Abschirmen";
   $("schild-zahl").hidden = !f.length; $("schild-zahl").textContent = f.length;
-  $("fremd-banner").hidden = !f.length || anJ;
+  $("fremd-banner").hidden = !f.length || anJ || AB.ausgeblendet();
   $("fremd-banner-text").textContent = f.length ? "Etwas Fremdes liest in dieser Seite mit: " + f[f.length - 1].was : "";
   $("abschirm-stand").textContent = (anJ ? "Abgeschirmt. " : "Nicht abgeschirmt. ") + (f.length ? f.length + " Fund(e) seit dem Öffnen:" : "Bisher nichts Fremdes gefunden.");
   $("abschirm-funde").replaceChildren(...f.map((x) => el("li", {}, x.was)));
@@ -1085,6 +1085,7 @@ if (AB) {
   AB.abo(abschirmZeichnen);
   $("schild").addEventListener("click", () => AB.umschalten());
   $("fremd-schirmen").addEventListener("click", () => AB.setze(true));
+  $("fremd-weg").addEventListener("click", AB.ausblenden);
   $("fremd-mehr").addEventListener("click", () => { $("menue-dialog").showModal(); $("abschirm-kasten").scrollIntoView(); });
 }
 if (AB) { AB.start(); abschirmZeichnen(); }

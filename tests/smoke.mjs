@@ -869,6 +869,8 @@ try {
   /* 4 Funde: Grammarly-Element · fremdes sicherheit.html · leeres iframe · LanguageTool */
   ok("… das Banner geht weg, der Befund bleibt gezählt", zu.banner === true && zu.n === 4);
   ok("… die eigenen Marken melden sich nicht selbst als Fund", zu.n === 4);
+  ok("abgeschirmt sagt der Knopf, dass ein zweiter Tipp es aufhebt",
+    /hebt die Abschirmung auf/.test(await ab.getAttribute("#schild", "title") || ""));
   await verfassen(ab);
   ok("ein Feld, das DANACH entsteht, ist auch abgeschirmt", await ab.evaluate(() => document.getElementById("text").getAttribute("writingsuggestions") === "false"));
   await ab.reload(); await bereit(ab);
@@ -890,6 +892,30 @@ try {
   await fr.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
   ok("ein Fund schon beim Laden zündet die FREMD-Lampe, auch wenn der Knoten erst danach startet",
     await fr.evaluate(() => SendeAbschirmung.funde().length === 1 && document.getElementById("lamp-fremd").classList.contains("bad")));
+  /* Klaus 2026-09-29: die Warnzeile muss sich wegklicken lassen, OHNE abzuschirmen. */
+  ok("die Warnzeile steht da, solange nicht abgeschirmt", await fr.evaluate(() => !document.getElementById("fremd-banner").hidden));
+  const weg = await fr.$("#fremd-weg");
+  if (weg) await weg.click();
+  ok("✕ blendet die Warnzeile aus und schirmt NICHT ab",
+    await fr.evaluate(() => document.getElementById("fremd-banner").hidden && !SendeAbschirmung.an()));
+  await fr.evaluate(() => document.body.setAttribute("data-lt-tmp-id", "x"));
+  await fr.waitForFunction(() => SendeAbschirmung.funde().length > 1).catch(() => {});
+  ok("… ein NEUER Fund bringt sie zurück", await fr.evaluate(() => !document.getElementById("fremd-banner").hidden));
+  /* Das Fremdzugriff-Fenster (Modul 15) zählte nur Nachrichten — Klaus sah
+     dort nichts, während die Abschirmung zwei Funde hatte. */
+  await fr.setViewportSize({ width: 1280, height: 900 });
+  await fr.click("#lamp-fremd").catch(() => {});
+  await fr.waitForSelector("[data-abschirm-im-fenster]", { timeout: 5000 }).catch(() => {});
+  const fenster = await fr.evaluate(() => { const b = document.querySelector("[data-abschirm-im-fenster]");
+    return b ? { t: b.textContent, li: b.querySelectorAll("li").length } : null; });
+  ok("das Fremdzugriff-Fenster nennt die Funde der Abschirmung", !!fenster && /2 Fund/.test(fenster.t) && fenster.li === 2, JSON.stringify(fenster));
+  ok("… als Text, nicht als HTML", !!fenster && await fr.evaluate(() => !document.querySelector("[data-abschirm-im-fenster] li *")));
+  await fr.click("[data-abschirm-knopf]").catch(() => {});
+  ok("im Fenster lässt sich abschirmen (derselbe Schalter wie oben)",
+    await fr.evaluate(() => SendeAbschirmung.an() && document.getElementById("einfuegen-text").getAttribute("writingsuggestions") === "false"
+      && /aufheben/.test(document.querySelector("[data-abschirm-knopf]").textContent)));
+  await fr.click("[data-abschirm-knopf]").catch(() => {});
+  ok("… und wieder aufheben", await fr.evaluate(() => !SendeAbschirmung.an() && /abschirmen/.test(document.querySelector("[data-abschirm-knopf]").textContent)));
   await frCtx.close();
 
 } catch (e) {
