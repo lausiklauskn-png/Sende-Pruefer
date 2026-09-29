@@ -15,6 +15,7 @@ import { createHash } from "node:crypto";
 import { join, dirname, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { findeChromium } from "./chromium-finden.mjs";
+import * as Anhang from "./anhaenge.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -251,6 +252,9 @@ const server = http.createServer((q, a) => {
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const BASIS = `http://127.0.0.1:${server.address().port}/`;
+
+/* ── Anhänge ohne Browser (tests/anhaenge.mjs) ── */
+await Anhang.ohneBrowser(ok, WURZEL).catch((e) => ok("Anhänge ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
 try {
@@ -1085,6 +1089,8 @@ try {
     }
     await nCtx.close();
   }
+  /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
+  await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {

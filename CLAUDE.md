@@ -226,6 +226,46 @@ zwischen `NUTZEN-ANFANG`/`NUTZEN-ENDE`. Quelle: Sages Wurzel. family-project feh
   Block `[data-abschirm-im-fenster]` unter `[data-membran-summary]`: Funde (nur `textContent`) und ein Knopf
   **🛡 Jetzt abschirmen / Abschirmung aufheben** — derselbe Schalter `AB.umschalten()`.
 
+## 📎 Anhänge prüfen (seit 2026-09-29, Stufe 1)
+
+Klaus 2026-09-28: Anhänge „hin und zurück" prüfen. In jeder geöffneten Mail steht
+vor „Mit KI" der Abschnitt **📎 Anhänge**: hinzufügen (📎), und jede Datei wird auf
+dem Gerät geprüft. Eine `.eml` mit Anhang bringt ihre Dateien mit.
+
+| Art | gesucht wird |
+|---|---|
+| Bild (PNG, JPEG, WebP) | Daten hinter dem Bildende (Bewegungsfoto, Samsung-Zusatz, ZIP/PDF) · EXIF (GPS nur, wenn IFD0 den Verweis 0x8825 trägt) · XMP · PNG-Textfelder |
+| SVG | `<script>`, `on…=`, `javascript:`, `<foreignObject>`, fremde `href/src`; der Text geht an Modul 25 |
+| Office / ZIP | Makros (`vbaProject.bin`), eingebettete Dateien, externe Verweise (`TargetMode="External"`), Programme im Archiv; Text + Verfasser → Modul 25 |
+| PDF | über `assets/pruefer-formate.js` (**byte-1:1 aus Auslieferung-Pruefer `6ba2d11`**, SHA-gepinnt in `tests/anhaenge.mjs`) — dort pflegen, hier neu kopieren |
+| alle | Programm am Dateikopf (MZ/ELF/#!) oder an der Endung · Endung ⟷ Dateikopf |
+
+**🧼 Sichere Fassung** (Bilder und SVG): auf einer Leinwand neu gezeichnet, als
+Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
+
+- `assets/anhaenge.js` (app-eigen, außerhalb der 96 KB). Die Seite trägt nur eine
+  `<script>`-Zeile; die Datei hängt sich per MutationObserver an `#lesen` und liest
+  die Seite über deren globale Namen (`aktuell`, `jetztSpeichern`, `finde`,
+  `mailNamen`, `kopfTeilen`, `vonB64`, `kopfWort`). Fehlt sie, läuft die Seite wie vorher.
+- Anhänge liegen als `m.anhaenge = [{id,name,typ,groesse,blob}]` an der Mail in
+  `SendePruefer1/mails` — **keine neue DB-Version nötig**.
+- ⚠ Der `.eml`-Zuhörer hängt **sofort** beim Laden, nicht nach DOMContentLoaded:
+  das Seiten-Skript leert das Datei-Feld in seinem eigenen Zuhörer.
+- ⚠ **Benannte Grenzen:** kein Virenscanner, keine Steganografie, **keine
+  Texterkennung in Bildern, kein PDF-Seitentext** (Tesseract/pdf.js nicht
+  eingebaut), GIF nur am Kopf. **An die KI geht weiterhin nur der Mailtext.**
+  `.eml`-Export nimmt die Anhänge nicht mit.
+- ⚠ **Abweichung vom Brief:** die Befundarten stehen nicht im Köder (`koeder.txt`
+  ist Text und liegt unter der 96-KB-Grenze). Die Probe baut ihre Dateien selbst
+  (`tests/anhang-muster.mjs`, alle Angaben erfunden) — mit sauberer Gegenrichtung
+  zu jeder Sorte.
+- Gegenprobe `ANH:` (22 Fälle). Erster Lauf **20 gefangen · 2 blind**: ein Programm
+  wurde nur an der Endung geprüft (Probe nannte immer `.exe`), und „speichert
+  selbst" war blind, weil das 250-ms-Speichern der Seite die Anhänge mitnahm. Beide
+  geschärft und nachgefahren: gefangen.
+- ⚠ Nicht gemessen: echte Kamerafotos (Samsung-Zusatz, Bewegungsfoto) und echte
+  Word/PDF-Dateien von Klaus' Gerät; die Muster sind gebaut.
+
 ## Prüfen
 
 ```bash
@@ -235,7 +275,7 @@ npm run gegenprobe  # 96 eingebaute Fehler, jeder muss seine rote Zeile werfen
 NUR_ANKER=1 bash tests/gegenprobe.sh   # nur die Anker, in Sekunden
 ```
 
-Zuletzt gemessen (2026-09-29, Abschirmung wegklicken/im Fenster): **311 grün · 0 ROT** · `NUR_ANKER` **139 · 0 tot** · `WEG:` **6 gefangen · 0 blind**. Davor (2026-09-29, fünf Anbieter + Erklärseite): **303 grün · 0 ROT** · `NUR_ANKER` **133 · 0 tot** · neue Fälle `ANB:` 5 · `EIGEN:` 2 · `HOL:`/`LIMIT:` nachgezogen: alle gefangen, 0 blind. Davor (2026-09-29, max_tokens für Mistral): **287 grün · 0 ROT** · `NUR_ANKER` **126 · 0 tot** · neuer Fall `LIMIT:` gefangen (erst ein toter Anker: die Zeile stand wortgleich bei Anthropic). Davor (2026-09-29, 429 einmal wiederholen): **286 grün · 0 ROT** · `NUR_ANKER` **125 · 0 tot** · `LIMIT:` **4 gefangen** · `TARIF:` (jetzt in `assets/ablehnung.js`) **1 gefangen**. Davor (2026-09-29, Tresor + Mistral small): **282 grün · 0 ROT** · `NUR_ANKER` **121 · 0 tot** · `TRESOR:` **6 gefangen** (einer erst blind: der Wächter prüfte vor Ende der 600 000 Runden, geschärft) · `TARIF:` **1 gefangen**. Davor (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
+Zuletzt gemessen (2026-09-29, Anhänge): **361 grün · 0 ROT** · `NUR_ANKER` **161 · 0 tot** · `ANH:` **22 gefangen · 0 blind** (nach Schärfung). Davor (2026-09-29, Abschirmung wegklicken/im Fenster): **311 grün · 0 ROT** · `NUR_ANKER` **139 · 0 tot** · `WEG:` **6 gefangen · 0 blind**. Davor (2026-09-29, fünf Anbieter + Erklärseite): **303 grün · 0 ROT** · `NUR_ANKER` **133 · 0 tot** · neue Fälle `ANB:` 5 · `EIGEN:` 2 · `HOL:`/`LIMIT:` nachgezogen: alle gefangen, 0 blind. Davor (2026-09-29, max_tokens für Mistral): **287 grün · 0 ROT** · `NUR_ANKER` **126 · 0 tot** · neuer Fall `LIMIT:` gefangen (erst ein toter Anker: die Zeile stand wortgleich bei Anthropic). Davor (2026-09-29, 429 einmal wiederholen): **286 grün · 0 ROT** · `NUR_ANKER` **125 · 0 tot** · `LIMIT:` **4 gefangen** · `TARIF:` (jetzt in `assets/ablehnung.js`) **1 gefangen**. Davor (2026-09-29, Tresor + Mistral small): **282 grün · 0 ROT** · `NUR_ANKER` **121 · 0 tot** · `TRESOR:` **6 gefangen** (einer erst blind: der Wächter prüfte vor Ende der 600 000 Runden, geschärft) · `TARIF:` **1 gefangen**. Davor (2026-09-29, Schlüssel-Link): **267 grün · 0 ROT** · `NUR_ANKER` **114 · 0 tot** · die vier `HOL:`-Fälle **4 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Tempo, Bodenschein, Wackeln): **240 grün · 0 ROT** · `NUR_ANKER` **96 · 0 tot** · die 13 Lichtschein-/Icon-Fälle **13 gefangen · 0 blind · 0 aus falschem Grund**. Davor (2026-09-29, Klaus' Lichtweg): **234 grün · 0 ROT** · `NUR_ANKER` **89 · 0 tot** · die sechs Lichtkegel-Fälle **6 gefangen · 0 blind · 0 aus falschem Grund** (ein Anker traf erst zweimal — `0%{scale:4` steht auch in `100%{scale:4` —, gemeldet und eindeutig gemacht). Davor (2026-09-29, weißer Saum entfernt): **229 grün · 0 ROT**. Davor (2026-09-29, Knoten + Abschirmung + Handbuch + Icons): **222 grün · 0 ROT** · Gegenprobe: erster voller Lauf über die Knoten-Fälle **68 gefangen · 2 blind · 2 aus falschem Grund** — alle vier in der Probe (überflüssiges Nachholen, Höhen-Prüfung übersah Teile unter 30 px, Lade-Prüfung zu früh, ein Stolpern nahm die Leisten-Prüfungen mit); danach diese vier und die 13 neuen `HB:`-Fälle einzeln gefahren: **17 gefangen · 0 blind · 0 aus falschem Grund**, `NUR_ANKER` **85 · 0 tot**. Ein voller Lauf über alle 85 danach ist **nicht** gefahren. Davor (2026-09-29, volle Lesebreite, Teilen als Text, Namen mit Komma): **106 grün · 0 ROT** · Gegenprobe **46 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor (2026-09-28, Vollbild + Themen-Knopf + Glas-Knöpfe): **102 grün · 0 ROT** · Gegenprobe **44 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker** (ein Anker zeigte nach dem Umbau des Themen-Knopfs ins Leere, von `NUR_ANKER` gemeldet und nachgezogen). Davor (2026-09-28, Postfach): **95 grün · 0 ROT** · Gegenprobe **39
 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**, erster Lauf. Davor
 (2026-09-28, mit Beispiel-E-Mail): **68 grün · 0 ROT** · Gegenprobe
 **26 gefangen · 0 blind · 0 aus falschem Grund · 0 tote Anker**. Davor
@@ -255,7 +295,7 @@ zusammen wegzunehmen misst etwas.
   Nummern (⟦NAME-3⟧, ⟦MAIL-2⟧) — wer den Beispieltext oder die Namen ändert, prüft,
   ob die Nummern noch stimmen. Alles erfunden, `.example`-Adressen.
 
-- **Die vier Dateien** (`sende-pruefer.html`, `koeder.txt`, `LIESMICH.md`,
+- **Die vier Dateien** (98 230 / 98 304 Bytes seit den Anhängen — neues in `assets/`) (`sende-pruefer.html`, `koeder.txt`, `LIESMICH.md`,
   `PROBE.md`) müssen **zusammen unter 96 KB** bleiben — die Probe misst es.
   Bis 2026-09-28 waren es 48 KB; Klaus hat für das Postfach auf 96 KB angehoben.
   Die Grenze gilt dem Code und der Anleitung, **nicht** den Mails (IndexedDB).

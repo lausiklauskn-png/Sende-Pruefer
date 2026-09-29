@@ -364,5 +364,54 @@ fall "TRESOR: Schlüssel löschen lässt den Tresor stehen" $T \
 fall "TRESOR: das Schloss wird abgewandelt" assets/schluesseltresor.js \
   'var RUNDEN = 600000;' 'var RUNDEN = 1000;' 'schluesseltresor.js ist unver'
 
+A=assets/anhaenge.js
+# Anhänge (2026-09-29). Jeder Fall nimmt EINE Erkennung weg; gezählt wird die rote Zeile mit ihrem Namen.
+fall "ANH: Daten hinter dem Bildende werden nicht mehr gemeldet" $A \
+  '    if (leer && rest.length <= 64) return;' '    return;' 'Daten hinter dem Bildende|Metadaten und Anhängsel'
+fall "ANH: Füllbytes gelten als Anhängsel" $A \
+  '    if (leer && rest.length <= 64) return;' '' 'Füllbytes'
+fall "ANH: GPS wird geraten statt im IFD0 gesucht" $A \
+  '        var gps = exifHatGps(b, i + 10, Math.min(i + 2 + len, b.length));' '        var gps = true;' 'keine erfundene Ortsangabe'
+fall "ANH: PNG-Textfelder werden übersehen" $A \
+  '      if (typ === "tEXt" || typ === "iTXt" || typ === "zTXt") {' '      if (false) {' 'Text-Feld in den Metadaten|Metadaten und Anhängsel'
+fall "ANH: ein SVG-Skript wird übersehen" $A \
+  'if (/<script[\s>]/i.test(s)) melde' 'if (false) melde' 'Skript und Ereignis'
+fall "ANH: ein fremder Abruf aus der SVG wird übersehen" $A \
+  '      wirte[w] = 1; melde("SVG-VERWEIS"' '      wirte[w] = 1; void ("SVG-VERWEIS"' 'fremden Rechner|fremder Abruf'
+fall "ANH: das SVG-Skript geht mit an Modul 25" $A \
+  '    var text = s.replace(/<script[\s\S]*?<\/script>/gi, " ")' '    var text = s' 'das Skript nicht'
+fall "ANH: Makros werden übersehen" $A \
+  '    if (makro.length) melde("OFFICE-MAKRO"' '    if (false) melde("OFFICE-MAKRO"' 'Makro'
+fall "ANH: gepackte Office-Teile werden nicht entpackt" $A \
+  'new welt.DecompressionStream("deflate-raw")' 'new welt.DecompressionStream("deflate")' 'Word \(gepackt\)'
+fall "ANH: Office-Verweise nach außen werden übersehen" $A \
+  '            if (!/TargetMode="External"/.test(m[0])) continue;' '            continue;' 'Vorlage von außen|Verweis'
+fall "ANH: der Word-Text geht nicht an Modul 25" $A \
+  '          texte.push(entitaeten(xml.replace(' '          void (entitaeten(xml.replace(' 'Text samt Verfasser|Angaben im Text'
+fall "ANH: der PDF-Prüfer wird nicht nachgeladen" $A \
+  's.src = "assets/pruefer-formate.js";' 's.src = "assets/fehlt.js";' 'PDF-Prüfer wurde nachgeladen'
+fall "ANH: die Endung wird nicht mit dem Dateikopf verglichen" $A \
+  '    else if (ENDUNGEN[art] && endung && ENDUNGEN[art].indexOf(endung) < 0)' '    else if (false)' 'nicht zum Dateikopf passt'
+fall "ANH: ein Programm wird nur an der Endung erkannt" $A \
+  '    if (b[0] === 0x4D && b[1] === 0x5A) return "programm";' '' 'am Dateikopf erkannt'
+fall "ANH: ein Name wird als HTML eingesetzt" $A \
+  '      el("div", { class: "anhang-kopf" }, el("b", { class: "anhang-name" }, a.name),' '      el("div", { class: "anhang-kopf" }, (function () { var x = el("b", { class: "anhang-name" }); x.innerHTML = a.name; return x; })(),' 'als Text da'
+fall "ANH: die sichere Fassung zeichnet nicht neu, sondern gibt das Original" $A \
+  '          return { blob: neu, name:' '          return { blob: a.blob, name:' 'sichere Fassung von'
+fall "ANH: Anhänge werden nicht gespeichert" $A \
+  '  function speichern(m) { var f = g("jetztSpeichern"); if (f) f(m); }' '  function speichern(m) {}' 'nach dem Neuladen'
+fall "ANH: Entfernen nimmt alle weg" $A \
+  '      m.anhaenge = (m.anhaenge || []).filter(function (x) { return x.id !== a.id; });' '      m.anhaenge = [];' 'genau diesen einen'
+fall "ANH: der .eml-Zuhörer hängt erst nach dem Laden (Seite leert das Feld vorher)" $A \
+  '     SEINEM change-Zuhörer — wer danach kommt, findet keine Datei mehr. */
+  emlBeobachten();' '     SEINEM change-Zuhörer — wer danach kommt, findet keine Datei mehr. */
+  document.addEventListener("DOMContentLoaded", emlBeobachten);' 'eml mit Anhang'
+fall "ANH: kodierte Anhang-Namen werden nicht entschlüsselt" $A \
+  '      var name = kopfWort ? kopfWort(nm[1]) : nm[1];' '      var name = nm[1];' 'kodiertem Namen'
+fall "ANH: der PDF-Prüfer wird abgewandelt" assets/pruefer-formate.js \
+  '    { re: /\/Launch\b/,' '    { re: /\/Launchx\b/,' 'pruefer-formate.js ist unver'
+fall "ANH: die Anhang-Prüfung fehlt im Offline-Vorrat" sw.js \
+  ' "assets/anhaenge.js",' '' 'Offline-Vorrat'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
