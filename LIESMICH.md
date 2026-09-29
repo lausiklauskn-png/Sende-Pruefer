@@ -16,7 +16,7 @@ Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nu
 4. **✦ Mit KI beantworten** (bzw. überarbeiten). Unter **„Was soll die KI tun?“** eine Aufgabe antippen (Antwort, Rechnung, Mahnung, Angebot …) oder selbst eintragen und **Anweisung bauen**; daraus entsteht die ganze Anweisung, frei änderbar. **Als Knopf merken** legt eine eigene Aufgabe als Knopf an. Dann einen der beiden Wege wählen:
    - **Kopieren**, für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten. Die Antwort fügen Sie danach in das Feld darunter ein.
    - **Senden**, ohne Fenster zu wechseln. Sie wählen den Anbieter und tragen Ihren Schlüssel ein; einen Schlüssel erzeugen Sie über den Link „🔑 Schlüssel beim Anbieter erzeugen“. Mit „🔒 Im Tresor ablegen“ und einem Code wird er verschlossen aufgehoben; danach genügt der Code. Es kostet, was Ihr Schlüssel kostet.
-5. Die Antwort steht mit Ihren echten Angaben da. **In KI-Antworten ablegen**, **⤓ Als .eml speichern** oder **📤 Teilen**: die `.eml` öffnet Ihr Mail-Programm als Entwurf; Teilen gibt Betreff und Text an ein Programm Ihrer Wahl (den Empfänger tragen Sie dort ein). Gespeicherte und geteilte Mails liegen danach in **Exportiert**.
+5. Die Antwort steht mit Ihren echten Angaben da. **In KI-Antworten ablegen**, **⤓ Als .eml speichern** oder **📤 Teilen**: die `.eml` öffnet Ihr Mail-Programm als Entwurf; Teilen gibt Betreff, Text und Anhänge an ein Programm Ihrer Wahl (den Empfänger tragen Sie dort ein). Gespeicherte und geteilte Mails liegen danach in **Exportiert**.
 
 Unter **⚙** stehen die Beispiel-Mail und der Selbsttest. Oben schaltet **☀ Hell** bzw. **🌙 Dunkel** das Thema um; die Wahl bleibt gemerkt.
 

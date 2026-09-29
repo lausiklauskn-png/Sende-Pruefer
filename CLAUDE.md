@@ -265,7 +265,7 @@ Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
 - ⚠ **Benannte Grenzen:** kein Virenscanner, keine Steganografie, **keine
   Texterkennung in Bildern, kein PDF-Seitentext** (Tesseract/pdf.js nicht
   eingebaut), GIF nur am Kopf. **An die KI geht weiterhin nur der Mailtext.**
-  `.eml`-Export nimmt die Anhänge nicht mit.
+  `.eml`-Export und Teilen nehmen die Anhänge seit 2026-09-29 mit (Abschnitt unten).
 - ⚠ **Abweichung vom Brief:** die Befundarten stehen nicht im Köder (`koeder.txt`
   ist Text und liegt unter der 96-KB-Grenze). Die Probe baut ihre Dateien selbst
   (`tests/anhang-muster.mjs`, alle Angaben erfunden) — mit sauberer Gegenrichtung
@@ -276,6 +276,27 @@ Download; die Meldung nennt, was entfernt ist. Eine SVG wird dabei zum PNG.
   geschärft und nachgefahren: gefangen.
 - ⚠ Nicht gemessen: echte Kamerafotos (Samsung-Zusatz, Bewegungsfoto) und echte
   Word/PDF-Dateien von Klaus' Gerät; die Muster sind gebaut.
+
+## 📤 Anhänge gehen mit hinaus (Klaus 2026-09-29)
+
+Klaus: *„beim Teilen der E-Mail wird der Anhang nicht mitgenommen … die .eml im
+Mail-Programm geöffnet, der Anhang ist nicht da."* Beides stimmte: die Seite baute
+.eml und Teilen nur aus dem Text.
+
+- `assets/anhaenge.js` ersetzt beim Start `emlSpeichern` und `teilen` der Seite
+  (`exportEinbauen`). **Ohne Anhang läuft der alte Weg unverändert.**
+- **.eml:** `multipart/mixed`, Text wie bisher, jeder Anhang base64; Name als
+  kodiertes Wort UND `filename*` (RFC 2231). Gemessen: jeder Anhang kommt Byte für
+  Byte zurück.
+- **Teilen:** Dateien ohne Warten gebaut (Teilen braucht den frischen Tipp); jede
+  einzeln über `canShare` gefragt. Was das Gerät nicht annimmt (Chrome: z. B.
+  .docx, .svg), wird **beim Namen genannt**, mit dem Weg über .eml.
+- **KI-Antwort erbt** die Anhänge der Mail, aus der sie entstand — einmal, als
+  eigene Kopie, sichtbar im 📎-Abschnitt (`data-anhang-geerbt`), dort zu entfernen;
+  `m.anhaengeGeerbt` verhindert, dass ein entfernter wiederkommt.
+- ⚠ Nicht gemessen: welche Mail-Programme am Tablet die Anhänge aus der .eml zeigen,
+  und welche Dateiarten Klaus' Chrome beim Teilen annimmt.
+- Gegenprobe `EXP:` (7 Fälle). Cache `sende-pruefer-v26`.
 
 ## Prüfen
 

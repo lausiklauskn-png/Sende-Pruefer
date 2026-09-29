@@ -423,5 +423,22 @@ fall "ANH: die Oberfläche trägt wieder eine eigene Prüfung" $A \
 fall "ANH: der Prüfteil fehlt im Offline-Vorrat" sw.js \
   ' "assets/pruefer-anhang.js",' '' 'Offline-Vorrat'
 
+# Anhänge gehen mit hinaus (Klaus 2026-09-29)
+fall "EXP: die .eml trägt keinen Anhang" $A \
+  '      liste.forEach(function (a, k) {' '      [].forEach(function (a, k) {' 'JEDEN Anhang'
+fall "EXP: ein Anhang kommt verändert in die .eml" $A \
+  'b64(new Uint8Array(inhalte[k]))' 'b64(new Uint8Array(inhalte[k]).subarray(1))' 'Byte für Byte'
+fall "EXP: die Wege der Seite werden nicht ersetzt" $A \
+  '    exportEinbauen();
+    beobachten();' '    beobachten();' 'JEDEN Anhang'
+fall "EXP: Teilen lässt die Dateien weg" $A \
+  '      if (geht.length) d.files = geht;' '' 'gehen mit'
+fall "EXP: was nicht mitgeht, wird verschwiegen" $A \
+  '      var rest = nicht.length ?' '      var rest = false ?' 'beim Namen genannt'
+fall "EXP: die KI-Antwort übernimmt den Anhang nicht" $A \
+  '      if (b && b.anhaenge && b.anhaenge.length) {' '      if (false) {' 'ursprünglichen Mail'
+fall "EXP: ein entfernter Anhang kommt wieder" $A \
+  ' && !m.anhaengeGeerbt && m.bezug) {' ' && m.bezug) {' 'kommt nicht wieder'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
