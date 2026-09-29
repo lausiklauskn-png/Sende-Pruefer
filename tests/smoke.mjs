@@ -249,6 +249,9 @@ try {
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ content: [{ type: "text", text: `Liebe ${ph}, die Summe ⟦BETRAG-1⟧ ist erledigt.` }] }) });
     }
+    if (q.url().startsWith("https://api.mistral.ai/") && /TARIF/.test(q.headers().authorization || ""))
+      return route.fulfill({ status: 403, contentType: "application/json",   // wortgleich Klaus' Befund 2026-09-29
+        body: JSON.stringify({ message: "This model is not available in your subscription tier" }) });
     if (q.url().startsWith("https://api.mistral.ai/"))
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ choices: [{ message: { content: "Bitte an ⟦MAIL-1⟧ antworten." } }] }) });
@@ -458,6 +461,13 @@ try {
   /* ── Senden an Mistral: das andere Protokoll ─────────────────────────── */
   await page.selectOption("#anbieter", "mistral");
   ok("der Schlüssel des anderen Anbieters wird nicht übernommen", (await page.inputValue("#schluessel")) === "");
+  await page.fill("#schluessel", "mistral-TARIF-0000");
+  await page.click("#senden");
+  await page.waitForFunction(() => /abgelehnt/.test(document.getElementById("sende-meldung").textContent));
+  const tarif = await page.textContent("#sende-meldung");
+  ok("lehnt der Tarif das Modell ab, nennt die Meldung Modell und Tarif, nicht das Guthaben",
+    /mistral-small-latest ist in Ihrem Tarif nicht freigeschaltet/.test(tarif) && /nicht am Guthaben|am Guthaben liegt es nicht/.test(tarif), tarif);
+  draussen.splice(1);
   await page.fill("#schluessel", "mistral-PROBE-0000");
   await page.click("#senden");
   await page.waitForFunction(() => /Antwort erhalten/.test(document.getElementById("sende-meldung").textContent) && document.getElementById("antwort-klar").textContent.includes("antworten"));
@@ -465,7 +475,7 @@ try {
   ok("Mistral bekommt seine Adresse und eine Bearer-Kopfzeile",
     m.url === "https://api.mistral.ai/v1/chat/completions" && m.headers.authorization === "Bearer mistral-PROBE-0000");
   ok("… im OpenAI-Protokoll, mit der verdeckten Fassung",
-    JSON.parse(m.body).messages?.[0]?.content === befund.verdeckt && JSON.parse(m.body).model === "mistral-large-latest");
+    JSON.parse(m.body).messages?.[0]?.content === befund.verdeckt && JSON.parse(m.body).model === "mistral-small-latest");
   ok("die Mistral-Antwort wird gelesen und aufgedeckt",
     (await page.textContent("#antwort-klar")) === "Bitte an erika@beispiel.test antworten.");
 
