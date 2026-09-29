@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sende-Prüfer · Handbuch</title>
+<meta name="description" content="Handbuch zum Sende-Prüfer: in <!--ANZAHL--> Szenen mit echten Bildern der App — wie eine Mail geprüft wird, bevor sie an eine KI geht.">
+<meta name="theme-color" content="#0b1418">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<!-- GEBAUT von tools/handbuch-bauen.mjs aus tools/handbuch-vorlage.html und tools/handbuch-szenen.mjs.
+     Nicht von Hand ändern: beim nächsten Bau wäre es weg. -->
+<style>
+:root{--bg:#0b1418;--fl:#122128;--fl2:#17303a;--linie:#24414b;--schrift:#e8f0f3;--leise:#9db3bb;--petrol:#5cc2c9;--glanz:#8fe4ea;--gold:#f3b54a;--gold2:#ffd98a;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--schrift);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(60vw 40vw at 85% -10%,rgb(92 194 201/.18),transparent 70%),radial-gradient(50vw 40vw at -10% 110%,rgb(243 181 74/.12),transparent 70%)}
+a{color:var(--glanz)}
+code{font:600 .92em ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--gold2);background:rgb(243 181 74/.12);padding:1px 5px;border-radius:6px}
+.held{padding:48px 20px 28px;text-align:center;max-width:980px;margin:0 auto}
+.bild-held{display:block;height:auto}
+.bild-buehne{position:relative;display:block;width:min(640px,90vw);margin:0 auto 10px;filter:drop-shadow(0 30px 60px rgb(0 0 0/.55));border-radius:17%;overflow:hidden;isolation:isolate}
+.bild-buehne .leer-bild,.bild-buehne .bild-held{width:100%;margin:0}
+/* ein weißer Lichtkegel läuft von links nach rechts durch die Mitte, wo der Brief das Schild durchquert */
+.bild-buehne::after{content:"";position:absolute;top:22%;left:0;width:42%;height:52%;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.75),rgb(255 255 255/.28) 45%,rgb(143 228 234/.12) 70%,transparent);transform:translateX(-110%);animation:kegel 6.5s ease-in-out infinite}
+/* … und das Schild leuchtet auf, wenn der Kegel es trifft */
+.bild-buehne::before{content:"";position:absolute;left:34%;top:18%;width:32%;height:60%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.9),rgb(143 228 234/.35) 50%,transparent);animation:aufleuchten 6.5s ease-in-out infinite}
+@keyframes kegel{0%{transform:translateX(-110%) scale(1);opacity:0}12%{opacity:1}36%{transform:translateX(35%) scale(1)}50%{transform:translateX(70%) scale(1.7);opacity:1}64%{transform:translateX(105%) scale(1)}88%{opacity:.9}100%{transform:translateX(250%) scale(1);opacity:0}}
+@keyframes aufleuchten{0%,38%{opacity:0}50%{opacity:.85}64%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}
+
+.held .zurueck{position:absolute;left:16px;top:14px;font-size:.92rem;text-decoration:none;color:var(--leise)}
+.held h1{margin:10px 0 6px;font-size:clamp(1.9rem,5vw,3.2rem);line-height:1.1;letter-spacing:-.02em;
+ background:linear-gradient(100deg,var(--glanz),#fff 45%,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.held .unter{color:var(--leise);margin:0 auto 22px;max-width:620px}
+/* Die Verwandlung: ein Name wird zum Platzhalter — genau das tut die App. */
+.wandel{display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin:4px 0 26px;font:600 1rem ui-monospace,Menlo,monospace}
+.wandel .ding{position:relative;display:inline-grid;min-width:12ch;height:2.1em;place-items:center;border-radius:10px;border:1px solid var(--linie);background:var(--fl)}
+.wandel .ding>*{grid-area:1/1}
+.wandel .echt{color:var(--schrift)}
+.wandel .platz{color:var(--gold2);opacity:0}
+.wandel .pfeil{color:var(--petrol)}
+html.bewegt .wandel .echt{animation:weg 6s infinite}
+html.bewegt .wandel .platz{animation:her 6s infinite}
+html.bewegt .wandel .ding:nth-child(3) span{animation-delay:.4s}
+html.bewegt .wandel .ding:nth-child(5) span{animation-delay:.8s}
+@keyframes weg{0%,35%{opacity:1;filter:none}45%,90%{opacity:0;filter:blur(6px)}100%{opacity:1}}
+@keyframes her{0%,40%{opacity:0;transform:scale(.8)}50%,88%{opacity:1;transform:none}100%{opacity:0}}
+.knoepfe{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.knopf{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--linie);
+ background:linear-gradient(180deg,var(--fl2),var(--fl));color:var(--schrift);font:600 .98rem system-ui,sans-serif;cursor:pointer;text-decoration:none;
+ box-shadow:inset 0 1px 0 rgb(255 255 255/.12),0 6px 18px rgb(0 0 0/.3)}
+.knopf.haupt{border-color:var(--gold);background:linear-gradient(180deg,#3a2c12,#231a0b);color:var(--gold2);box-shadow:inset 0 1px 0 rgb(255 255 255/.18),0 0 24px rgb(243 181 74/.25)}
+.knopf:hover{border-color:var(--petrol)}
+.rahmen{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;max-width:1240px;margin:0 auto;padding:0 20px 60px}
+.film{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid var(--linie);border-radius:18px;background:rgb(18 33 40/.8)}
+.film::before{content:"Szenen";font:700 .72rem system-ui;letter-spacing:.14em;text-transform:uppercase;color:var(--leise);padding:2px 8px 6px}
+.film a{display:flex;gap:10px;align-items:center;padding:7px 10px;border-radius:10px;color:var(--leise);text-decoration:none;font-size:.9rem;line-height:1.25}
+.film a span{font:700 .78rem ui-monospace,Menlo,monospace;color:var(--petrol);min-width:2ch}
+.film a:hover,.film a[aria-current="true"]{background:var(--fl2);color:var(--schrift)}
+.film a[aria-current="true"] span{color:var(--gold)}
+.szenen{display:flex;flex-direction:column;gap:56px;min-width:0}
+.szene{scroll-margin-top:16px}
+.kopfzeile{display:flex;align-items:baseline;gap:14px;margin-bottom:12px}
+.kopfzeile .nr{font:800 2.6rem/1 ui-monospace,Menlo,monospace;color:transparent;-webkit-text-stroke:1.5px var(--gold);opacity:.9}
+.kopfzeile h2{margin:0;font-size:clamp(1.25rem,3vw,1.7rem)}
+.bild{position:relative;margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--linie);background:#000;
+ box-shadow:0 30px 60px rgb(0 0 0/.45),0 0 0 6px rgb(92 194 201/.06)}
+.bild img{display:block;width:100%;height:auto}
+.szene.hoch .bild{max-width:360px;margin-inline:auto;border-radius:28px;border-width:6px;border-color:#1d2c33}
+.ring{position:absolute;border:3px solid var(--gold);border-radius:12px;box-shadow:0 0 0 4px rgb(243 181 74/.25),0 0 30px rgb(243 181 74/.55);pointer-events:none}
+html.bewegt .szene.da .ring{animation:puls 2.2s ease-in-out infinite}
+@keyframes puls{0%,100%{box-shadow:0 0 0 4px rgb(243 181 74/.25),0 0 30px rgb(243 181 74/.55)}50%{box-shadow:0 0 0 10px rgb(243 181 74/.05),0 0 50px rgb(243 181 74/.8)}}
+.text{margin:16px 0 8px;font-size:1.02rem}
+.sprech{margin:0;padding:10px 14px;border-left:3px solid var(--petrol);border-radius:0 12px 12px 0;background:rgb(92 194 201/.08);color:var(--glanz);font-style:italic}
+.mikro{font-style:normal;margin-right:4px}
+/* Ohne Skript steht alles da; erst mit Skript blenden die Szenen beim Rollen ein. */
+html.bewegt .szene{opacity:.25;transform:translateY(24px);transition:opacity .7s,transform .7s}
+html.bewegt .szene.da{opacity:1;transform:none}
+.grenzen{max-width:1240px;margin:0 auto 40px;padding:22px 20px;border-top:1px solid var(--linie);color:var(--leise)}
+/* Vorführen: eine Leiste unten wie Untertitel. */
+.buehne{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;width:min(760px,calc(100vw - 24px));padding:12px 16px 14px;
+ border:1px solid var(--gold);border-radius:18px;background:rgb(11 20 24/.94);box-shadow:0 20px 50px rgb(0 0 0/.6);backdrop-filter:blur(6px)}
+.buehne[hidden]{display:none}
+.buehne .zeile{display:flex;gap:12px;align-items:center}
+.buehne .ut{flex:1;font-size:1.02rem;color:var(--schrift)}
+.buehne .balken{height:3px;border-radius:3px;background:var(--linie);margin-top:10px;overflow:hidden}
+.buehne .balken i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--petrol),var(--gold))}
+.buehne .stimme{font-size:.8rem;color:var(--leise);margin-top:6px}
+.szene.aktiv .bild{border-color:var(--gold);box-shadow:0 30px 60px rgb(0 0 0/.45),0 0 40px rgb(243 181 74/.35)}
+@media (max-width:900px){
+ .rahmen{grid-template-columns:1fr}
+ .film{flex-direction:row;overflow-x:auto;top:0;z-index:10;border-radius:0 0 14px 14px;margin:0 -20px;padding:8px 12px;scrollbar-width:none}
+ .film::before{display:none}
+ .film a{flex:none;white-space:nowrap}
+ .kopfzeile .nr{font-size:2rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}html.bewegt .szene{opacity:1;transform:none;transition:none}html.bewegt .wandel .echt,html.bewegt .wandel .platz,html.bewegt .szene.da .ring{animation:none}html.bewegt .wandel .platz{opacity:0}}
+</style>
+</head>
+<body>
+<header class="held">
+ <a class="zurueck" href="sende-pruefer.html">← Zur App</a>
+ <span class="bild-buehne" data-licht><img class="bild-held" src="icons/sende-pruefer-bild-gross.webp" width="1254" height="1254" alt="Ein Brief geht durch ein Schutzschild; aus persönlichen Angaben werden Platzhalter"></span>
+ <h1>Sende-Prüfer · Handbuch</h1>
+ <p class="unter">In <!--ANZAHL--> Szenen durch den ganzen Weg: eine Mail kommt herein, die KI sieht nur Platzhalter, und die Antwort kommt mit den echten Angaben zurück. Alle Bilder sind echte Aufnahmen der App mit einer erfundenen Mail.</p>
+ <div class="wandel" aria-label="Aus einem Namen wird ein Platzhalter">
+  <span class="ding"><span class="echt">Petra Beispiel</span><span class="platz">⟦NAME-1⟧</span></span>
+  <span class="pfeil" aria-hidden="true">·</span>
+  <span class="ding"><span class="echt">1.248,50 EUR</span><span class="platz">⟦BETRAG-1⟧</span></span>
+  <span class="pfeil" aria-hidden="true">·</span>
+  <span class="ding"><span class="echt">DE89 3704 0044</span><span class="platz">⟦IBAN-1⟧</span></span>
+ </div>
+ <div class="knoepfe">
+  <button class="knopf haupt" id="vorfuehren" type="button">▶ Vorführen</button>
+  <a class="knopf" href="sende-pruefer.html">Zur App</a>
+  <a class="knopf" href="LIESMICH.md">Anleitung und Grenzen</a>
+ </div>
+</header>
+
+<div class="rahmen">
+ <nav class="film" aria-label="Szenen"><!--NAV--></nav>
+ <div class="szenen">
+<!--SZENEN-->
+ </div>
+</div>
+
+<footer class="grenzen">
+ <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="LIESMICH.md">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz; „▶ Vorführen“ liest nur mit einer Stimme vor, die auf diesem Gerät liegt.</p>
+</footer>
+
+<div class="buehne" id="buehne" hidden role="status" aria-live="polite">
+ <div class="zeile"><span class="ut" id="ut"></span><button class="knopf" id="stopp" type="button">■ Stopp</button></div>
+ <div class="balken"><i id="fortschritt"></i></div>
+ <div class="stimme" id="stimme"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var ruhig = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var szenen = [].slice.call(document.querySelectorAll(".szene"));
+  var links = [].slice.call(document.querySelectorAll(".film a"));
+  if (!ruhig) document.documentElement.classList.add("bewegt");
+
+  /* Einblenden beim Rollen, und die Szene im Filmstreifen markieren. */
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (e) {
+      e.forEach(function (x) {
+        if (!x.isIntersecting) return;
+        x.target.classList.add("da");
+        links.forEach(function (a) { a.setAttribute("aria-current", String(a.dataset.zu === x.target.dataset.szene)); });
+      });
+    }, { rootMargin: "-35% 0px -45% 0px" });
+    szenen.forEach(function (s) { io.observe(s); });
+  } else szenen.forEach(function (s) { s.classList.add("da"); });
+
+  /* ▶ Vorführen: Szene für Szene, mit Untertitel — vorgelesen nur von einer
+     Stimme, die AUF DEM GERÄT liegt (localService). Eine Netz-Stimme schickte
+     den Text an ihren Anbieter; dann gibt es eben nur den Untertitel. */
+  var buehne = document.getElementById("buehne"), ut = document.getElementById("ut"), balken = document.getElementById("fortschritt"), stimmeZeile = document.getElementById("stimme");
+  var laeuft = false, uhr = null, i = 0;
+  function stimme() {
+    var s = window.speechSynthesis; if (!s) return null;
+    var alle = s.getVoices().filter(function (v) { return v.localService && /^de/i.test(v.lang); });
+    return alle[0] || null;
+  }
+  window.__handbuchStimme = stimme;
+  function stopp() {
+    laeuft = false; clearTimeout(uhr); buehne.hidden = true;
+    szenen.forEach(function (s) { s.classList.remove("aktiv"); });
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_e) {}
+  }
+  function zeige() {
+    if (!laeuft) return;
+    if (i >= szenen.length) { stopp(); return; }
+    var s = szenen[i], text = s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim();
+    szenen.forEach(function (x) { x.classList.toggle("aktiv", x === s); });
+    s.classList.add("da");
+    s.scrollIntoView({ behavior: ruhig ? "auto" : "smooth", block: "start" });
+    ut.textContent = text;
+    balken.style.width = Math.round(((i + 1) / szenen.length) * 100) + "%";
+    var weiter = function () { if (!laeuft) return; i++; uhr = setTimeout(zeige, 700); };
+    var v = stimme();
+    stimmeZeile.textContent = v ? "Vorgelesen von „" + v.name + "“ auf diesem Gerät." : "Keine Stimme auf diesem Gerät — nur Untertitel.";
+    if (v) {
+      var u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang; u.rate = 1;
+      var fertig = false; var ende = function () { if (fertig) return; fertig = true; weiter(); };
+      u.onend = ende; u.onerror = ende;
+      uhr = setTimeout(ende, 4000 + text.length * 90);
+      window.speechSynthesis.speak(u);
+    } else uhr = setTimeout(weiter, Math.max(5000, text.length * 65));
+  }
+  document.getElementById("vorfuehren").addEventListener("click", function () {
+    stopp(); laeuft = true; i = 0; buehne.hidden = false; zeige();
+  });
+  document.getElementById("stopp").addEventListener("click", stopp);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && laeuft) stopp(); });
+  window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, szene: function () { return i; } };
+})();
+</script>
+</body>
+</html>

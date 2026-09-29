@@ -23,6 +23,7 @@ frisch() {
 # fall <name> <datei> <anker> <ersatz> <erwartete rote Zeile (grep -E)>
 fall() {
   local name="$1" datei="$2" anker="$3" ersatz="$4" muster="$5"
+  case "$name" in "${NUR_FALL:-}"*) ;; *) return ;; esac   # NUR_FALL="HB:" fährt nur die Fälle mit diesem Anfang
   frisch
   if ! ANKER="$anker" ERSATZ="$ersatz" python3 - "$KOPIE/w/$datei" <<'PY'
 import os, sys
@@ -69,7 +70,7 @@ fall "die Seite bringt wieder eigene Muster mit" $H \
 fall "die Seite lädt Modul 25 nicht mehr" $H \
   '<script src="modules/25_pseudonym.js"></script>' '' 'lädt Modul 25|Selbsttest'
 fall "Modul 25 fehlt im Offline-Vorrat" sw.js \
-  ', "modules/25_pseudonym.js"]' ']' 'Offline-Vorrat'
+  ' "modules/25_pseudonym.js",' '' 'Modul 25 steht im Offline-Vorrat'
 fall "ohne Modul 25 bleibt der Hinweis verborgen" $H \
   'if (!P) $("modul-fehlt").hidden = false;' '' 'Hinweis sichtbar'
 fall "ohne Modul 25 fällt der erste Riegel weg (Kopieren und Senden)" $H \
@@ -152,6 +153,95 @@ fall "die Namen aus dem Beispiel kleben zusammen" $H \
   'value: String(m.namenExtra || "").replace(/\s*\n\s*/g, ", "),' 'value: m.namenExtra || "",' 'Weitere Namen'
 fall "eine eingefügte Mail wird nicht entschlüsselt (Quoted-Printable)" $H \
   'cte === "quoted-printable" ? dekodBytes(vonQP(rumpf), cs) : rumpf' 'cte === "quoted-printable" ? rumpf : rumpf' 'entschlüsselt'
+
+# Abschirmung (2026-09-29)
+A=assets/abschirmung.js
+fall "ein eingelegtes iframe wird nicht mehr erkannt" $A \
+  'if (tag === "iframe") fund(' 'if (false) fund(' 'iframe wird erkannt'
+fall "ein fremdes Element wird nicht mehr erkannt" $A \
+  'else if (tag.indexOf("-") > 0) fund(' 'else if (false) fund(' 'fremdes Element wird erkannt'
+fall "Marken an vorhandenen Elementen werden nicht mehr beobachtet" $A \
+  'if (SPUREN[m.attributeName]) pruefe(m.target); return;' 'return;' 'VORHANDENEN Element'
+fall "die KI-Schreibhilfe des Browsers bleibt an" $A \
+  ' writingsuggestions: "false",' '' 'Klick schirmt ab'
+fall "Felder, die danach entstehen, werden nicht abgeschirmt" $A \
+  '        if (an) felder(n).forEach(schirme);' '' 'DANACH entsteht'
+fall "die Wahl wird nicht gespeichert" $A \
+  'an = !!v; schreib(an);' 'an = !!v;' 'Neuladen'
+fall "der zweite Klick stellt die alten Werte nicht her" $A \
+  'if (vorher) for (var a in vorher) { if (vorher[a] === null) feld.removeAttribute(a); else feld.setAttribute(a, vorher[a]); }' '' 'alten Werte'
+fall "die Lampe erfährt nichts vom Fund" $A \
+  'try { g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'try { if (0) g.dispatchEvent(new CustomEvent("sbkim:fremd-alert"' 'Lampe'
+G=assets/sbkim-init.js
+fall "die FREMD-Lampe hört der Abschirmung nicht mehr zu" $G \
+  '    window.addEventListener("sbkim:fremd-alert", function () { lampe("lamp-fremd", "bad"); });' '' 'schon beim Laden'
+fall "die Membran erlaubt eine fremde Herkunft" $G \
+  '    allowedOrigins: []' '    allowedOrigins: ["*"]' 'fremde Herkunft'
+fall "Modul 16 wird hier abgewandelt" modules/16_siegel.js \
+  '"use strict";' '"use strict"; ' '16_siegel.js ist unverändert'
+fall "ein Modul fehlt in der Kette" $G \
+  '    ["",       "modules/07_apoptose.js"],
+' '' 'alle 13 Pflicht-Module'
+fall "05b läuft als klassisches Skript" $G \
+  '["module", "modules/05b_nostr_relay.js"]' '["", "modules/05b_nostr_relay.js"]' 'ES-Modul'
+fall "ein Komma in der Kette fehlt" $G \
+  '    ["",       "modules/04_match.js"],' '    ["",       "modules/04_match.js"]' 'Komma'
+fall "die Schublade fehlt im Kopf" $H \
+  '<script>window.SBKIM_DB_SUFFIX = "sendepruefer";</script>' '' 'Schublade'
+fall "das Siegel hängt nicht mehr in der Kopfleiste" $G \
+  'badgeSelector: "#siegel-platz"' 'badgeSelector: "#nirgends"' 'Siegel'
+fall "das Siegel bekommt keine Maße (0 px)" $H \
+  '#sbkim-siegel-badge{width:28px;height:28px;' '#sbkim-siegel-badge{' '28'
+fall "die Mycel-Blase hat keinen Platz mehr" $H \
+  '<span class="mycel-platz" data-sbkim-mycel-platz></span>' '<span class="mycel-platz"></span>' 'angedockt'
+fall "am Handy steht wieder alles ausgeklappt" $H \
+  ' .netz-mehr{display:none;position:absolute;' ' .netz-mehr{position:absolute;' 'zugeklappt'
+fall "der Lampen-Knopf klappt nicht auf" $G \
+  '    knopf.addEventListener("click", function () { setze(leiste.getAttribute("data-offen") !== "1"); });' '' 'klappt Siegel'
+fall "ein Tipp daneben klappt nicht zu" $G \
+  '      setze(false);
+    });' '    });' 'daneben'
+fall "die Lampen-Namen stehen aufgeklappt im Knopf (die Leiste läuft über)" $H \
+  '.lampen-legende{display:none}' '.lampen-legende{display:none} .netzleiste[data-offen="1"] .lamp-t{display:inline}' 'sprengen'
+fall "das Suchfeld ist wieder höher als die Knöpfe" $H \
+  'max-width:560px;height:40px;box-sizing:border-box;' 'max-width:560px;' 'gleich hoch'
+fall "die Kopfleiste läuft am Handy wieder über" $H \
+  ' header.kopf{gap:6px;padding:10px 12px}
+ .kopf .rund{min-width:36px;height:36px;padding:0 8px}' '' 'Suchfeld|über den Rand'
+fall "der Knoten ruft beim Laden schon ins Netz" $G \
+  '      geraetenameFeldEinhaengen();' '      geraetenameFeldEinhaengen(); try { fetch("https://relay.family-projekt.de/ping").catch(() => {}); } catch (_e) {}' 'kein Aufruf nach draußen|keine einzige Anfrage'
+fall "die Grenze der Abschirmung verschwindet aus dem Menü" $H \
+  'eine Erweiterung kann das Signal übergehen, und Programme auf dem Gerät' 'Programme' 'Grenzen stehen im Menü'
+
+# ── Handbuch, Icons, großes Bild (Klaus 2026-09-29) ──
+HB=handbuch.html
+T=tools/handbuch-szenen.mjs
+fall "HB: das ? in der Kopfleiste führt nicht mehr zum Handbuch" $H \
+  '<a class="rund" id="hilfe" href="handbuch.html"' '<a class="rund" id="hilfe" href="#"' 'führt zum Handbuch|öffnet das Handbuch'
+fall "HB: eine Szene ändert sich, das Handbuch wird nicht neu gebaut" $T \
+  'Das ist Ihr Postfach im Browser.' 'Das ist Ihr Postfach.' 'veraltet'
+fall "HB: ein Bild des Handbuchs fehlt" $HB \
+  'src="handbuch/01-postfach.jpg"' 'src="handbuch/01-weg.jpg"' 'Bild liegt da|Bild des Handbuchs lädt'
+fall "HB: Vorführen nimmt auch eine Netz-Stimme" $HB \
+  'return v.localService && /^de/i.test(v.lang);' 'return /^de/i.test(v.lang);' 'localService|Netz-Stimme'
+fall "HB: ohne Skript bleiben die Szenen blass" $HB \
+  'html.bewegt .szene{opacity:.25;' '.szene{opacity:.25;' 'OHNE Skript|ohne Skript'
+fall "HB: Stopp hält die Vorführung nicht an" $HB \
+  '  document.getElementById("stopp").addEventListener("click", stopp);' '' 'Stopp'
+fall "HB: der Lichtkegel wird im Schild nicht größer" $H \
+  '50%{transform:translateX(70%) scale(1.7)' '50%{transform:translateX(70%) scale(1)' 'Lichtkegel'
+fall "HB: der Lichtkegel läuft auch bei weniger Bewegung" $H \
+  '@media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}' '' 'weniger Bewegung'
+fall "HB: das Bild fliegt nicht mehr in die Kopfleiste" $H \
+  '  if (von) requestAnimationFrame(() => fliegen(von));' '' 'fliegt das Bild'
+fall "HB: es fliegt auch bei weniger Bewegung" $H \
+  ' || matchMedia("(prefers-reduced-motion: reduce)").matches) return;' ') return;' 'fliegt nichts'
+fall "HB: das große Bild verschwindet aus dem leeren Raum" $H \
+  'el("span", { class: "bild-buehne", "data-licht": "" },' 'el("span", { class: "bild-buehne" },' 'große Bild'
+fall "HB: ein Icon im Manifest fehlt" manifest.json \
+  '"icons/maskable-512.png"' '"icons/fehlt.png"' 'Manifest'
+fall "HB: am kleinen Handy steht der Thema-Knopf wieder in der Kopfleiste" $H \
+  ' #thema{display:none}}' '}' 'über den Rand|Suchfeld'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

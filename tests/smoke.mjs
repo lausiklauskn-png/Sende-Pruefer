@@ -71,14 +71,88 @@ ok("die Seite lädt Modul 25 vor ihrem eigenen Skript",
   html.indexOf('<script src="' + MODUL25 + '">') > -1 && html.indexOf('<script src="' + MODUL25 + '">') < html.indexOf("<script>\n"));
 ok("die Seite trägt keine eigenen Erkennungs-Muster mehr (keine zweite Fassung)",
   !/const (?:SCHLUESSEL_MUSTER|IBAN_FORM|BETRAG|TELEFON|BELEG_FREI|MAIL) =/.test(html));
+
+/* ── der SBKIM-Knoten: 13 Module + Wizard, byte-1:1 aus Sage (seit 2026-09-29) ──
+   Klaus: „das komplette Siegel einbauen … oben in der Navi-Leiste verankert".
+   Wer ein Modul in Sage ändert, kopiert es neu und zieht den Pin nach. */
+const KNOTEN_PINS = {
+  "01_storage.js": "5a5a4bf64dfcc107da7ed70fb755d7db5cce7d80e963b3e2fbc2004537747820",
+  "02_spore.js": "6789fe6e903ad2e53f39b2dee576c640698555ef71ef4e9134eb75573fdb7d68",
+  "03_embedding.js": "e4bb8bd6a237914e7841cab5165912daf636adf0ee90c5d4ffd0c74cc5d706e5",
+  "04_match.js": "5de95923c3f62f141e94f576feebcac0eecc55c60e40b564540a56420436a4cd",
+  "05_anastomose.js": "255ac79aeb3b0203e92f0cebd0a905e47c488b43efe18f41332a7d35520bbf23",
+  "05b_nostr_relay.js": "030aa2d260149f5627b84694a0b55e916cc186158009e260117d1e4f60d429bd",
+  "07_apoptose.js": "0acdd6ab2d95e131fa6953061cc0e95a2396e05fff091a7dc690b2668a4c035a",
+  "15_membran.js": "829a5bc01976b59c5ce428125314b87b314b6212cd5a473634c2d22c02579397",
+  "16_siegel.js": "d84fa539e76e0cc54c956b648fcb1505f08843662d97854dc1a95e6ab65b7e25",
+  "16b_andock_wizard.js": "c415eafdb1b660a5256e19957c667074b64b0c3990cc8acc4daeeef34a57e85d",
+  "23_rendezvous.js": "3caa0bb1fbe7bf5293c90b6a59a74cccf8600bff45095a892b1f048244c61fcf",
+  "23_rendezvous_ui.js": "f6c44607a797a4acc34bf5eafa4d72dba0af890701d587394afed1accf9833eb",
+  "noble-secp256k1.js": "8f3879ca422c4fdfe7ca0361688636fa7cc550a59bd94d512ed6ec79aa3d55d1",
+};
+for (const [datei, sha] of Object.entries(KNOTEN_PINS)) {
+  const b = (() => { try { return readFileSync(join(WURZEL, "modules", datei)); } catch { return null; } })();
+  ok("modules/" + datei + " ist unverändert (SHA-256 gepinnt)", !!b && createHash("sha256").update(b).digest("hex") === sha);
+  const neben = join(WURZEL, "..", "Sage-Protokol", "src", "modules", datei);
+  if (existsSync(neben)) ok("… und byte-gleich mit Sage-Protokol daneben", !!b && readFileSync(neben).equals(b));
+}
+ok("Modul 17 (das fliegende Widget) liegt NICHT mehr bei — die Leiste steht fest im Kopf",
+  !existsSync(join(WURZEL, "modules", "17_floating_widget.js")) && !/17_floating_widget/.test(html + readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8")));
+const glue = readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8");
+const kette = [...((glue.match(/var KANON = \[([\s\S]*?)\];/) || [])[1] || "").matchAll(/"((?:modules|assets)\/[^"]+)"/g)].map((m) => m[1]);
+const soll = ["01_storage", "02_spore", "03_embedding", "04_match", "05_anastomose", "07_apoptose", "15_membran", "16_siegel", "05b_nostr_relay", "23_rendezvous", "23_rendezvous_ui", "siegel-inhalt", "16b_andock_wizard"];
+ok("die Kette nennt alle 13 Pflicht-Module und den Wizard, in kanonischer Reihenfolge",
+  kette.length === soll.length && soll.every((n, i) => kette[i].includes(n + ".js")), kette.join(" "));
+ok("05b läuft als ES-Modul (sonst leuchtet das Siegel, während der Raum tot ist)", /\["module",\s*"modules\/05b_nostr_relay\.js"\]/.test(glue));
+ok("zwischen den Gliedern der Kette steht jedes Komma (sonst ist [..] [..] ein Index-Zugriff)",
+  !/\]\s*\n\s*\[/.test((glue.match(/var KANON = \[([\s\S]*?)\];/) || [])[1] || ""));
+const kopfTeil = html.split("</head>")[0];
+ok("die eigene Schublade sendepruefer steht im <head> (Modul 01 liest sie beim Laden)",
+  /<script>window\.SBKIM_DB_SUFFIX = "sendepruefer";<\/script>/.test(kopfTeil) && /dbSuffix: "sendepruefer"/.test(glue));
+ok("die Membran erlaubt keine fremde Herkunft (allowedOrigins leer)", /allowedOrigins: \[\]/.test(glue));
+ok("das Siegel hängt am festen Platz in der Kopfleiste und trägt ein Band", /badgeSelector: "#siegel-platz"/.test(glue) && /ribbonText: "SENDE-PRÜFER"/.test(glue));
+const wizInhalt = readFileSync(join(WURZEL, "assets", "siegel-inhalt.js"), "utf8");
+const beschreibung = (wizInhalt.match(/domainDescription: "([^"]*)"/) || [])[1] || "";
+ok("die Bedeutungs-Beschreibung beginnt mit dem eigenen Namen", /^Der Sende-Prüfer /.test(beschreibung));
+ok("… nennt Zweck, SBKIM-Protokoll, Sage-Protokol und dass er ein Knoten ist",
+  /ZWECK/.test(beschreibung) && /SBKIM-Protokoll/.test(beschreibung) && /Sage-Protokol/.test(beschreibung) && /Knoten/.test(beschreibung));
+ok("… und sagt, was er NICHT ist (kein Virenscanner)", /kein Virenscanner/.test(beschreibung));
 const manifest = JSON.parse(readFileSync(join(WURZEL, "manifest.json"), "utf8"));
 ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · Schließen (display: standalone)",
   manifest.display === "standalone" && !manifest.display_override);
 ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
+/* ── Handbuch (Klaus 2026-09-29): gebaut aus der echten App, Szene für Szene ── */
+const hb = existsSync(join(WURZEL, "handbuch.html")) ? readFileSync(join(WURZEL, "handbuch.html"), "utf8") : "";
+const hbJson = existsSync(join(WURZEL, "handbuch", "szenen.json")) ? JSON.parse(readFileSync(join(WURZEL, "handbuch", "szenen.json"), "utf8")).szenen : [];
+const { SZENEN } = await import(new URL("../tools/handbuch-szenen.mjs", import.meta.url));
+ok("oben in der Kopfleiste steht ? und führt zum Handbuch",
+  /<a class="rund" id="hilfe" href="handbuch\.html"[^>]*>\?<\/a>/.test(html.split("</header>")[0]));
+ok("das Handbuch ist gebaut und trägt jede Szene der Liste (sonst ist es veraltet: node tools/handbuch-bauen.mjs)",
+  SZENEN.length >= 8 && hbJson.length === SZENEN.length && SZENEN.every((z) => hb.includes('data-szene="' + z.id + '"') && hb.includes(z.sprech.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"))),
+  SZENEN.length + " / " + hbJson.length);
+ok("… jedes Bild liegt da, und jede Szene hat einen Sprechtext fürs Video",
+  hbJson.length > 0 && hbJson.every((z) => existsSync(join(WURZEL, z.bild)) && hb.includes('src="' + z.bild + '"') && z.sprech.length > 30));
+ok("… jeder Leuchtring liegt im Bild", hbJson.length > 0 && hbJson.every((z) => z.ring.w > 0 && z.ring.h > 0 && z.ring.x + z.ring.w <= 100.1 && z.ring.y + z.ring.h <= 100.1),
+  JSON.stringify(hbJson.map((z) => z.ring)));
+ok("… holt nichts aus dem Netz (keine fremde Adresse in src oder href)", hb.length > 0 && !/(?:src|href)="https?:/i.test(hb));
+ok("… und liest nur mit einer Stimme auf dem Gerät vor (localService)", /v\.localService/.test(hb));
+/* ── Icons und das große Bild (Klaus 2026-09-29) ── */
+const mIcons = (manifest.icons || []);
+ok("das Manifest nennt 192, 512 und ein maskierbares Icon, und alle Dateien liegen da",
+  ["192x192", "512x512"].every((g) => mIcons.some((i) => i.sizes === g && i.purpose === "any")) && mIcons.some((i) => i.purpose === "maskable")
+  && mIcons.every((i) => existsSync(join(WURZEL, i.src))), JSON.stringify(mIcons));
+ok("Favicon und Apple-Icon stehen im Kopf der Seite und liegen da",
+  /<link rel="icon" href="icons\/favicon-32\.png"/.test(kopfTeil) && /<link rel="apple-touch-icon" href="icons\/apple-touch-icon\.png">/.test(kopfTeil)
+  && ["favicon-32.png", "favicon-48.png", "apple-touch-icon.png", "marke-72.png", "sende-pruefer-bild.webp", "sende-pruefer-bild-gross.webp"].every((f) => existsSync(join(WURZEL, "icons", f))));
+ok("der Lichtkegel wird im Schild größer (Lichtbrechung) und danach wieder klein",
+  /50%\{transform:translateX\(70%\) scale\(1\.7\)/.test(html) && /64%\{transform:translateX\(105%\) scale\(1\)\}/.test(html) && /36%\{transform:translateX\(35%\) scale\(1\)\}/.test(html));
+ok("… und steht bei „weniger Bewegung“ still", /prefers-reduced-motion:reduce\)\{\.bild-buehne::after,\.bild-buehne::before\{animation:none/.test(html));
+ok("das Handbuch steht im Offline-Vorrat", /"handbuch\.html"/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
+
 /* ── Server auf Port 0 — ein fester Port kollidiert mit einem zweiten Lauf ─ */
 const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
-  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml" };
+  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 const server = http.createServer((q, a) => {
   const p = decodeURIComponent(new URL(q.url, "http://x").pathname).replace(/^\/+/, "") || "index.html";
   try { const b = readFileSync(join(WURZEL, p)); a.writeHead(200, { "content-type": TYP[extname(p)] || "application/octet-stream" }); a.end(b); }
@@ -121,7 +195,9 @@ try {
   await page.waitForFunction(() => location.pathname.endsWith("sende-pruefer.html"));
   await bereit(page);
   ok("index.html leitet auf die Seite weiter", page.url().endsWith("sende-pruefer.html"));
-  ok("beim Laden geht kein Aufruf nach draußen", draussen.length === 0, draussen.map((d) => d.url).join(", "));
+  await page.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(300);
+  ok("beim Laden geht kein Aufruf nach draußen, auch nicht, wenn der Knoten gestartet ist", draussen.length === 0, draussen.map((d) => d.url).join(", "));
 
   /* ── das Postfach: Ordner, Beispiele beim ersten Öffnen ─────────────── */
   const ordner = await page.evaluate(() => [...document.querySelectorAll("#ordnerliste [data-ordner]")].map((e) => e.dataset.ordner));
@@ -497,6 +573,191 @@ try {
   await kaputt.click("#senden");
   ok("versagt das Verdecken, wird NICHT gesendet", /gefundenen Wert/.test(await kaputt.textContent("#sende-meldung")) && kaputtRaus.length === 0);
   await kaputtCtx.close();
+
+  /* ── Abschirmung: Fremdes erkennen, mit einem Klick abschirmen (2026-09-29) ─ */
+  const abCtx = await browser.newContext({ serviceWorkers: "block" });
+  const ab = await abCtx.newPage();
+  await ab.goto(BASIS + "sende-pruefer.html");
+  const abRaus = [];
+  ab.on("request", (r) => { if (!r.url().startsWith(BASIS.slice(0, -1))) abRaus.push(r.url()); });
+  await bereit(ab);
+  await ab.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
+  await ab.waitForTimeout(600);
+  const kn = await ab.evaluate(() => ({
+    fehlt: ["SbkimStorage", "SbkimSpore", "SbkimEmbedding", "SbkimMatch", "SbkimAnastomose", "SbkimNostrRelay", "SbkimApoptose", "SbkimMembrane", "SbkimSiegel", "SbkimRendezvous", "SbkimRendezvousUI"].filter((k) => !window[k]),
+    widget: !!document.getElementById("sbkim-widget"),
+    lebt: document.getElementById("lamp-alive").classList.contains("on") }));
+  ok("alle 11 Module des Knotens sind geladen (die Kette ist durchgelaufen)", kn.fehlt.length === 0, kn.fehlt.join(" "));
+  ok("… kein fliegendes Widget in der Seite", kn.widget === false);
+  ok("… und die Lampe „lebt“ leuchtet (eigene Identität geladen)", kn.lebt);
+  ok("beim Laden geht keine einzige Anfrage nach draußen (auch nicht vom Knoten)", abRaus.length === 0, abRaus.slice(0, 3).join(" "));
+  ok("ohne Fremdes: kein Fund, kein Banner", await ab.evaluate(() => SendeAbschirmung.funde().length === 0 && document.getElementById("fremd-banner").hidden));
+  ok("… und die FREMD-Lampe ist aus", await ab.evaluate(() => !document.getElementById("lamp-fremd").classList.contains("bad")));
+  await ab.evaluate(() => document.body.append(document.createElement("grammarly-desktop-integration")));
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 0).catch(() => {});
+  ok("ein fremdes Element wird erkannt und beim Namen genannt",
+    /grammarly-desktop-integration/.test(await ab.textContent("#fremd-banner-text")) && !(await ab.evaluate(() => document.getElementById("fremd-banner").hidden)));
+  ok("… die FREMD-Lampe in der Kopfleiste leuchtet rot", await ab.evaluate(() => document.getElementById("lamp-fremd").classList.contains("bad")
+    && document.querySelector('[data-lampe-kopie="lamp-fremd"]').classList.contains("bad")));
+  ok("… und der Schild-Knopf zeigt die Zahl", (await ab.textContent("#schild-zahl")).trim() === "1");
+  await ab.evaluate(() => { const f = document.createElement("iframe"); f.style.display = "none"; document.body.append(f); });
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 1).catch(() => {});
+  ok("ein eingelegtes iframe wird erkannt", await ab.evaluate(() => SendeAbschirmung.funde().some((f) => /iframe/.test(f.was))));
+  await ab.evaluate(() => document.body.setAttribute("data-lt-tmp-id", "x"));
+  await ab.waitForFunction(() => SendeAbschirmung.funde().length > 2).catch(() => {});
+  ok("eine Marke an einem VORHANDENEN Element wird erkannt (LanguageTool)", await ab.evaluate(() => SendeAbschirmung.funde().some((f) => /LanguageTool/.test(f.was))));
+  await ab.click("#schild");
+  const zu = await ab.evaluate(() => { const t = document.getElementById("einfuegen-text");
+    return { an: document.getElementById("schild").dataset.an, ws: t.getAttribute("writingsuggestions"), g: t.getAttribute("data-gramm"),
+      ac: t.getAttribute("autocorrect"), banner: document.getElementById("fremd-banner").hidden, n: SendeAbschirmung.funde().length }; });
+  ok("ein Klick schirmt ab: KI-Schreibhilfe, Grammarly-Marke, Autokorrektur aus",
+    zu.an === "1" && zu.ws === "false" && zu.g === "false" && zu.ac === "off", JSON.stringify(zu));
+  ok("… das Banner geht weg, der Befund bleibt gezählt", zu.banner === true && zu.n === 3);
+  ok("… die eigenen Marken melden sich nicht selbst als Fund", zu.n === 3);
+  await verfassen(ab);
+  ok("ein Feld, das DANACH entsteht, ist auch abgeschirmt", await ab.evaluate(() => document.getElementById("text").getAttribute("writingsuggestions") === "false"));
+  await ab.reload(); await bereit(ab);
+  ok("die Wahl übersteht das Neuladen", await ab.evaluate(() => SendeAbschirmung.an() && document.getElementById("einfuegen-text").getAttribute("writingsuggestions") === "false"));
+  await ab.click("#schild");
+  const auf = await ab.evaluate(() => { const t = document.getElementById("einfuegen-text");
+    return { ws: t.getAttribute("writingsuggestions"), sp: t.getAttribute("spellcheck"), g: t.hasAttribute("data-gramm") }; });
+  ok("der zweite Klick stellt die alten Werte wieder her (auch das spellcheck, das schon vorher aus war)",
+    auf.ws === null && auf.sp === "false" && auf.g === false, JSON.stringify(auf));
+  ok("die Grenzen stehen im Menü (Erweiterungen dürfen es übergehen, Programme auf dem Gerät sieht keine Webseite)",
+    /übergehen/.test(html.split("data-abschirm-grenze")[1] || "") && /Gerät/.test(html.split("data-abschirm-grenze")[1] || ""));
+  await abCtx.close();
+  /* Ein Fund VOR dem Start des Knotens muss die Lampe trotzdem zünden. */
+  const frCtx = await browser.newContext({ serviceWorkers: "block" });
+  const fr = await frCtx.newPage();
+  await fr.addInitScript(() => document.addEventListener("DOMContentLoaded", () => document.documentElement.setAttribute("data-gr-ext-installed", "")));
+  await fr.goto(BASIS + "sende-pruefer.html");
+  await bereit(fr);
+  await fr.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
+  ok("ein Fund schon beim Laden zündet die FREMD-Lampe, auch wenn der Knoten erst danach startet",
+    await fr.evaluate(() => SendeAbschirmung.funde().length === 1 && document.getElementById("lamp-fremd").classList.contains("bad")));
+  await frCtx.close();
+
+} catch (e) {
+  rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
+}
+/* Ein Stolpern vorn darf die Prüfungen dahinter nicht mitnehmen: Handbuch und
+   Netz-Leiste laufen in einem eigenen Block (Gegenprobe 2026-09-29 — ein
+   aufgeklapptes Menü verdeckte die Seite, und die Leisten-Wächter liefen nie). */
+try {
+  const bereit = (p) => p.waitForFunction(() => window.SendePruefer && window.SendePruefer.bereit === true);
+  /* ── das große Bild im leeren Raum, und sein Flug in die Kopfleiste ── */
+  for (const ruhig of [false, true]) {
+    const bCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1280, height: 800 }, reducedMotion: ruhig ? "reduce" : "no-preference" });
+    const b = await bCtx.newPage(); await b.goto(BASIS + "sende-pruefer.html"); await bereit(b);
+    const leer = await b.evaluate(async () => { const i = document.querySelector(".bild-buehne[data-licht] .leer-bild"); if (!i) return null;
+      try { await i.decode(); } catch (_e) {} return { sicht: i.checkVisibility(), w: i.naturalWidth, marke: document.querySelector(".marke-bild").checkVisibility() }; });
+    if (!ruhig) {
+      ok("ohne gewählte Mail steht das große Bild im Lesebereich, mit Lichtkegel", !!leer && leer.sicht && leer.w > 0, JSON.stringify(leer));
+      ok("… und oben steht es klein als Marke neben dem Namen", !!leer && leer.marke);
+    }
+    await b.click("#liste .zeile");
+    const flug = await b.waitForSelector("[data-flug]", { timeout: 1500 }).then(() => true, () => false);
+    if (!ruhig) {
+      ok("öffnet man eine Mail, fliegt das Bild in die Kopfleiste", flug);
+      ok("… und ist danach wieder weg (kein Rest über der Seite)", await b.waitForSelector("[data-flug]", { state: "detached", timeout: 3000 }).then(() => true, () => false));
+    } else ok("bei „weniger Bewegung“ fliegt nichts", !flug);
+    await bCtx.close();
+  }
+
+  /* ── das Handbuch im echten Browser ─────────────────────────────────── */
+  for (const [breite, mitJs] of [[1280, true], [380, true], [380, false]]) {
+    const hCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: breite, height: 800 }, javaScriptEnabled: mitJs });
+    const h = await hCtx.newPage();
+    const hDraussen = []; await h.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => { hDraussen.push(r.request().url()); r.abort(); });
+    if (mitJs) await h.addInitScript(() => {
+      window.__gesprochen = [];
+      const stimmen = [{ name: "Netz-Stimme", lang: "de-DE", localService: false }];
+      /* speechSynthesis ist ein Getter ohne Setter — eine Zuweisung liefe still ins Leere,
+         und die Probe mäße die echte (leere) Stimmenliste des Browsers. */
+      Object.defineProperty(window, "speechSynthesis", { configurable: true, value: { getVoices: () => stimmen, speak: (u) => { window.__gesprochen.push(u.voice && u.voice.name); setTimeout(() => u.onend && u.onend(), 30); }, cancel: () => {} } });
+      window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+      window.__stimmen = stimmen;
+    });
+    await h.goto(BASIS + "handbuch.html", { waitUntil: "load" });
+    const was = mitJs ? " (mit Skript)" : " (OHNE Skript)";
+    const hb2 = await h.evaluate(async () => { const imgs = [...document.querySelectorAll(".szene img")];
+      for (const i of imgs) { i.loading = "eager"; i.scrollIntoView(); try { await i.decode(); } catch (_e) {} }
+      window.scrollTo(0, 0);
+      return { n: imgs.length, geladen: imgs.filter((i) => i.naturalWidth > 0).length, ueber: document.documentElement.scrollWidth - document.documentElement.clientWidth }; });
+    ok(breite + " px" + was + ": jedes Bild des Handbuchs lädt", hb2.n >= 8 && hb2.geladen === hb2.n, JSON.stringify(hb2));
+    ok(breite + " px" + was + ": … nichts läuft quer über den Rand", hb2.ueber <= 0, hb2.ueber);
+    ok(breite + " px" + was + ": … kein Aufruf nach draußen", hDraussen.length === 0, hDraussen.join(", "));
+    if (!mitJs) {
+      const blass = await h.evaluate(() => [...document.querySelectorAll(".szene")].filter((x) => getComputedStyle(x).opacity !== "1").length);
+      ok("ohne Skript steht jede Szene voll da (nichts wartet auf ein Einblenden)", blass === 0, blass);
+    } else if (breite === 1280) {
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => /Keine Stimme|Vorgelesen/.test(document.getElementById("stimme").textContent));
+      ok("▶ Vorführen zeigt die Untertitel-Leiste mit dem Sprechtext der ersten Szene",
+        await h.evaluate(() => !document.getElementById("buehne").hidden && document.getElementById("ut").textContent.length > 30 && document.querySelector(".szene.aktiv") === document.querySelector(".szene")));
+      ok("… eine Netz-Stimme liest NICHT vor — dann gibt es nur Untertitel",
+        await h.evaluate(() => window.speechSynthesis.getVoices() === window.__stimmen && window.__gesprochen.length === 0 && /Keine Stimme/.test(document.getElementById("stimme").textContent)));
+      await h.click("#stopp");
+      ok("■ Stopp beendet die Vorführung", await h.evaluate(() => document.getElementById("buehne").hidden && !window.__handbuch.laeuft()));
+      await h.evaluate(() => window.__stimmen.push({ name: "Geräte-Stimme", lang: "de-DE", localService: true }));
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => window.__gesprochen.length >= 1);
+      ok("… eine Stimme auf dem Gerät liest den Sprechtext vor", await h.evaluate(() => window.__gesprochen[0] === "Geräte-Stimme"));
+      await h.keyboard.press("Escape");
+      ok("… Esc beendet sie ebenfalls", await h.evaluate(() => !window.__handbuch.laeuft()));
+    }
+    await hCtx.close();
+  }
+  {
+    const qCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true });
+    const q = await qCtx.newPage(); await q.goto(BASIS + "sende-pruefer.html"); await bereit(q);
+    await q.click("#hilfe"); await q.waitForURL(/handbuch\.html$/);
+    ok("320 px: ein Tipp auf ? öffnet das Handbuch", q.url().endsWith("handbuch.html"));
+    await qCtx.close();
+  }
+
+  /* ── die Netz-Leiste: fest im Kopf, am Handy nur die Lampen (Klaus 2026-09-29) ── */
+  const sichtbarIn = (p, sel) => p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null;
+    const r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), sicht: e.checkVisibility() }; }, sel);
+  for (const [breite, handy] of [[1280, false], [380, true], [320, true]]) {
+    const nCtx = await browser.newContext({ serviceWorkers: "block", viewport: { width: breite, height: 800 }, hasTouch: handy, isMobile: handy });
+    const n = await nCtx.newPage();
+    await n.goto(BASIS + "sende-pruefer.html");
+    await bereit(n);
+    await n.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
+    await n.waitForTimeout(500);
+    const lage = await n.evaluate(() => { const k = document.querySelector("header.kopf"), l = document.getElementById("netzleiste");
+      return { ueber: k.scrollWidth - k.clientWidth, inKopf: k.contains(l), suche: Math.round(document.querySelector(".suche").getBoundingClientRect().width),
+        blase: !!document.querySelector("[data-sbkim-mycel-platz] [data-sbkim-angedockt]") }; });
+    ok(breite + " px: die Netz-Leiste steht IN der Kopfleiste, und nichts läuft über den Rand", lage.inKopf && lage.ueber === 0, JSON.stringify(lage));
+    ok(breite + " px: … das Suchfeld behält mindestens 60 px", lage.suche >= 60, lage.suche);
+    ok(breite + " px: … das ? zum Handbuch steht sichtbar in der Kopfleiste", (await sichtbarIn(n, "#hilfe") || {}).sicht === true);
+    const hoehen = await n.evaluate(() => [...document.querySelectorAll("#lampen, header.kopf > .suche, header.kopf > .rund")].filter((e) => e.checkVisibility()).map((e) => (e.id || e.className) + ":" + Math.round(e.getBoundingClientRect().height)));
+    ok(breite + " px: … Lampen, Suchfeld und Knöpfe sind gleich hoch (Klaus: nicht abgehackt)", hoehen.length >= 5 && new Set(hoehen.map((h) => h.split(":")[1])).size === 1, JSON.stringify(hoehen));
+    ok(breite + " px: … die Mycel-Blase ist in ihrem Platz angedockt, nicht fliegend", lage.blase);
+    const badge = await sichtbarIn(n, "#sbkim-siegel-badge");
+    if (!handy) {
+      ok(breite + " px: das Siegel steht ohne Klick sichtbar in der Leiste (28×28)", !!badge && badge.sicht && badge.w === 28 && badge.h === 28, JSON.stringify(badge));
+      ok(breite + " px: … und die Lampen tragen ihre Namen", (await sichtbarIn(n, "#lamp-fremd .lamp-t")).sicht === true);
+    } else {
+      ok(breite + " px: zugeklappt stehen nur die Lampen — Siegel und Namen sind weg",
+        !!badge && !badge.sicht && (await sichtbarIn(n, "#lamp-fremd .lamp-t")).sicht === false, JSON.stringify(badge));
+      await n.click("#lampen");
+      const offen = await sichtbarIn(n, "#sbkim-siegel-badge");
+      const leg = await n.evaluate(() => [...document.querySelectorAll("[data-lampe-kopie]")].map((e) => e.checkVisibility() ? e.textContent : ""));
+      const nachher = await n.evaluate(() => { const k = document.querySelector("header.kopf"); return k.scrollWidth - k.clientWidth; });
+      ok(breite + " px: ein Tipp auf die Lampen klappt Siegel und Namen auf", !!offen && offen.sicht && offen.w === 28 && leg.join("|") === "lebt|verkehr|fremd", JSON.stringify({ offen, leg }));
+      ok(breite + " px: … ohne die Kopfleiste zu sprengen", nachher === 0, nachher);
+      ok(breite + " px: … und sagt es auch dem Vorleser (aria-expanded)", (await n.getAttribute("#lampen", "aria-expanded")) === "true");
+      await n.mouse.click(breite / 2, 600);
+      ok(breite + " px: ein Tipp daneben klappt wieder zu", (await sichtbarIn(n, "#sbkim-siegel-badge")).sicht === false);
+      const frei = await n.evaluate(() => [...document.querySelectorAll("#bottomnav button, #fab")].filter((k) => k.checkVisibility()).map((k) => {
+        const r = k.getBoundingClientRect(); const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!t && k.contains(t); }));
+      ok(breite + " px: nichts verdeckt die Ordner-Leiste unten oder den ✏️-Knopf", frei.length >= 4 && frei.every(Boolean), JSON.stringify(frei));
+    }
+    await nCtx.close();
+  }
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {
