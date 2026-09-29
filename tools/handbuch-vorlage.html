@@ -22,12 +22,16 @@ code{font:600 .92em ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--gold
 .bild-held{display:block;height:auto}
 .bild-buehne{position:relative;display:block;width:min(640px,90vw);margin:0 auto 10px;filter:drop-shadow(0 30px 60px rgb(0 0 0/.55));border-radius:17%;overflow:hidden;isolation:isolate}
 .bild-buehne .leer-bild,.bild-buehne .bild-held{width:100%;margin:0}
-/* ein weißer Lichtkegel läuft von links nach rechts durch die Mitte, wo der Brief das Schild durchquert */
-.bild-buehne::after{content:"";position:absolute;top:22%;left:0;width:42%;height:52%;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.75),rgb(255 255 255/.28) 45%,rgb(143 228 234/.12) 70%,transparent);transform:translateX(-110%);animation:kegel 6.5s ease-in-out infinite}
-/* … und das Schild leuchtet auf, wenn der Kegel es trifft */
-.bild-buehne::before{content:"";position:absolute;left:34%;top:18%;width:32%;height:60%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.9),rgb(143 228 234/.35) 50%,transparent);animation:aufleuchten 6.5s ease-in-out infinite}
-@keyframes kegel{0%{transform:translateX(-110%) scale(1);opacity:0}12%{opacity:1}36%{transform:translateX(35%) scale(1)}50%{transform:translateX(70%) scale(1.7);opacity:1}64%{transform:translateX(105%) scale(1)}88%{opacity:.9}100%{transform:translateX(250%) scale(1);opacity:0}}
-@keyframes aufleuchten{0%,38%{opacity:0}50%{opacity:.85}64%,100%{opacity:0}}
+/* LICHTWEG-ANFANG — gebaut von tools/lichtweg.mjs, nicht von Hand ändern.
+   Klaus' Weg (2026-09-29): unten links hinein, im Bogen zur Mitte, im Bogen oben rechts hinaus.
+   Gleicher Abstand je Schritt, linear: kein Halt. Groß an Start, Mitte, Ende; in der Mitte die ganze Höhe. */
+.bild-buehne::after{content:"";position:absolute;left:4.4%;top:58.6%;width:14%;height:14%;border-radius:50%;translate:-50% -50%;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.75),rgb(255 255 255/.28) 45%,rgb(143 228 234/.14) 70%,transparent);animation:licht-weg 7s linear infinite,kegel 7s ease-in-out infinite}
+/* … und das Schild leuchtet auf, wenn der Schein die Mitte erreicht */
+.bild-buehne::before{content:"";position:absolute;left:34%;top:18%;width:32%;height:60%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(closest-side,rgb(255 255 255/.9),rgb(143 228 234/.35) 50%,transparent);animation:aufleuchten 7s ease-in-out infinite}
+@keyframes licht-weg{0%{left:4.4%;top:58.6%}2.08%{left:6.4%;top:57.7%}4.17%{left:8.4%;top:56.7%}6.25%{left:10.4%;top:55.8%}8.33%{left:12.4%;top:54.9%}10.42%{left:14.4%;top:54.1%}12.5%{left:16.5%;top:53.2%}14.58%{left:18.5%;top:52.4%}16.67%{left:20.6%;top:51.6%}18.75%{left:22.6%;top:50.9%}20.83%{left:24.7%;top:50.2%}22.92%{left:26.8%;top:49.5%}25%{left:28.9%;top:48.8%}27.08%{left:31%;top:48.2%}29.17%{left:33.1%;top:47.7%}31.25%{left:35.3%;top:47.2%}33.33%{left:37.4%;top:46.7%}35.42%{left:39.6%;top:46.3%}37.5%{left:41.8%;top:46%}39.58%{left:43.9%;top:45.8%}41.67%{left:46.1%;top:45.6%}43.75%{left:48.3%;top:45.5%}45.83%{left:50.5%;top:45.6%}47.92%{left:52.7%;top:45.8%}50%{left:54.8%;top:46.5%}52.08%{left:56.8%;top:47.3%}54.17%{left:58.9%;top:48%}56.25%{left:61%;top:48.7%}58.33%{left:63.1%;top:49.4%}60.42%{left:65.2%;top:50%}62.5%{left:67.3%;top:50.6%}64.58%{left:69.4%;top:51.2%}66.67%{left:71.6%;top:51.7%}68.75%{left:73.7%;top:52.2%}70.83%{left:75.9%;top:52.6%}72.92%{left:78.1%;top:52.9%}75%{left:80.3%;top:53.1%}77.08%{left:82.5%;top:53.1%}79.17%{left:84.7%;top:53%}81.25%{left:86.8%;top:52.5%}83.33%{left:88.8%;top:51.7%}85.42%{left:90.5%;top:50.2%}87.5%{left:91.4%;top:48.3%}89.58%{left:91.8%;top:46.1%}91.67%{left:91.6%;top:43.9%}93.75%{left:91.2%;top:41.8%}95.83%{left:90.5%;top:39.7%}97.92%{left:89.7%;top:37.6%}100%{left:88.8%;top:35.6%}}
+@keyframes kegel{0%{scale:4;opacity:0}3%{opacity:1}23.8%{scale:1}47.7%{scale:4 7.14}73.8%{scale:1}97%{opacity:1}100%{scale:4;opacity:0}}
+@keyframes aufleuchten{0%,35.7%{opacity:0}47.7%{opacity:.85}61.7%,100%{opacity:0}}
+/* LICHTWEG-ENDE */
 @media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}
 
 .held .zurueck{position:absolute;left:16px;top:14px;font-size:.92rem;text-decoration:none;color:var(--leise)}

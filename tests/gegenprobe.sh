@@ -228,8 +228,16 @@ fall "HB: ohne Skript bleiben die Szenen blass" $HB \
   'html.bewegt .szene{opacity:.25;' '.szene{opacity:.25;' 'OHNE Skript|ohne Skript'
 fall "HB: Stopp hält die Vorführung nicht an" $HB \
   '  document.getElementById("stopp").addEventListener("click", stopp);' '' 'Stopp'
-fall "HB: der Lichtkegel wird im Schild nicht größer" $H \
-  '50%{transform:translateX(70%) scale(1.7)' '50%{transform:translateX(70%) scale(1)' 'Lichtkegel'
+fall "HB: der Lichtkegel wird in der Mitte nicht groß" $H \
+  'scale:4 7.14}' 'scale:1}' 'ganze Höhe'
+fall "HB: der Lichtkegel bremst unterwegs ab (Zwischenhalt)" $H \
+  'animation:licht-weg 7s linear infinite' 'animation:licht-weg 7s ease-in-out infinite' 'ohne Halt'
+fall "HB: der Lichtkegel blitzt am Start nicht auf" $H \
+  'kegel{0%{scale:4;' 'kegel{0%{scale:1;' 'vierfach'
+fall "HB: der Lichtkegel läuft nicht mehr Klaus' Weg (alter Start)" $H \
+  '0%{left:4.4%;top:58.6%}' '0%{left:16%;top:80%}' "Klaus' Weg"
+fall "HB: der Lichtkegel springt (ein Schritt viel weiter als die anderen)" $H \
+  '2.08%{left:6.4%;' '2.08%{left:12%;' 'ohne Halt'
 fall "HB: der Lichtkegel läuft auch bei weniger Bewegung" $H \
   '@media (prefers-reduced-motion:reduce){.bild-buehne::after,.bild-buehne::before{animation:none;opacity:0}}' '' 'weniger Bewegung'
 fall "HB: das Bild fliegt nicht mehr in die Kopfleiste" $H \
