@@ -110,8 +110,14 @@ nicht jede Art ist erkennbar.** Was geht, ist ein **Verdacht mit Zahl**.
 - Sende-Prüfer: die vier Dateien sind voll (98 230 / 98 304) — alles nach `assets/`.
 - Jede neue Befundart bekommt Wächter + Gegenprobe-Fall mit Namen.
 
-## Offene Fragen an Klaus
+## Entschieden (Klaus 2026-09-29)
 
-- Soll C (Steganografie) überhaupt einen Knopf bekommen, wenn die Zahl nur
-  „Verdacht" sagen kann?
-- Reicht es, PDFs über 10 Seiten nur teilweise gegenzulesen (E)?
+Klaus: *„bei den beiden mit Ja."*
+
+| Frage | Antwort |
+|---|---|
+| Bekommt C (Botschaft in den Bildpunkten) einen eigenen Knopf, obwohl die Zahl nur „Verdacht" sagen kann? | **Ja.** Der Knopf heißt so, dass „Verdacht" drinsteht, nie „gefunden"; der Messplan unter C gilt unverändert, **vor** dem Knopf |
+| Reicht es, bei PDFs über 10 Seiten nur die ersten 10 gegenzulesen (E)? | **Ja.** Die Grenze wird benannt („Seiten 11–N nicht gegengelesen"), nie still |
+
+⚠ Die Reihenfolge D → A → B → E → C bleibt. C kommt erst auf die Seite, wenn
+die Fehlalarm-Zahl an den 17 Fotos gemessen ist.
