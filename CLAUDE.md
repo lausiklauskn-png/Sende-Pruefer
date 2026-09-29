@@ -208,8 +208,8 @@ Kim Hub Company … dann nur noch den kurzen Code eingeben."* Unter dem Schlüss
 aus Kim-Bell übernommen (nur Titel, Kopf und Rückweg angepasst) und steht im Vorrat. Die
 Abschirmung meldete dieses Fenster zugleich als „fremd"; `eigenesFenster()` nimmt jetzt genau
 die eigene `sicherheit.html` aus (gleiche Herkunft, gleicher Ordner) — ein leeres oder fremdes
-iframe wird weiter gemeldet. ⚠ Andere Knoten ohne `sicherheit.html` (PWA-Toolpoint,
-Auslieferung-Pruefer …) haben denselben 404 — nicht untersucht.
+iframe wird weiter gemeldet. ✅ Die übrigen **neun** Knoten ohne `sicherheit.html` sind am selben Tag nachgezogen
+(neutrale Fassung aus Sages Wurzel); die Regel steht in `Sage-Protokol/docs/PFLICHT_MODULE.md`.
 
 ## Abschirmung: wegklicken, aufheben, im Fremdzugriff-Fenster (Klaus 2026-09-29)
 
