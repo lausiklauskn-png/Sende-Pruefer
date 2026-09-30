@@ -48,6 +48,7 @@
   }
   var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
     .then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })
+    .then(function () { return laden("assets/pruefer.js", function () { return welt.Auslieferungspruefer; }); })
     .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
     .then(function (da) {
       if (!da) throw new Error("fehlt");

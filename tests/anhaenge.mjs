@@ -14,10 +14,13 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "4548ebfcd0886ddd6d79ce13aad6200096df462ab5873603bc5cd769312389d9";
+export const ANHANG_SHA = "9aea4cf75393e5195ef562b3d14c3e59c60faac3bd598571a6d148c5e1fc9088";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";
+
+/* byte-1:1 aus Auslieferung-Pruefer — der HTML-Prüfer, für Anhänge, die HTML-Seiten sind (2026-09-30) */
+export const HTML_SHA = "9b004f0c76bf8d79b75d361b5b8d4cae87d2b2becd229f2d37391e93566300fd";
 
 /* Das PDF mit verstecktem Text wird ohne Browser gebaut und im Browser wieder benutzt. */
 let VERSTECKT = null;
@@ -29,8 +32,9 @@ export async function ohneBrowser(ok, WURZEL) {
   ok("assets/pruefer-formate.js ist unverändert (SHA-256 gepinnt, aus dem Auslieferungsprüfer)", createHash("sha256").update(b).digest("hex") === FORMATE_SHA);
   const sw = readFileSync(join(WURZEL, "sw.js"), "utf8"), html = readFileSync(join(WURZEL, "sende-pruefer.html"), "utf8");
   ok("assets/pruefer-anhang.js ist unverändert (SHA-256 gepinnt, aus dem Auslieferungsprüfer)", createHash("sha256").update(readFileSync(join(WURZEL, "assets/pruefer-anhang.js"))).digest("hex") === ANHANG_SHA);
+  ok("assets/pruefer.js ist unverändert (SHA-256 gepinnt, der HTML-Prüfer aus dem Auslieferungsprüfer)", createHash("sha256").update(readFileSync(join(WURZEL, "assets/pruefer.js"))).digest("hex") === HTML_SHA);
   ok("assets/pruefer-mail.js ist unverändert (SHA-256 gepinnt, aus dem Auslieferungsprüfer)", createHash("sha256").update(readFileSync(join(WURZEL, "assets/pruefer-mail.js"))).digest("hex") === MAIL_SHA);
-  ok("die Anhang-Prüfung, ihr Prüfteil, der PDF-Prüfer und die KI-Liste stehen im Offline-Vorrat", sw.includes('"assets/anhaenge.js"') && sw.includes('"assets/pruefer-anhang.js"') && sw.includes('"assets/pruefer-formate.js"') && sw.includes('"assets/pruefer-mail.js"'));
+  ok("die Anhang-Prüfung, ihr Prüfteil, der PDF-Prüfer und die KI-Liste stehen im Offline-Vorrat", sw.includes('"assets/anhaenge.js"') && sw.includes('"assets/pruefer-anhang.js"') && sw.includes('"assets/pruefer-formate.js"') && sw.includes('"assets/pruefer-mail.js"') && sw.includes('"assets/pruefer.js"'));
   ok("die Seite lädt die Anhang-Prüfung vor ihrem eigenen Skript",
     html.indexOf('<script src="assets/anhaenge.js"></script>') > 0 && html.indexOf('<script src="assets/anhaenge.js"></script>') < html.indexOf("<script>\n\"use strict\""));
   /* ── Eigenständig (Klaus 2026-09-30): die App braucht kein Workflow PDF daneben ── */
@@ -70,6 +74,7 @@ export async function ohneBrowser(ok, WURZEL) {
   ok("eigenständig: THIRD_PARTY.md nennt pdf.js 3.11.174 und seine Lizenz (Apache 2.0)", /3\.11\.174/.test(tp) && /Apache/.test(tp));
   delete globalThis.SPAnhang; delete globalThis.PrueferAnhang; delete globalThis.PrueferFormate;
   await import(pathToFileURL(join(WURZEL, "assets/pruefer-formate.js")).href + "?" + Date.now());
+  await import(pathToFileURL(join(WURZEL, "assets/pruefer.js")).href + "?" + Date.now());
   await import(pathToFileURL(join(WURZEL, "assets/pruefer-anhang.js")).href + "?" + Date.now());
   await import(pathToFileURL(join(WURZEL, "assets/anhaenge.js")).href + "?" + Date.now());
   const A = globalThis.PrueferAnhang;
@@ -78,9 +83,9 @@ export async function ohneBrowser(ok, WURZEL) {
   const ui = readFileSync(join(WURZEL, "assets/anhaenge.js"), "utf8");
   ok("assets/anhaenge.js trägt keine eigene Prüfung mehr, sondern lädt pruefer-anhang.js nach",
     !/function (pngPruefen|jpegPruefen|svgPruefen|officePruefen|zipEintraege)\b/.test(ui) && /laden\("assets\/pruefer-anhang\.js"/.test(ui));
-  const reihe = ["pruefer-formate", "pruefer-mail", "pruefer-anhang"].map((n) => ui.indexOf('laden("assets/' + n + '.js"'));
-  ok("… in der Reihenfolge PDF-Prüfer → KI-Liste → Anhang-Prüfer (die KI-Liste muss da sein, bevor ein PDF geprüft wird)",
-    reihe.every((x) => x > 0) && reihe[0] < reihe[1] && reihe[1] < reihe[2], JSON.stringify(reihe));
+  const reihe = ["pruefer-formate", "pruefer-mail", "pruefer", "pruefer-anhang"].map((n) => ui.indexOf('laden("assets/' + n + '.js"'));
+  ok("… in der Reihenfolge PDF-Prüfer → KI-Liste → HTML-Prüfer → Anhang-Prüfer (die KI-Liste muss da sein, bevor ein PDF geprüft wird)",
+    reihe.every((x) => x > 0) && reihe[0] < reihe[1] && reihe[1] < reihe[2] && reihe[2] < reihe[3], JSON.stringify(reihe));
   ok("… und der Weg zu pdf.js zeigt auf den EIGENEN Ordner vendor/pdfjs/ (nicht im Vorrat)",
     /pfade\(\{ pdfjs: new URL\("vendor\/pdfjs\/", location\.href\)/.test(ui) && !/pdfjs/.test(sw));
   ok("… und der Weg zur Texterkennung zeigt auf den EIGENEN Ordner vendor/tesseract/ (nicht im Vorrat)",
@@ -118,6 +123,15 @@ export async function ohneBrowser(ok, WURZEL) {
   }
   r = await p("ok.docx", M.docxSauber());
   ok("Word ohne Makro und Verweis: kein Befund", r.befunde.length === 0 && /Angebot/.test(r.text || ""), JSON.stringify(r));
+  /* HTML-Anhang (2026-09-30): am Dateikopf erkannt, durch den HTML-Prüfer, nie ausgeführt */
+  r = await p("rechnung.html", Buffer.from(M.HTML_BOESE));
+  ok("HTML-Anhang: erkannt als HTML-Seite und fremde Abrufe gemeldet (Skript, Zählpixel)",
+    r.art === "html" && kennungen(r).includes("FREMDE-ADRESSE") && /abgreifer\.example/.test(JSON.stringify(r.befunde)) && /zaehler\.example/.test(JSON.stringify(r.befunde)), JSON.stringify(r.befunde));
+  ok("… und der Text, der weitergeht, ist der sichtbare, nicht der Quelltext", !/<script|<img/.test(r.text || ""), (r.text || "").slice(0, 80));
+  r = await p("ok.html", Buffer.from(M.HTML_SAUBER));
+  ok("… eine harmlose HTML-Seite meldet nichts Falsches", r.art === "html" && r.befunde.length === 0, JSON.stringify(r.befunde));
+  r = await p("notiz.txt", Buffer.from("Im Text steht <html> als Wort.\nSonst nichts."));
+  ok("… eine Textdatei, die <html> nur erwähnt, bleibt Text", r.art === "text", r.art);
   r = await p("r.pdf", M.PDF_BOESE);
   ok("PDF: JavaScript und Aktion beim Öffnen werden gemeldet (über pruefer-formate.js)", kennungen(r).includes("PDF-AKTION") && r.befunde.some((x) => /beim Öffnen/.test(x.satz)), JSON.stringify(r.befunde));
   ok("PDF ohne pdf.js: der Seitentext heißt „NICHT gelesen … ungeprüft“, nie sauber", r.hinweise.some((h) => /Seitentext des PDFs wurde NICHT gelesen.*ungeprüft/.test(h)), JSON.stringify(r.hinweise));
@@ -320,6 +334,18 @@ export async function imBrowser(ok, browser, BASIS) {
   await page.locator("#anhang-liste > li [data-weg]").click();
   await page.evaluate((i) => window.eval("oeffne")(i), erb);
   ok("KI-Antwort: ein entfernter Anhang kommt nicht wieder", (await page.locator("#anhang-liste > li").count()) === 0);
+
+  /* HTML-Anhang im Browser (2026-09-30): gemeldet, nie ausgeführt */
+  await page.evaluate(() => { window.__schaden = false; });
+  await page.click("#neu"); await page.waitForSelector("#text");
+  await page.fill("#text", "Hallo, anbei die Rechnung."); await page.waitForTimeout(600);
+  await page.setInputFiles("#anhang-datei", [{ name: "rechnung.html", mimeType: "text/html",
+    buffer: Buffer.from(M.HTML_BOESE.replace("</body>", "<script>window.parent.__schaden=true;window.__schaden=true</script></body>")) }]);
+  await page.waitForFunction(() => { const l = document.querySelector("#anhang-liste > li"); return !!l && l.dataset.befunde != null; }, null, { timeout: 20000 }).catch(() => {});
+  const hz = await page.evaluate(() => { const l = document.querySelector("#anhang-liste > li");
+    return { k: l ? [...l.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung) : null, text: l ? l.textContent : "", schaden: window.__schaden }; });
+  ok("im Browser: ein HTML-Anhang meldet fremde Abrufe (FREMDE-ADRESSE)", !!hz.k && hz.k.includes("FREMDE-ADRESSE") && /abgreifer\.example/.test(hz.text), JSON.stringify(hz));
+  ok("… und sein Skript wurde nicht ausgeführt", hz.schaden === false, JSON.stringify(hz.schaden));
 
   /* Stufe 2 D im Browser: pdf.js kommt aus dem eigenen vendor/pdfjs/. */
   if (VERSTECKT) {
