@@ -10,11 +10,11 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import * as M from "./anhang-muster.mjs";
 
-/* byte-1:1 aus Auslieferung-Pruefer (6ba2d11) — dort pflegen, hier neu kopieren */
-export const FORMATE_SHA = "35c306737446e93326f6d7c6cd8c7a91d04a02b53755a4bd2da0e26d46c16e84";
+/* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Namensräume sind keine fremden Adressen) — dort pflegen, hier neu kopieren */
+export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
-/* byte-1:1 aus Auslieferung-Pruefer (7452e51, Stufe 2 D: PDF-Seitentext) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "7c9b1df6c49aea6bfcb768f7ee27ae143c0197f8fc19d2d5143e7e7acd3950ab";
+/* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
+export const ANHANG_SHA = "2082b83dc5adcf58a4090093d95161c373145c7e981bf2c9a10826c5d3b36177";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";

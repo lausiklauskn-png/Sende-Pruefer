@@ -56,10 +56,22 @@
     if (latin1(b, 0, 2) === "#!") return "programm";
     var anf = latin1(b, 0, 1024).replace(/^﻿|^\xEF\xBB\xBF/, "").trimStart();
     if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE svg[^>]*>\s*)?<svg[\s>]/i.test(anf)) return "svg";
+    if (istText(b)) return "text";
     return "unbekannt";
   }
+  /* Klaus 2026-09-30, Vorlage H1 als Mail-Anhang: eine .txt kam als „unbekannte
+     Art" an, und ihr Inhalt wurde NICHT durchsucht — im Reiter „Textdatei"
+     fand dieselbe Datei vier Befunde. Text ist, was sich als UTF-8 lesen lässt
+     und keine Steuerzeichen trägt (außer Tab, Zeilenende, Seitenvorschub). */
+  function istText(b) {
+    if (!b.length || typeof TextDecoder === "undefined") return false;
+    var t;
+    try { t = new TextDecoder("utf-8", { fatal: true }).decode(b.subarray(0, Math.min(b.length, 65536))); }
+    catch (e) { if (b.length > 65536) { try { t = new TextDecoder("utf-8").decode(b.subarray(0, 65532)); } catch (e2) { return false; } } else return false; }
+    return !/[\x00-\x08\x0E-\x1F\x7F]/.test(t);
+  }
   var ART_NAME = { png: "PNG-Bild", jpeg: "JPEG-Bild", gif: "GIF-Bild", webp: "WebP-Bild", pdf: "PDF",
-    zip: "ZIP-Archiv", docx: "Word-Dokument", xlsx: "Excel-Tabelle", pptx: "PowerPoint", svg: "SVG-Grafik",
+    zip: "ZIP-Archiv", docx: "Word-Dokument", xlsx: "Excel-Tabelle", pptx: "PowerPoint", svg: "SVG-Grafik", text: "Textdatei",
     programm: "ausführbares Programm", unbekannt: "unbekannte Art" };
   var ENDUNGEN = { png: ["png"], jpeg: ["jpg", "jpeg", "jfif"], gif: ["gif"], webp: ["webp"], pdf: ["pdf"],
     svg: ["svg"], zip: ["zip", "docx", "docm", "xlsx", "xlsm", "pptx", "pptm", "odt", "ods", "odp", "epub"] };
@@ -337,6 +349,7 @@
     else if (art === "webp") anhaengsel(b, webpPruefen(b, melde), melde);
     else if (art === "gif") hinweise.push("Bei GIF wird nur der Dateikopf geprüft, nicht, was hinter dem Bild steht.");
     else if (art === "svg") text = svgPruefen(b, melde);
+    else if (art === "text") text = new TextDecoder("utf-8").decode(b).replace(/^\uFEFF/, "");
     else if (art === "zip") weiter = officePruefen(b, name, melde).then(function (r) {
       art = r.art; text = r.text; if (r.hinweis) hinweise.push(r.hinweis);
     });
