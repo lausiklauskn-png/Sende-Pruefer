@@ -12,7 +12,7 @@
  *
  * ⚠ BENANNTE GRENZEN dieser Fassung: Text IN einem Bild (Texterkennung) wird
  * NICHT gelesen. Der Seitentext eines PDFs schon (bis 100 Seiten, pdf.js aus
- * Workflow PDF) — fehlt pdf.js, heißt er „ungeprüft". An die KI geht weiterhin
+ * vendor/pdfjs/) — fehlt pdf.js, heißt er „ungeprüft". An die KI geht weiterhin
  * nur der Mailtext, keine Datei.
  *
  * ⚠ DIE SEITE BLEIBT UNBERÜHRT. Sie ist voll (96 KB für vier Dateien); diese
@@ -50,9 +50,10 @@
     .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
     .then(function (da) {
       if (!da) throw new Error("fehlt");
-      /* pdf.js liegt in Workflow PDF (gleiche Adresse, nicht im Vorrat) und
-       * wird erst geholt, wenn ein PDF kommt. */
-      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href });
+      /* pdf.js liegt im eigenen Ordner vendor/pdfjs/ (Klaus 2026-09-30: die
+       * App läuft für sich allein, ohne Workflow PDF daneben). Nicht im
+       * Installations-Vorrat; geholt erst, wenn ein PDF kommt. */
+      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href });
       return welt.PrueferAnhang;
     });
   function pruefe(name, bytes) {
