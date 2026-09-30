@@ -60,6 +60,11 @@
     if (latin1(b, 0, 2) === "#!") return "programm";
     var anf = latin1(b, 0, 1024).replace(/^﻿|^\xEF\xBB\xBF/, "").trimStart();
     if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE svg[^>]*>\s*)?<svg[\s>]/i.test(anf)) return "svg";
+    /* HTML-Anhang (Klaus 2026-09-30): eine Datei, die mit <!DOCTYPE html oder
+       <html beginnt, ist eine Seite — sie geht zusätzlich durch den HTML-Prüfer
+       (assets/pruefer.js). Nur am ANFANG erkannt: eine .txt, die irgendwo
+       „<html>" erwähnt, bleibt eine Textdatei. */
+    if (/^(<!--[\s\S]*?-->\s*)*(<!DOCTYPE html[\s>]|<html[\s>])/i.test(anf)) return "html";
     if (istText(b)) return "text";
     return "unbekannt";
   }
@@ -75,7 +80,7 @@
     return !/[\x00-\x08\x0E-\x1F\x7F]/.test(t);
   }
   var ART_NAME = { png: "PNG-Bild", jpeg: "JPEG-Bild", gif: "GIF-Bild", webp: "WebP-Bild", pdf: "PDF",
-    zip: "ZIP-Archiv", docx: "Word-Dokument", xlsx: "Excel-Tabelle", pptx: "PowerPoint", svg: "SVG-Grafik", text: "Textdatei",
+    zip: "ZIP-Archiv", docx: "Word-Dokument", xlsx: "Excel-Tabelle", pptx: "PowerPoint", svg: "SVG-Grafik", html: "HTML-Seite", text: "Textdatei",
     programm: "ausführbares Programm", unbekannt: "unbekannte Art" };
   var ENDUNGEN = { png: ["png"], jpeg: ["jpg", "jpeg", "jfif"], gif: ["gif"], webp: ["webp"], pdf: ["pdf"],
     svg: ["svg"], zip: ["zip", "docx", "docm", "xlsx", "xlsm", "pptx", "pptm", "odt", "ods", "odp", "epub"] };
@@ -703,6 +708,35 @@
     });
   }
 
+  /* ══ HTML-ANHANG — der vorhandene HTML-Prüfer (pruefer.js), nicht neu erfunden.
+   * Übernommen wird nur FREMDE-ADRESSE: ein Skript, ein Bild (Zählpixel), ein
+   * Formular oder ein Stylesheet von einem fremden Rechner — das, was eine Seite
+   * beim Öffnen nachlädt oder wohin sie schickt. Fehlender alt-Text, fehlende
+   * Sprache und Bau-Reste sind Fragen an eine eigene Webseite, keine Gefahr in
+   * einem Anhang; als Befund wären sie in jeder harmlosen Seite ein Fehlalarm.
+   * Ein <a href> ist kein Abruf (so misst es pruefer.js seit 2026-08-20). Fehlt
+   * pruefer.js, heißt die Seite „ungeprüft", nie sauber. */
+  var HTML_UEBERNOMMEN = ["FREMDE-ADRESSE"];
+  function htmlPruefen(b, melde, hinweise, stand) {
+    var t = new TextDecoder("utf-8").decode(b).replace(/^\uFEFF/, "");
+    var H = welt.Auslieferungspruefer;
+    if (!H || typeof H.pruefe !== "function") {
+      hinweise.push("Der HTML-Prüfer (assets/pruefer.js) ist nicht geladen — die Seite ist ungeprüft, nicht sauber.");
+      stand.bildUngeprueft = true;
+      return t;
+    }
+    H.pruefe(t, []).forEach(function (x) {
+      if (HTML_UEBERNOMMEN.indexOf(x.kennung) >= 0) melde(x.kennung, x.satz + " (Zeile " + x.zeile + ")");
+    });
+    hinweise.push("Als HTML-Seite gelesen: gesucht wurde, was sie von fremden Rechnern lädt oder dorthin schickt. Ausgeführt oder angezeigt wurde sie nicht.");
+    /* Weiter geht der SICHTBARE Text, nicht der Quelltext: sonst läse die
+       Textprüfung jedes Linkziel als fremde Adresse (gemessen im Browser an
+       einer harmlosen Einladung). Adressen im Markup misst pruefer.js oben. */
+    var sichtbar = t.replace(/<!--[\s\S]*?-->/g, " ").replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ");
+    return entitaeten(sichtbar).replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
+  }
+
   /* ══ DIE EINE TÜR
    * @returns Promise<{art, artName, befunde:[{kennung,satz}], text:string|null,
    *                   textQuelle:"bild"|null, seiten:[{seite,text,bild?}]|null,
@@ -731,6 +765,7 @@
     else if (art === "gif") hinweise.push("Bei GIF wird nur der Dateikopf geprüft, nicht, was hinter dem Bild steht.");
     else if (art === "svg") text = svgPruefen(b, melde);
     else if (art === "text") text = new TextDecoder("utf-8").decode(b).replace(/^\uFEFF/, "");
+    else if (art === "html") text = htmlPruefen(b, melde, hinweise, stand);
     else if (art === "zip") weiter = officePruefen(b, name, melde).then(function (r) {
       art = r.art; text = r.text; if (r.hinweis) hinweise.push(r.hinweis);
     });

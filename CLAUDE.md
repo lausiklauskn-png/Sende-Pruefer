@@ -433,3 +433,23 @@ Auslieferungsprüfer (CLAUDE.md § Stufe 2 E). Die Probe-PDF in `tests/anhaenge.
 0,3 s je Seite (Behälter). Cache v36 (auf main war v35). `npm test` 418 grün.
 Von Hand gegengeprüft: ohne den Befund fällt „Stufe 2 E im Browser" mit seinem Namen.
 An die KI geht weiterhin nur der Mailtext. ⚠ Tablet nicht gemessen.
+
+## 🌐 HTML-Anhänge (2026-09-30)
+
+Ein Anhang, der mit `<!DOCTYPE html` oder `<html` beginnt (Kommentare davor erlaubt),
+heißt **„HTML-Seite"** und geht durch den HTML-Prüfer des Auslieferungsprüfers.
+`assets/pruefer.js` liegt **byte-1:1 aus Auslieferung-Pruefer** hier, gepinnt in
+`tests/anhaenge.mjs` (`HTML_SHA`), steht in `CORE` und wird in `anhaenge.js` **vor**
+`pruefer-anhang.js` geladen. `pruefer-anhang.js` ist neu kopiert (`ANHANG_SHA`).
+
+- Übernommen wird nur **FREMDE-ADRESSE** (Skript, Zählpixel, Formular an einen fremden
+  Rechner), mit Zeile. Weiter geht nur der **sichtbare** Text (ohne Kommentare, Skripte,
+  Stile, Tags), sonst meldet die Angaben-Suche die Linkziele.
+- Fehlt `pruefer.js`, steht **„HTML-Seite ungeprüft — der HTML-Prüfer fehlt"** da, nie
+  „nichts gefunden". Eine `.txt`, die `<html>` nur erwähnt, bleibt Text.
+- Nichts wird ausgeführt oder angezeigt; an die KI geht weiterhin nur der Mailtext.
+- Gemessen: `npm test` **426 grün · 0 ROT** (Cache **v37**). Von Hand gegengeprüft: ohne
+  die Lade-Zeile für `pruefer.js` werden die Reihenfolge-Prüfung und der Browser-Wächter
+  rot, und die rote Zeile nennt den fehlenden Prüfer. Die Gegenprobe `HTMLANH:` (6 Fälle)
+  steht im Auslieferungsprüfer.
+- ⚠ Das Tablet ist nicht gemessen.
