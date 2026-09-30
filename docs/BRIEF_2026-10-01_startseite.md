@@ -28,12 +28,35 @@ nach #23, Kimhub nach #306).
    - **Was als Nächstes kommt**.
 3. **Die Schwester-App kommt vor.** Jede Startseite stellt die andere App kurz vor und verlinkt
    sie; die beiden gehören zusammen (Klaus 2026-09-17: „später in EINER App").
-4. **Anzeige-Regel wie in BookLedgerPro** (`BookLedgerPro/src/ui/intro.js`, `SKIP_KEY`):
+4. **Anzeige-Regel** (BookLedgerPro ist dafür NUR Vorbild, siehe unten):
    - beim ersten Öffnen zeigen;
    - Haken „Beim nächsten Mal nicht mehr zeigen";
    - oben in der Kopfleiste jederzeit wieder aufrufbar;
    - der Knopf muss etwas anderes sein als das Handbuch „?". Vorschlag: „ℹ Überblick". Das
      Handbuch bleibt die Gebrauchsanleitung, die Startseite ist der Überblick.
+
+## Ton und Gestalt — eine Werbung, kein Datenblatt (Klaus 2026-10-01)
+
+> „BookLedgerPro ist nur das Vorbild, weil die Seite vor dem Code läuft. … Es sollte ein bisschen
+> interessanter sein als diese Seite von BookLedgerPro. Es sollte schön zu lesen sein und wirklich
+> eher eine Werbung für das Produkt sein, aber auch deutlich zeigen, was die Möglichkeiten sind,
+> warum ich daran gearbeitet habe, was das Ganze für einen Sinn haben soll."
+
+- **Von BookLedgerPro übernommen wird nur die Stellung:** eine Seite, die vor der App steht.
+  Dort ist es ein nüchternes Deckblatt vor dem Passwort (`src/ui/intro.js`). Gestaltung, Aufbau
+  und Ton werden nicht übernommen.
+- **Aufbau wie eine Produktseite:** ein großer Einstieg mit dem Kernsatz und dem Bild der App
+  (Sende-Prüfer: das Postfach im Vollbild; das Schild-Icon mit Lichtschein gibt es schon),
+  danach Abschnitte, die beim Scrollen kommen, mit Bildern, kurzen Sätzen und einem klaren Knopf
+  „Jetzt ausprobieren". Das Handbuch zeigt, wie bereits gebaute Szenen, Leuchtringe und
+  Sprechtexte aussehen; daran lässt sich anknüpfen.
+- **Ein Abschnitt „Warum es das gibt":** Klaus' Beweggrund in seinen eigenen Worten. **Nicht
+  erfinden:** die Sitzung fragt ihn danach oder zeigt einen Entwurf zur Freigabe.
+- **Werbend, aber ehrlich:** jede Fähigkeit, die dort steht, ist gebaut und gemessen. Was nur
+  geplant ist, steht unter „Als Nächstes". Keine Zahl ohne Messung, kein „100 % sicher", und
+  die Grenzen stehen sichtbar dabei (das ist hier Teil des Versprechens).
+- Schnell trotz Bildern: Bilder mit `loading="lazy"` und festen Maßen (kein Layout-Sprung),
+  bei „weniger Bewegung" keine Bewegung. Die Regeln dazu stehen im Skill `seiten-bauregeln`.
 
 ## Material, das es schon gibt (nicht neu erfinden)
 
@@ -103,6 +126,6 @@ nach #23, Kimhub nach #306).
 ## Reihenfolge
 
 1. Frisch von `origin/main` in **beiden** Depots; `CLAUDE.md` beider lesen.
-2. Gliederung + Tabelle der Lösungsvorschläge **an Klaus zeigen** (Plan vor Code).
+2. Gliederung, einen Entwurf des Einstiegs (Kernsatz, Bild), den Abschnitt „Warum es das gibt“ und die Tabelle der Lösungsvorschläge **an Klaus zeigen** (Plan vor Code). Gern als Vorschau (Artifact) zum Antippen.
 3. Nach seinem Wort: Sende-Prüfer zuerst (hat die meisten Bilder), dann Auslieferungsprüfer.
 4. Proben, Gegenprobe in Wegwerf-Kopie, Merge, Forschungseintrag in Kimhub, Stundennachweis.
