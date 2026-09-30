@@ -330,7 +330,7 @@ fall "WEG: die Funde gehen als HTML ins Fenster" assets/sbkim-init.js \
 fall "WEG: der Knopf im Fremdzugriff-Fenster schaltet nicht" assets/sbkim-init.js \
   'k.addEventListener("click", function () { AB.umschalten();' 'k.addEventListener("click", function () {' 'im Fenster lässt sich abschirmen'
 fall "EIGEN: die Erklärseite fehlt im Offline-Vorrat" sw.js \
-  ', "sicherheit.html"]' ']' 'Erklärseite des Siegels'
+  ', "sicherheit.html", "impressum.html"' ', "impressum.html"' 'Erklärseite des Siegels'
 fall "ANB: die Seite lädt die Liste nicht" $H \
   '<script src="assets/anbieter.js"></script>' '' 'lädt die Liste'
 
@@ -469,7 +469,7 @@ fall "PDFTEXT: die KI-Liste fehlt im Offline-Vorrat" sw.js \
 
 # ── Eigenständig (2026-09-30): pdf.js aus dem eigenen Ordner, nicht aus Workflow PDF
 fall "ALLEIN: der Weg zu pdf.js zeigt wieder auf Workflow PDF" assets/anhaenge.js \
-  'pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href })' 'pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href })' 'EIGENEN Ordner|Workflow-PDF'
+  'pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href,' 'pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href,' 'EIGENEN Ordner|Workflow-PDF'
 fall "ALLEIN: die mitgelieferte pdf.js ist nicht mehr die gepinnte" vendor/pdfjs/pdf.min.js \
   '/**' '/* x */ /**' 'byte-gleich'
 
