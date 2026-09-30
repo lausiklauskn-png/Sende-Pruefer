@@ -14,7 +14,7 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "ed7dde256dbeda6d098714f63e0c18f34e8f33e052737bec1c6891713471439d";
+export const ANHANG_SHA = "95ca7ee72a0def95915fefaff90daa2d19a5c79af9d66a2061dc282b63a65187";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";
@@ -217,6 +217,15 @@ export async function imBrowser(ok, browser, BASIS) {
     !!bildz && bildz.k.includes("BILD-KI-ANWEISUNG") && /Bildtext Zeile 9/.test(bildz.text), JSON.stringify(bildz));
   ok("Text im Bild: die Angaben im Bildtext gehen an den Prüfkern (IBAN, Mailadresse)", !!bildz && bildz.angaben >= 2 && /IBAN/.test(bildz.text), JSON.stringify(bildz && bildz.angaben));
   await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png"); li && li.querySelector("[data-weg]").click(); });
+
+  /* Stufe 2 B: blasser Text — Vorlage 2B aus dem Auslieferungsprüfer (erfunden) trägt dieselbe Anweisung in Hellgrau. */
+  await page.setInputFiles("#anhang-datei", [{ name: "blass.png", mimeType: "image/png", buffer: readFileSync(new URL("./bild-blass.png", import.meta.url)) }]);
+  await page.waitForFunction(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "blass.png"); return li && li.dataset.befunde != null; }, null, { timeout: 120000 }).catch(() => {});
+  const blassz = await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "blass.png");
+    return li ? { k: [...li.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung), text: li.textContent } : null; });
+  ok("Text im Bild: die BLASSE Anweisung wird gemeldet, mit „blass“ (Stufe 2 B)",
+    !!blassz && blassz.k.includes("BILD-KI-ANWEISUNG") && /blass, erst nach Kontrast-Spreizung/.test(blassz.text), JSON.stringify(blassz));
+  await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "blass.png"); li && li.querySelector("[data-weg]").click(); });
 
   /* sichere Fassung: heruntergeladen, neu geprüft — nichts mehr gefunden */
   for (const [name, art] of [["foto.png", "png"], ["logo.svg", "png"]]) {

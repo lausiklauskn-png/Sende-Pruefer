@@ -19,7 +19,9 @@
  * Text IN einem Bild (PNG, JPEG, WebP, GIF) und auf PDF-Seiten ohne Textebene
  * liest seit Stufe 2 A (2026-09-30) die Texterkennung (Tesseract, von der App
  * nachgeladen: pfade({tesseract})). Liest sie nichts Sicheres, steht „Text im
- * Bild ungeprüft" da — nie „kein Befund".
+ * Bild ungeprüft" da — nie „kein Befund". Seit Stufe 2 B (2026-09-30) liest
+ * ein zweiter Durchgang dasselbe Bild nach einer Kontrast-Spreizung; was nur
+ * dort steht, ist blass und wird so benannt.
  *
  * ausMail(roh) packt die Anhänge einer Mail aus: base64 und quoted-printable,
  * Namen nach RFC 2047/2231. Nichts davon wird ausgeführt oder angezeigt; eine
@@ -336,9 +338,12 @@
     tessVersprechen.catch(function () { tessVersprechen = null; });   // ein späterer Versuch darf neu holen
     return tessVersprechen;
   }
-  /* quelle: ein Canvas oder Bild-Bytes. Gibt {zeilen:[text], unsicher:n} zurück. */
-  function bildLesen(quelle) {
-    var uhr, frist = new Promise(function (_ok, nein) { uhr = setTimeout(function () { nein(new Error("Zeit abgelaufen (" + OCR_FRIST / 1000 + " s)")); }, OCR_FRIST); });
+  /* quelle: ein Canvas oder Bild-Bytes. Gibt {zeilen:[text], unsicher:n} zurück.
+     bis: Zeitpunkt (Date.now()), an dem die Frist endet — zwei Durchgänge teilen
+     sich EINE Frist (Stufe 2 B). Ohne bis gilt OCR_FRIST ab jetzt. */
+  function bildLesen(quelle, bis) {
+    var rest = Math.max(1, (bis || Date.now() + OCR_FRIST) - Date.now());
+    var uhr, frist = new Promise(function (_ok, nein) { uhr = setTimeout(function () { nein(new Error("Zeit abgelaufen (" + OCR_FRIST / 1000 + " s)")); }, rest); });
     var arbeit = tesseractHolen().then(function (w) {
       return w.recognize(quelle, {}, { blocks: true, text: false });
     }).then(function (r) {
@@ -386,18 +391,104 @@
       melde("BILD-KI-ANWEISUNG", st.satz + " (" + wo + "Bildtext Zeile " + st.zeile + ")");
     });
   }
-  function bildTextPruefen(b, art, melde, hinweise, stand) {
-    return bildQuelle(b, art).then(bildLesen).then(function (r) {
-      if (!r.zeilen.length) {
-        stand.bildUngeprueft = true;
-        hinweise.push("Text im Bild ungeprüft: die Texterkennung fand keine sicher lesbare Zeile" +
-          (r.unsicher ? " (" + r.unsicher + " unsichere verworfen)" : "") + ". Ein Bild ohne Text sieht genauso aus.");
-        return null;
+  /* ══ BLASSER TEXT — Stufe 2 B (2026-09-30)
+   * Hellgrau auf Weiß übersieht ein Mensch, eine Bild-KI liest es trotzdem.
+   * Der zweite Durchgang liest dasselbe Bild nach einer Kontrast-Spreizung:
+   * je Kachel wird die Papier-Helligkeit bestimmt (hellster Wert der Kachel
+   * und ihrer acht Nachbarn) und jede Abweichung davon um KONTRAST_VERST
+   * verstärkt. Was NUR in diesem Durchgang steht, ist blass — der
+   * Unterschied ist der Befund. Gemeldet wird eine Anweisung an eine KI darin
+   * als BILD-KI-ANWEISUNG mit dem Wort „blass“ in der Stelle.
+   * ⚠ Gewählte Zahlen, nicht gemessen am Tablet: KONTRAST_KACHEL 32 px,
+   *   KONTRAST_VERST 8 (eine Abweichung ab 32 Stufen wird schwarz; #ececec
+   *   auf Weiß sind 19 Stufen). Beide Durchgänge teilen sich OCR_FRIST.
+   * ⚠ BENANNTE GRENZE: nur für Bilder. Gescannte PDF-Seiten werden einmal
+   *   gelesen, nicht zweimal. Ohne Browser (keine Leinwand) gibt es keinen
+   *   zweiten Durchgang, und das wird gesagt. */
+  var KONTRAST_KACHEL = 32, KONTRAST_VERST = 8;
+  function kontrastStrecken(d, w, h) {
+    var K = KONTRAST_KACHEL, kx = Math.ceil(w / K), ky = Math.ceil(h / K), hell = new Uint8Array(kx * ky), grau = new Uint8Array(w * h);
+    for (var i = 0, n = w * h; i < n; i++) grau[i] = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var t = ((y / K) | 0) * kx + ((x / K) | 0), v = grau[y * w + x];
+      if (v > hell[t]) hell[t] = v;
+    }
+    var papier = new Uint8Array(kx * ky);
+    for (var ty = 0; ty < ky; ty++) for (var tx = 0; tx < kx; tx++) {
+      var m = 0;
+      for (var a = -1; a <= 1; a++) for (var c = -1; c <= 1; c++) {
+        var yy = ty + a, xx = tx + c;
+        if (yy >= 0 && yy < ky && xx >= 0 && xx < kx && hell[yy * kx + xx] > m) m = hell[yy * kx + xx];
       }
-      var text = r.zeilen.join("\n");
-      hinweise.push("Text im Bild gelesen: " + r.zeilen.length + " Zeile(n)" + (r.unsicher ? ", " + r.unsicher + " unsichere verworfen" : "") + ".");
-      bildtextPruefen(text, "", melde, hinweise);
-      return text;
+      papier[ty * kx + tx] = m;
+    }
+    var aus = new Uint8ClampedArray(w * h * 4);
+    for (var y2 = 0; y2 < h; y2++) for (var x2 = 0; x2 < w; x2++) {
+      var j = y2 * w + x2, p = papier[((y2 / K) | 0) * kx + ((x2 / K) | 0)];
+      var g = 255 - Math.min(255, Math.max(0, p - grau[j]) * KONTRAST_VERST);
+      aus[j * 4] = aus[j * 4 + 1] = aus[j * 4 + 2] = g; aus[j * 4 + 3] = 255;
+    }
+    return aus;
+  }
+  function gestreckt(c) {
+    if (!c || !c.getContext || !welt.document) return null;
+    var g = c.getContext("2d"), bild = g.getImageData(0, 0, c.width, c.height);
+    var z = welt.document.createElement("canvas"); z.width = c.width; z.height = c.height;
+    var neu = z.getContext("2d").createImageData(c.width, c.height);
+    neu.data.set(kontrastStrecken(bild.data, c.width, c.height));
+    z.getContext("2d").putImageData(neu, 0, 0);
+    return z;
+  }
+  /* Eine Zeile des zweiten Durchgangs ist NEU, wenn weniger als die Hälfte
+     ihrer Wörter (ab 3 Buchstaben) schon im ersten Durchgang vorkam. Ein
+     wörtlicher Vergleich reichte nicht: Tesseract liest dieselbe dunkle Zeile
+     nach der Spreizung manchmal um ein Zeichen anders. */
+  function woerter(t) { return (String(t).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || []); }
+  function neueZeilen(erste, zweite) {
+    var bekannt = {};
+    erste.forEach(function (z) { woerter(z).forEach(function (w) { bekannt[w] = true; }); });
+    return zweite.filter(function (z) {
+      var ws = woerter(z); if (!ws.length) return false;
+      return ws.filter(function (w) { return bekannt[w]; }).length * 2 < ws.length;
+    });
+  }
+  /* Jede blasse Zeile einzeln, mit ihrer Nummer im zweiten Durchgang (der
+     sieht alle Zeilen, die dunklen und die blassen). */
+  function blassPruefen(blass, alle, melde, hinweise) {
+    var PM = welt.PrueferMail;
+    if (!PM) { hinweise.push("Der blasse Text wurde gelesen, aber die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — auf Anweisungen an eine KI ist er ungeprüft."); return; }
+    blass.forEach(function (z) {
+      PM.pruefeMail(z).stellen.forEach(function (st) {
+        if (st.kennung !== "KI-ANWEISUNG") return;
+        melde("BILD-KI-ANWEISUNG", st.satz + " (blass, erst nach Kontrast-Spreizung lesbar: Bildtext Zeile " + (alle.indexOf(z) + 1) + ")");
+      });
+    });
+  }
+  function bildTextPruefen(b, art, melde, hinweise, stand) {
+    var bis = Date.now() + OCR_FRIST, quelle;
+    return bildQuelle(b, art).then(function (q) { quelle = q; return bildLesen(q, bis); }).then(function (r) {
+      var z2 = gestreckt(quelle), zweiter = !z2 ? Promise.resolve({ fehlt: "ohne Leinwand (nur im Browser)" }) :
+        bildLesen(z2, bis).then(null, function (e) { return { fehlt: (e && e.message) || "unbekannt" }; });
+      return zweiter.then(function (r2) {
+        var blass = r2.fehlt ? [] : neueZeilen(r.zeilen, r2.zeilen);
+        if (!r.zeilen.length && !blass.length) {
+          stand.bildUngeprueft = true;
+          hinweise.push("Text im Bild ungeprüft: die Texterkennung fand keine sicher lesbare Zeile" +
+            (r.unsicher ? " (" + r.unsicher + " unsichere verworfen)" : "") + ". Ein Bild ohne Text sieht genauso aus.");
+        }
+        var text = r.zeilen.length ? r.zeilen.join("\n") : null;
+        if (r.zeilen.length) {
+          hinweise.push("Text im Bild gelesen: " + r.zeilen.length + " Zeile(n)" + (r.unsicher ? ", " + r.unsicher + " unsichere verworfen" : "") + ".");
+          bildtextPruefen(text, "", melde, hinweise);
+        }
+        if (r2.fehlt) hinweise.push("Blasser Text ungeprüft: der zweite Lesedurchgang mit mehr Kontrast lief nicht (" + r2.fehlt + ").");
+        else if (blass.length) {
+          hinweise.push("Blasser Text: " + blass.length + " Zeile(n) erst nach Kontrast-Spreizung lesbar — ein Mensch übersieht sie, eine Bild-KI nicht.");
+          blassPruefen(blass, r2.zeilen, melde, hinweise);
+          text = (text ? text + "\n" : "") + blass.join("\n");
+        } else hinweise.push("Blasser Text: der zweite Lesedurchgang mit mehr Kontrast fand keine weitere Zeile.");
+        return text;
+      });
     }, function (e) {
       stand.bildUngeprueft = true;
       hinweise.push("Text im Bild ungeprüft: die Texterkennung lief nicht (" + ((e && e.message) || "unbekannt") + ").");
@@ -586,6 +677,7 @@
   var API = { pruefe: pruefe, artVon: artVon, zipEintraege: zipEintraege, ausMail: ausMail,
     BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX,
     OCR_SICHER: OCR_SICHER, OCR_SEITEN_MAX: OCR_SEITEN_MAX,
+    kontrastStrecken: kontrastStrecken, neueZeilen: neueZeilen,
     /* nur für die Proben: die Frist kürzen, um das Hängen zu messen */
     ocrFrist: function (ms) { if (ms > 0) OCR_FRIST = ms; return OCR_FRIST; } };
   welt.PrueferAnhang = API;
