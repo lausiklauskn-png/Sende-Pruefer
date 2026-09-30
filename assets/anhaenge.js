@@ -160,7 +160,9 @@
           ". In der Datei selbst bleiben sie stehen."));
       }
       if (!r.befunde.length && !funde.length) liste.append(r.bildUngeprueft
-        ? el("li", { "data-kennung": "UNGEPRUEFT" }, "Text im Bild ungeprüft — die Texterkennung hat nichts sicher gelesen. Das heißt nicht, dass nichts darin steht.")
+        ? el("li", { "data-kennung": "UNGEPRUEFT" }, r.art === "html"
+          ? "HTML-Seite ungeprüft — der HTML-Prüfer fehlt. Das heißt nicht, dass nichts darin steht."
+          : "Text im Bild ungeprüft — die Texterkennung hat nichts sicher gelesen. Das heißt nicht, dass nichts darin steht.")
         : el("li", { "data-kennung": "OHNE" }, "Nichts gefunden von dem, wonach gesucht wird."));
       r.hinweise.forEach(function (h) { liste.append(el("li", { class: "gedaempft", "data-hinweis": "" }, h)); });
       if (r.sicher) fuss.append(el("button", { class: "knopf", type: "button", "data-sicher": "", onclick: function () {

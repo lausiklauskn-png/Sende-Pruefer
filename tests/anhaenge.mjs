@@ -83,6 +83,7 @@ export async function ohneBrowser(ok, WURZEL) {
   const ui = readFileSync(join(WURZEL, "assets/anhaenge.js"), "utf8");
   ok("assets/anhaenge.js trägt keine eigene Prüfung mehr, sondern lädt pruefer-anhang.js nach",
     !/function (pngPruefen|jpegPruefen|svgPruefen|officePruefen|zipEintraege)\b/.test(ui) && /laden\("assets\/pruefer-anhang\.js"/.test(ui));
+  ok("fehlt der HTML-Prüfer, heißt ein HTML-Anhang „HTML-Seite ungeprüft“, nicht „Text im Bild ungeprüft“", /r\.art === "html"\s*\?\s*"HTML-Seite ungeprüft/.test(ui));
   const reihe = ["pruefer-formate", "pruefer-mail", "pruefer", "pruefer-anhang"].map((n) => ui.indexOf('laden("assets/' + n + '.js"'));
   ok("… in der Reihenfolge PDF-Prüfer → KI-Liste → HTML-Prüfer → Anhang-Prüfer (die KI-Liste muss da sein, bevor ein PDF geprüft wird)",
     reihe.every((x) => x > 0) && reihe[0] < reihe[1] && reihe[1] < reihe[2] && reihe[2] < reihe[3], JSON.stringify(reihe));
