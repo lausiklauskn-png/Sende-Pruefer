@@ -24,6 +24,9 @@
  * Verbindung auf; „Mit dem Netz verbinden" braucht einen Klick, das Sprachmodell
  * (Modul 03) lädt erst beim Signieren im Siegel. Die Probe misst es.
  * ========================================================================== */
+/* Installieren-Knopf (Klaus 2026-09-30): eigene Datei, hier nur nachgeladen —
+   in der Seite ist kein Platz mehr (96-KB-Grenze). Fehlt sie, fehlt nur der Knopf. */
+(function () { try { var s = document.createElement("script"); s.src = "assets/installieren.js?v=1"; document.head.appendChild(s); } catch (_e) {} })();
 (function () {
   "use strict";
 
