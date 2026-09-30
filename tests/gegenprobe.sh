@@ -439,6 +439,16 @@ fall "EXP: die KI-Antwort übernimmt den Anhang nicht" $A \
   '      if (b && b.anhaenge && b.anhaenge.length) {' '      if (false) {' 'ursprünglichen Mail'
 fall "EXP: ein entfernter Anhang kommt wieder" $A \
   ' && !m.anhaengeGeerbt && m.bezug) {' ' && m.bezug) {' 'kommt nicht wieder'
+fall "TEILBAR: jede Datei gilt als teilbar" $A \
+  '    if (!navigator.canShare) return "nein";' '    return "ja";' 'VOR dem Teilen'
+fall "TEILBAR: ohne Teilen heißt es trotzdem ja" $A \
+  '    if (!navigator.share) return "ohne";' '' 'nicht „ja“'
+fall "TEILBAR: die Übersicht fehlt" $A \
+  '      wegeUebersicht(m),' '' 'die Übersicht nennt'
+fall "TEILBAR: kein Einzeln-Speichern" $A \
+  '      herunterladen(a.blob, a.name);' '' 'genau diese Datei'
+fall "TEILBAR: die Meldung schickt wieder an eine neue Mail" $A \
+  'nicht an eine neue Mail hängen — sonst' 'gern an eine neue Mail hängen — sonst' 'nicht an eine neue Mail gehört'
 
 # ── Stufe 2 D · PDF-Seitentext (2026-09-29). pdf.js aus vendor/pdfjs/ (seit 2026-09-30).
 A=assets/anhaenge.js

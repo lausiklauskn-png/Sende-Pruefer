@@ -265,10 +265,27 @@ export async function imBrowser(ok, browser, BASIS) {
   ok(".eml speichern: jeder Anhang kommt Byte für Byte zurück, samt Namen", hin.gleich.length === 4 && hin.gleich.every(Boolean), JSON.stringify(hin.gleich));
   ok(".eml speichern: der Text steht weiter darin, und der Kopf bleibt ASCII", /Hallo, anbei die Unterlagen\./.test(hin.text || "") && /^[\x00-\x7f]*$/.test(emlA.split("\r\n\r\n")[0]), hin.text);
   ok(".eml speichern: die Meldung nennt die Anhänge", /mit 4 Anhänge/.test(hin.meldung) && /brief\.docx/.test(hin.meldung), hin.meldung);
+  ok(".eml speichern: die Meldung sagt, dass die Datei ein Paket für ein Mail-Programm ist und nicht an eine neue Mail gehört", /Mail-Programm/.test(hin.meldung) && /nicht an eine neue Mail/.test(hin.meldung), hin.meldung);
   await page.evaluate(() => {
     Object.defineProperty(navigator, "canShare", { configurable: true, value: (d) => !d.files || d.files.every((f) => /\.png$/.test(f.name)) });
     Object.defineProperty(navigator, "share", { configurable: true, value: async (d) => { window.__geteiltA = { title: d.title, text: d.text, files: (d.files || []).map((f) => f.name) }; } });
   });
+  /* Vor dem Tippen: welcher Anhang geht beim Teilen mit (Klaus 2026-10-01:
+     „damit der Nutzer weiß, aha, diese Datei wird von Chrome akzeptiert"). */
+  await page.evaluate(() => window.SPAnhangUI.zeichne());
+  const vorher = await page.evaluate(() => ({
+    z: [...document.querySelectorAll("#anhang-liste > li")].map((li) => [li.querySelector(".anhang-name").textContent, li.dataset.teilbar, (li.querySelector("[data-teilbar]") || {}).textContent || "", !!li.querySelector("[data-laden]")]),
+    wege: (document.querySelector("[data-anhang-wege]") || {}).textContent || "" }));
+  const tb = (n) => (vorher.z.find((x) => x[0] === n) || []);
+  ok("Anhänge: jede Zeile sagt VOR dem Teilen, ob dieser Browser sie annimmt", tb("foto.png")[1] === "ja" && /geht beim Teilen mit/.test(tb("foto.png")[2]) && tb("brief.docx")[1] === "nein" && /teilt diese Art nicht/.test(tb("brief.docx")[2]) && tb("logo.svg")[1] === "nein", JSON.stringify(vorher.z));
+  ok("Anhänge: jede Datei lässt sich einzeln speichern (für die, die beim Teilen wegfallen)", vorher.z.length === 4 && vorher.z.every((x) => x[3]), JSON.stringify(vorher.z));
+  ok("Anhänge: die Übersicht nennt, was beim Teilen mitgeht und was wegfällt, und dass die .eml alle trägt", /mit geht foto\.png/.test(vorher.wege) && /nimmt nicht an: .*brief\.docx/.test(vorher.wege) && /ALLE Anhänge/.test(vorher.wege) && /nicht an eine neue Mail/.test(vorher.wege), vorher.wege);
+  const [dlE] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }).catch(() => null),
+    page.locator("#anhang-liste > li", { has: page.locator(".anhang-name", { hasText: "brief.docx" }) }).locator("[data-laden]").click()]);
+  ok("Anhänge: „Einzeln speichern“ gibt genau diese Datei heraus", !!dlE && dlE.suggestedFilename() === "brief.docx", dlE ? dlE.suggestedFilename() : "kein Download");
+  const ohne = await page.evaluate(() => { const s = navigator.share; Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
+    const r = window.SPAnhangUI.teilbar({ name: "x.png", typ: "image/png", blob: new Blob(["x"]) }); Object.defineProperty(navigator, "share", { configurable: true, value: s }); return r; });
+  ok("Anhänge: kann der Browser gar nicht teilen, heißt es „ohne“, nicht „ja“", ohne === "ohne", ohne);
   await page.click("#teilen");
   await page.waitForFunction(() => window.__geteiltA, null, { timeout: 4000 }).catch(() => {});
   const ge = (await page.evaluate(() => window.__geteiltA)) || {};
