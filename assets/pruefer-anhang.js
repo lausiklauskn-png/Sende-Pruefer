@@ -34,7 +34,7 @@
 
   var BEFUNDE = ["ANHANG-TARNUNG", "ANHANG-PROGRAMM", "BILD-ANHAENGSEL", "BILD-METADATEN",
     "SVG-SKRIPT", "SVG-VERWEIS", "OFFICE-MAKRO", "OFFICE-VERWEIS", "OFFICE-EINBETTUNG",
-    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG", "BILD-KI-ANWEISUNG"];
+    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG", "BILD-KI-ANWEISUNG", "PDF-VERSTECKTER-TEXT"];
 
   function alsBytes(b) { return b instanceof Uint8Array ? b : new Uint8Array(b || []); }
   function latin1(b, von, bis) {
@@ -347,18 +347,19 @@
     var arbeit = tesseractHolen().then(function (w) {
       return w.recognize(quelle, {}, { blocks: true, text: false });
     }).then(function (r) {
-      var zeilen = [], unsicher = 0;
+      var zeilen = [], unsicher = 0, alle = [];
       ((r && r.data && r.data.blocks) || []).forEach(function (bl) {
         (bl.paragraphs || []).forEach(function (pa) {
           (pa.lines || []).forEach(function (li) {
             var t = String(li.text || "").replace(/\s+/g, " ").trim();
             if (!t || !/[\p{L}\p{N}]/u.test(t)) return;
+            alle.push(t);
             if (!(li.confidence >= OCR_SICHER)) { unsicher++; return; }
             zeilen.push(t);
           });
         });
       });
-      return { zeilen: zeilen, unsicher: unsicher };
+      return { zeilen: zeilen, unsicher: unsicher, alle: alle };
     });
     return Promise.race([arbeit, frist]).then(function (x) { clearTimeout(uhr); return x; }, function (e) {
       clearTimeout(uhr);
@@ -496,14 +497,47 @@
     });
   }
   /* Eine PDF-Seite ohne Textebene zeichnen und lesen. */
-  function seiteLesen(doc, nr) {
+  function seiteLeinwand(doc, nr, mitKaesten) {
     return doc.getPage(nr).then(function (pg) {
       var v1 = pg.getViewport({ scale: 1 }), f = Math.min(2, OCR_KANTE / Math.max(v1.width, v1.height)), vp = pg.getViewport({ scale: f });
       var c = welt.document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
       var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
-      return pg.render({ canvasContext: g, viewport: vp }).promise.then(function () { return bildLesen(c); });
+      return pg.render({ canvasContext: g, viewport: vp }).promise.then(function () {
+        if (!mitKaesten) return c;
+        return pg.getTextContent().then(function (t) { c.__kaesten = wortKaesten(t.items, vp); return c; });
+      });
     });
   }
+  /* Je Wort der Textebene sein Kasten auf der gezeichneten Seite (in Pixeln).
+     pdf.js gibt je Stück Lage, Breite und Schriftgröße; ein Wort bekommt den
+     Anteil der Breite, der seinen Zeichen entspricht (genähert, reicht für die
+     Frage „steht dort Schrift?"). */
+  function wortKaesten(items, vp) {
+    var aus = [];
+    items.forEach(function (it) {
+      if (!it.str || !it.transform) return;
+      var t = it.transform, h = Math.hypot(t[2], t[3]) || Math.abs(it.height) || 0, w = it.width || 0;
+      var p0 = vp.convertToViewportPoint(t[4], t[5]), p1 = vp.convertToViewportPoint(t[4] + w, t[5] + h);
+      var x0 = Math.min(p0[0], p1[0]), x1 = Math.max(p0[0], p1[0]), y0 = Math.min(p0[1], p1[1]), y1 = Math.max(p0[1], p1[1]);
+      var s = it.str, re = /[\p{L}\p{N}]+/gu, m;
+      while ((m = re.exec(s))) aus.push({ w: m[0].toLowerCase(), x0: x0 + (x1 - x0) * m.index / s.length, x1: x0 + (x1 - x0) * (m.index + m[0].length) / s.length, y0: y0, y1: y1 });
+    });
+    return aus;
+  }
+  /* Steht im Kasten sichtbare Schrift? Winzig (unter GEGEN_MIN_PX Pixel hoch)
+     oder außerhalb der Seite zählt als NICHT sichtbar; sonst muss die Helligkeit
+     im Kasten um mindestens GEGEN_TINTE schwanken. Weiß auf Weiß, Rendermodus 3
+     auf leerem Grund: kein Ausschlag. */
+  var GEGEN_MIN_PX = 4, GEGEN_TINTE = 40;
+  function tinteIm(c, k) {
+    if (k.y1 - k.y0 < GEGEN_MIN_PX) return false;
+    var x0 = Math.max(0, Math.floor(k.x0)), x1 = Math.min(c.width, Math.ceil(k.x1)), y0 = Math.max(0, Math.floor(k.y0)), y1 = Math.min(c.height, Math.ceil(k.y1));
+    if (x1 - x0 < 1 || y1 - y0 < 1) return false;
+    var d = c.getContext("2d").getImageData(x0, y0, x1 - x0, y1 - y0).data, lo = 255, hi = 0;
+    for (var i = 0; i < d.length; i += 4) { var l = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000; if (l < lo) lo = l; if (l > hi) hi = l; }
+    return hi - lo >= GEGEN_TINTE;
+  }
+  function seiteLesen(doc, nr) { return seiteLeinwand(doc, nr).then(function (c) { return bildLesen(c); }); }
   function scanSeitenLesen(doc, leer, melde, hinweise, stand) {
     var liste = leer.slice(0, OCR_SEITEN_MAX), gelesen = [], kette = Promise.resolve(), abbruch = null;
     if (!welt.document) {
@@ -531,6 +565,114 @@
       return gelesen;
     });
   }
+  /* ══ STUFE 2 E · WAS MAN SIEHT GEGEN DAS, WAS IM TEXT STEHT (2026-09-30)
+   * Je PDF-Seite wird die Textebene (pdf.js, D) mit dem verglichen, was die
+   * Texterkennung auf dem GEZEICHNETEN Bild derselben Seite liest (A). Wörter,
+   * die nur in der Textebene stehen, sieht ein Mensch nicht: weiß auf weiß,
+   * winzig, außerhalb der Seite, Darstellungsart 3. Eine KI liest sie trotzdem. Befund PDF-VERSTECKTER-TEXT, Stelle „Seite n".
+   *
+   * Verglichen wird wie bei B über Wörter ab 3 Buchstaben/Ziffern. Ein Wort
+   * gilt als GESEHEN, wenn es im gelesenen Bild steht — als Wort, als Teil der
+   * zusammengeschriebenen Zeilen (Silbentrennung, zusammengelesene Wörter) oder
+   * mit einem verlesenen Zeichen — die letzten beiden erst ab 5 Zeichen, sonst
+   * steckt „and" in jedem „Land". Gelesen werden dafür
+   * AUCH die unsicheren Zeilen: jede verworfene Zeile wäre ein Schein-Fund.
+   *
+   * ⚠ „nicht gelesen" ist noch nicht „unsichtbar". Gemessen am 2026-09-30 an
+   * 0D, 3E und 104 sauberen Seiten aus 18 PDFs der eigenen Depots: die
+   * Texterkennung übersah auf sauberen Seiten bis zu 12 Wörter AM STÜCK
+   * (kleine Schrift auf einem Foto, grau auf dunkel) — mehr als 0D (10).
+   * Keine Zählung trennt das. Deshalb wird jedes fehlende Wort an SEINER
+   * Stelle im gezeichneten Bild nachgesehen (tinteIm): Schrift dort → verlesen,
+   * kein Befund. Danach: saubere Seiten 0 versteckte Wörter (alle 104), 0D
+   * Seite 2: 10, 3E Seite 1: 12, 0D Seite 1: 0.
+   *
+   * GEGEN_MIN_VERSTECKT = 2: so viele unsichtbare Wörter braucht der Befund.
+   * Gewählt zwischen 0 (sauber) und 10 (0D) — ein einzelnes Wort ist kein
+   * Satz an eine KI, und eine Kasten-Näherung kann einmal danebenliegen.
+   *
+   * ⚠ GRENZE: Text HINTER oder ÜBER einem Foto fällt durch — dort zählen die
+   * Bildpunkte als Tinte. In 3E liegt ein Teil der Anweisung über der
+   * sichtbaren Zeile; gemeldet werden die übrigen 12 Wörter. */
+  var GEGEN_SEITEN_MAX = 10, GEGEN_MIN_VERSTECKT = 2;
+  function versteckteWoerter(fehlt, kaesten, tinte) {
+    return fehlt.filter(function (w) {
+      var da = kaesten.filter(function (x) { return x.w === w || (w.length >= 5 && x.w.indexOf(w) >= 0); });
+      return da.length > 0 && da.every(function (x) { return !tinte(x); });
+    });
+  }
+  function aehnlich(a, b) {
+    if (Math.abs(a.length - b.length) > 1) return false;
+    var i = 0, j = 0, fehler = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; continue; }
+      if (++fehler > 1) return false;
+      if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+    }
+    return fehler + (a.length - i) + (b.length - j) <= 1;
+  }
+  function vergleiche(textebene, bildzeilen) {
+    var gesehen = {}, ganz = "", liste = [];
+    bildzeilen.forEach(function (z) { woerter(z).forEach(function (w) { if (!gesehen[w]) { gesehen[w] = true; liste.push(w); } }); ganz += String(z).toLowerCase().replace(/[^\p{L}\p{N}]/gu, ""); });
+    /* Die Textebene in Lesefolge, auch die kurzen Stücke: pdf.js zerlegt ein
+       Wort manchmal in zwei („Eng lish"). Ein Stück gilt dann als gesehen,
+       wenn es mit seinem Nachbarn zusammen im Bild steht. */
+    var stuecke = String(textebene).toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    var alle = [], fehlt = [], schon = {};
+    stuecke.forEach(function (w, i) {
+      if (w.length < 3) return;
+      var weg = !(gesehen[w] ||
+        (w.length >= 5 && (ganz.indexOf(w) >= 0 || liste.some(function (o) { return aehnlich(w, o); }))) ||
+        (function () { var vor = stuecke[i - 1], nach = stuecke[i + 1];
+          return (vor && (vor + w).length >= 5 && ganz.indexOf(vor + w) >= 0) || (nach && (w + nach).length >= 5 && ganz.indexOf(w + nach) >= 0); })());
+      if (schon[w]) return;
+      schon[w] = true; alle.push(w);
+      if (weg) fehlt.push(w);
+    });
+    return { woerter: alle.length, fehlt: fehlt };
+  }
+  function gegenlesen(doc, seiten, gesamt, leer, melde, hinweise, stand) {
+    var mitText = seiten.filter(function (x) { return x.text; }).map(function (x) { return x.seite; });
+    var liste = mitText.filter(function (n) { return n <= GEGEN_SEITEN_MAX; });
+    if (!mitText.length) return Promise.resolve();
+    if (!welt.document) {
+      stand.bildUngeprueft = true;
+      hinweise.push("Textebene NICHT gegen das Seitenbild gelesen (" + liste.length + " Seite(n)) — das geht nur im Browser. Ob unsichtbarer Text darin steht, ist ungeprüft.");
+      return Promise.resolve();
+    }
+    var t0 = Date.now(), gelesen = 0, abbruch = null, kette = Promise.resolve();
+    liste.forEach(function (nr) {
+      kette = kette.then(function () {
+        if (abbruch) return;
+        var text = (seiten.filter(function (x) { return x.seite === nr; })[0] || {}).text || "";
+        var leinwand;
+        return seiteLeinwand(doc, nr, true).then(function (c) { leinwand = c; return bildLesen(c); }).then(function (r) {
+          /* Liest die Erkennung auf dem Bild GAR NICHTS, ist das kein „ungeprüft":
+             eine Seite, deren ganzer Text unsichtbar ist, sieht genau so aus. */
+          gelesen++;
+          var v = vergleiche(text, r.alle);
+          /* Was die Erkennung nicht las, wird an seiner Stelle im Bild
+             nachgesehen: steht dort Schrift, hat sie sich verlesen (kleine
+             Schrift auf einem Foto, grau auf dunkel) — das ist kein Befund. */
+          v.versteckt = versteckteWoerter(v.fehlt, leinwand.__kaesten || [], function (k) { return tinteIm(leinwand, k); });
+          if (v.versteckt.length >= GEGEN_MIN_VERSTECKT)
+            melde("PDF-VERSTECKTER-TEXT", "Was man sieht und was im Text steht, weicht ab (Seite " + nr + "): " + v.versteckt.length + " von " + v.woerter +
+              " Wörtern der Textebene sind auf der Seite nicht zu sehen — „" + v.versteckt.slice(0, 12).join(" ") + (v.versteckt.length > 12 ? " …" : "") + "“.");
+        }, function (e) { abbruch = e; });
+      });
+    });
+    return kette.then(function () {
+      var s = (Date.now() - t0) / 1000;
+      if (gelesen) hinweise.push("Textebene gegen das Seitenbild gelesen: " + gelesen + " Seite(n) in " + s.toFixed(1).replace(".", ",") + " s (" + (s / gelesen).toFixed(1).replace(".", ",") + " s je Seite).");
+      if (abbruch) {
+        stand.bildUngeprueft = true;
+        var rest = liste.slice(gelesen);
+        hinweise.push("Textebene NICHT gegengelesen auf Seite " + rest.slice(0, 8).join(", ") + (rest.length > 8 ? " …" : "") + ": die Texterkennung lief nicht (" + ((abbruch && abbruch.message) || "unbekannt") + ") — ungeprüft, nicht sauber.");
+      }
+      if (gesamt > GEGEN_SEITEN_MAX) hinweise.push("Seiten " + (GEGEN_SEITEN_MAX + 1) + "–" + gesamt + " nicht gegengelesen (höchstens " + GEGEN_SEITEN_MAX + ") — ob dort unsichtbarer Text steht, ist ungeprüft.");
+      if (leer.length) hinweise.push("Seiten ohne Textebene (" + leer.slice(0, 8).join(", ") + (leer.length > 8 ? " …" : "") + ") haben nichts zum Gegenlesen; ihr Bild läuft über die Texterkennung (oben).");
+    });
+  }
   function pdfTextPruefen(b, melde, hinweise, stand) {
     var frist = new Promise(function (_ok, nein) { setTimeout(function () { nein(new Error("Zeit abgelaufen")); }, 60000); });
     return Promise.race([pdfSeitentext(b), frist]).then(function (r) {
@@ -548,10 +690,12 @@
       if (r.alle > r.seiten.length) hinweise.push("Seiten " + (r.seiten.length + 1) + "–" + r.alle + " wurden NICHT gelesen (höchstens " + SEITEN_TEXT_MAX + ") — dort ungeprüft, nicht sauber.");
       var mitText = r.seiten.filter(function (x) { return x.text; });
       var fertig = function (x) { try { r.doc.destroy(); } catch (_e) {} return x; };
-      if (!leer.length) return fertig(mitText);
-      return scanSeitenLesen(r.doc, leer, melde, hinweise, stand).then(function (g) {
-        return fertig(mitText.concat(g).sort(function (a, z) { return a.seite - z.seite; }));
-      }, function () { return fertig(mitText); });
+      var scan = leer.length ? scanSeitenLesen(r.doc, leer, melde, hinweise, stand).then(null, function () { return []; }) : Promise.resolve([]);
+      return scan.then(function (g) {
+        return gegenlesen(r.doc, r.seiten, r.alle, leer, melde, hinweise, stand).then(null, function () {}).then(function () {
+          return fertig(mitText.concat(g).sort(function (a, z) { return a.seite - z.seite; }));
+        });
+      });
     }, function (e) {
       var grund = /password/i.test((e && (e.name + e.message)) || "") ? "das PDF ist mit einem Passwort geschützt" : (e && e.message) || "unbekannt";
       hinweise.push("Der Seitentext des PDFs wurde NICHT gelesen (" + grund + ") — er ist ungeprüft, nicht sauber.");
@@ -678,6 +822,7 @@
     BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX,
     OCR_SICHER: OCR_SICHER, OCR_SEITEN_MAX: OCR_SEITEN_MAX,
     kontrastStrecken: kontrastStrecken, neueZeilen: neueZeilen,
+    vergleiche: vergleiche, GEGEN_SEITEN_MAX: GEGEN_SEITEN_MAX, GEGEN_MIN_VERSTECKT: GEGEN_MIN_VERSTECKT, versteckteWoerter: versteckteWoerter, wortKaesten: wortKaesten,
     /* nur für die Proben: die Frist kürzen, um das Hängen zu messen */
     ocrFrist: function (ms) { if (ms > 0) OCR_FRIST = ms; return OCR_FRIST; } };
   welt.PrueferAnhang = API;

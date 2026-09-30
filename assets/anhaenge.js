@@ -205,7 +205,7 @@
       wegeUebersicht(m),
       m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
-      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten). An die KI geht nur der Mailtext, keine Datei."));
+      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten) und hält die ersten 10 Seiten gegen ihr Bild — was im Text steht, aber nicht zu sehen ist, wird gemeldet. An die KI geht nur der Mailtext, keine Datei."));
   }
 
   function zeichne() {
