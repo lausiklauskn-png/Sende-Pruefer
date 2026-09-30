@@ -124,13 +124,27 @@
     welt.__spAnhangLetzter = name;
   }
 
+  /* Welche Datei nimmt DIESER Browser beim Teilen an? Gefragt wird mit
+     navigator.canShare — derselben Frage, die Chrome, Safari (iOS) und Edge
+     beantworten; eine Liste von Dateiarten je Browser wird nicht geraten.
+     Drei Ausgänge: "ja" · "nein" · "ohne" (der Browser kann gar nicht teilen). */
+  function teilbar(a) {
+    if (!navigator.share) return "ohne";
+    if (!navigator.canShare) return "nein";
+    try { return navigator.canShare({ files: [new File([a.blob], a.name, { type: a.typ || a.blob.type || "" })] }) ? "ja" : "nein"; }
+    catch (_e) { return "nein"; }
+  }
+  var TEILBAR_TEXT = { ja: "📤 geht beim Teilen mit", nein: "✗ dieser Browser teilt diese Art nicht — nur über „Als .eml speichern“ oder ⬇ einzeln", ohne: "Teilen gibt es in diesem Browser nicht — nur über „Als .eml speichern“ oder ⬇ einzeln" };
+
   function zeile(m, a) {
     var li = el("li", { class: "anhang", "data-anhang": a.id },
       el("div", { class: "anhang-kopf" }, el("b", { class: "anhang-name" }, a.name),
         el("span", { class: "gedaempft", "data-anhang-art": "" }, " · " + gross(a.groesse || 0) + " · wird geprüft …")));
     var liste = el("ul", { class: "befunde anhang-befunde" }), fuss = el("div", { class: "werkzeug", style: "margin:6px 0 0" }),
       meldung = el("p", { class: "meldung", "data-anhang-meldung": "" });
-    li.append(liste, fuss, meldung);
+    var tb = teilbar(a);
+    li.dataset.teilbar = tb;
+    li.append(el("p", { "data-teilbar": tb, style: "margin:4px 0 0" }, TEILBAR_TEXT[tb]), liste, fuss, meldung);
     ergebnis(a).then(function (r) {
       var finde = g("finde"), mailNamen = g("mailNamen");
       var funde = r.text && finde ? finde(r.text, mailNamen ? mailNamen(m) : []) : [];
@@ -157,10 +171,26 @@
         }, function (e) { meldung.className = "meldung warn"; meldung.textContent = e.message; });
       } }, "🧼 Sichere Fassung speichern"));
     }, function () { li.querySelector("[data-anhang-art]").textContent = " · nicht lesbar — ungeprüft, nicht sauber"; });
+    fuss.append(el("button", { class: "knopf", type: "button", "data-laden": "", title: "Diese Datei einzeln speichern, um sie im Mail-Programm von Hand anzuhängen", onclick: function () {
+      herunterladen(a.blob, a.name);
+      meldung.className = "meldung gut"; meldung.textContent = "Gespeichert: " + a.name + ". Im Mail-Programm über die Büroklammer anhängen.";
+    } }, "⬇ Einzeln speichern"));
     fuss.append(el("button", { class: "knopf", type: "button", "data-weg": "", onclick: function () {
       m.anhaenge = (m.anhaenge || []).filter(function (x) { return x.id !== a.id; }); ergebnisse.delete(a.id); speichern(m); zeichne();
     } }, "Entfernen"));
     return li;
+  }
+
+  /* Vor dem Tippen sagen, was wohin mitgeht — nicht erst in der Meldung danach. */
+  function wegeUebersicht(m) {
+    var L = m.anhaenge || [];
+    if (!L.length) return null;
+    var ja = L.filter(function (a) { return teilbar(a) === "ja"; }), nein = L.filter(function (a) { return teilbar(a) !== "ja"; });
+    var p = el("div", { class: "gedaempft", "data-anhang-wege": "", style: "margin:8px 0 0" });
+    p.append(el("p", { style: "margin:0" }, "📤 Teilen: " + (ja.length ? "mit geht " + namenListe(ja) : "kein Anhang geht mit") +
+      (nein.length ? ". Dieser Browser nimmt nicht an: " + namenListe(nein) + " — die bleiben beim Teilen automatisch weg." : ".")));
+    p.append(el("p", { style: "margin:4px 0 0" }, "💾 „Als .eml speichern“: ALLE Anhänge sind in der Datei. Die .eml ist die ganze Mail als Paket — öffnen Sie sie mit einem Mail-Programm (Outlook, Thunderbird). Hängen Sie sie nicht an eine neue Mail: dann kommt beim Empfänger nur diese eine Datei an."));
+    return p;
   }
 
   function abschnitt(m) {
@@ -172,6 +202,7 @@
       el("h2", null, "📎 Anhänge"),
       el("p", { class: "gedaempft", "data-anhang-zweck": "" }, "Damit eine Datei nicht mehr verrät, als Sie weitergeben wollen: jeder Anhang wird hier auf dem Gerät geprüft — auf versteckte Daten hinter einem Bild, Metadaten wie Ort und Kamera, Skripte, Makros, Verweise nach außen und Angaben im Text. Bilder lassen sich als sichere Fassung neu zeichnen."),
       liste,
+      wegeUebersicht(m),
       m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
       el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten). An die KI geht nur der Mailtext, keine Datei."));
@@ -305,7 +336,7 @@
         herunterladen(f, f.name);
         welt.__letzteEml = { name: f.name, weg: "download", anhaenge: L.map(function (x) { return x.name; }) };
         var ex = g("exportiert"); if (ex) ex(m);
-        melde("Gespeichert als " + f.name + ", mit " + zahlText(L.length) + " (" + namenListe(L) + "). Öffnen Sie die Datei, dann zeigt Ihr Mail-Programm sie als Entwurf.", true);
+        melde("Gespeichert als " + f.name + ", mit " + zahlText(L.length) + " (" + namenListe(L) + "). Die Datei ist die ganze Mail als Paket: mit einem Mail-Programm öffnen (Outlook, Thunderbird), nicht an eine neue Mail hängen — sonst kommt nur diese eine Datei an. Am Tablet oder Handy ist „Teilen“ der Weg.", true);
       }, function (e) { melde("Die Anhänge ließen sich nicht lesen (" + (e && e.message || e) + "). Nichts gespeichert.", false); });
     };
     welt.teilen = function (m) {
@@ -319,7 +350,7 @@
       });
       if (geht.length) d.files = geht;
       var an = m.anAdr ? " Den Empfänger (" + m.anAdr + ") tragen Sie im Mail-Programm ein." : "";
-      var rest = nicht.length ? " NICHT mitgenommen, weil das Gerät diese Art beim Teilen nicht zulässt: " + namenListe(nicht) + ". Speichern Sie die Mail dafür mit „Als .eml speichern“ — dort ist alles dabei." : "";
+      var rest = nicht.length ? " NICHT mitgenommen, weil dieser Browser diese Art beim Teilen abweist: " + namenListe(nicht) + ". Hängen Sie sie im Mail-Programm von Hand an (⬇ Einzeln speichern am Anhang) oder nehmen Sie „Als .eml speichern“ — dort ist alles dabei." : "";
       return navigator.share(d).then(function () {
         welt.__letzteEml = { name: emlName(m), weg: "teilen", anhaenge: geht.map(function (x) { return x.name; }) };
         var ex = g("exportiert"); if (ex) ex(m);
@@ -330,7 +361,7 @@
       });
     };
   }
-  API.emlMitAnhang = emlMitAnhang; API.mitnehmen = mitnehmen;
+  API.emlMitAnhang = emlMitAnhang; API.mitnehmen = mitnehmen; API.teilbar = teilbar; API.zeichne = function () { zeichne(); };
 
   function start() {
     document.head.append(el("style", null, ".anhang-liste{list-style:none;padding:0;margin:8px 0}.anhang{border-top:1px solid color-mix(in srgb,currentColor 15%,transparent);padding:8px 0}.anhang-name{overflow-wrap:anywhere}.anhang-befunde{margin:6px 0 0}"));

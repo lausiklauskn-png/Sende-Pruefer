@@ -330,7 +330,7 @@ fall "WEG: die Funde gehen als HTML ins Fenster" assets/sbkim-init.js \
 fall "WEG: der Knopf im Fremdzugriff-Fenster schaltet nicht" assets/sbkim-init.js \
   'k.addEventListener("click", function () { AB.umschalten();' 'k.addEventListener("click", function () {' 'im Fenster lässt sich abschirmen'
 fall "EIGEN: die Erklärseite fehlt im Offline-Vorrat" sw.js \
-  ', "sicherheit.html"]' ']' 'Erklärseite des Siegels'
+  ', "sicherheit.html", "impressum.html"' ', "impressum.html"' 'Erklärseite des Siegels'
 fall "ANB: die Seite lädt die Liste nicht" $H \
   '<script src="assets/anbieter.js"></script>' '' 'lädt die Liste'
 
@@ -439,6 +439,16 @@ fall "EXP: die KI-Antwort übernimmt den Anhang nicht" $A \
   '      if (b && b.anhaenge && b.anhaenge.length) {' '      if (false) {' 'ursprünglichen Mail'
 fall "EXP: ein entfernter Anhang kommt wieder" $A \
   ' && !m.anhaengeGeerbt && m.bezug) {' ' && m.bezug) {' 'kommt nicht wieder'
+fall "TEILBAR: jede Datei gilt als teilbar" $A \
+  '    if (!navigator.canShare) return "nein";' '    return "ja";' 'VOR dem Teilen'
+fall "TEILBAR: ohne Teilen heißt es trotzdem ja" $A \
+  '    if (!navigator.share) return "ohne";' '' 'nicht „ja“'
+fall "TEILBAR: die Übersicht fehlt" $A \
+  '      wegeUebersicht(m),' '' 'die Übersicht nennt'
+fall "TEILBAR: kein Einzeln-Speichern" $A \
+  '      herunterladen(a.blob, a.name);' '' 'genau diese Datei'
+fall "TEILBAR: die Meldung schickt wieder an eine neue Mail" $A \
+  'nicht an eine neue Mail hängen — sonst' 'gern an eine neue Mail hängen — sonst' 'nicht an eine neue Mail gehört'
 
 # ── Stufe 2 D · PDF-Seitentext (2026-09-29). pdf.js aus vendor/pdfjs/ (seit 2026-09-30).
 A=assets/anhaenge.js
@@ -459,7 +469,7 @@ fall "PDFTEXT: die KI-Liste fehlt im Offline-Vorrat" sw.js \
 
 # ── Eigenständig (2026-09-30): pdf.js aus dem eigenen Ordner, nicht aus Workflow PDF
 fall "ALLEIN: der Weg zu pdf.js zeigt wieder auf Workflow PDF" assets/anhaenge.js \
-  'pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href })' 'pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href })' 'EIGENEN Ordner|Workflow-PDF'
+  'pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href,' 'pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href,' 'EIGENEN Ordner|Workflow-PDF'
 fall "ALLEIN: die mitgelieferte pdf.js ist nicht mehr die gepinnte" vendor/pdfjs/pdf.min.js \
   '/**' '/* x */ /**' 'byte-gleich'
 
