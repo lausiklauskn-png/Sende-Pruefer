@@ -78,6 +78,12 @@ nach #23, Kimhub nach #306).
   Virenscanner."), nicht als Messprotokoll.
 - **Der Abschnitt „Warum es das gibt"** ist Klaus' Stimme, nicht die der Sitzung. Er wird mit
   ihm formuliert, nicht aus seinen Sitzungs-Aussagen zusammengesetzt.
+- **Keine Regeln wiedergeben** (Klaus 2026-10-01: „Du musst nicht deine Regeln wiederholen …
+  Ich glaube, es interessiert niemanden."): nicht erklären, nach welchen Grundsätzen gebaut,
+  geprüft oder entschieden wurde („nichts wird geraten", „fail-soft", „ehrlich statt …"). Wer die
+  Seite liest, will vier Dinge wissen: **was die App kann · wozu sie nützt · wie man sie benutzt ·
+  was man tut, wenn sie ein Problem findet.** Das Vierte hat das größte Gewicht: zu jedem Fund
+  klare Schritte in der Reihenfolge, in der man sie ausführt.
 - **Prüfstein:** Klingt der Satz, als stünde er auf der Seite eines fertigen Produkts, oder als
   käme er aus einem Arbeitsprotokoll? Im zweiten Fall wird er neu geschrieben.
 
