@@ -12,12 +12,14 @@
  * PDFs gehen an assets/pruefer-formate.js. Den TEXT einer Datei (SVG, Word,
  * Excel, PowerPoint) gibt sie heraus; wer ihn weiterprüft, entscheidet die App.
  *
- * ⚠ KEIN VIRENSCANNER. ⚠ BENANNTE GRENZEN: Text IN einem Bild
- * (Texterkennung) und in Bildpunkten versteckte Botschaften werden NICHT
- * gelesen. Der Seitentext eines PDFs wird seit Stufe 2 D (2026-09-29) gelesen
- * — mit pdf.js, das die App nachlädt (pfade({pdfjs})). Fehlt es, bleibt der
- * Seitentext UNGEPRÜFT und das steht da. Gescannte Seiten ohne Textebene
- * werden benannt, nicht gelesen.
+ * ⚠ KEIN VIRENSCANNER. ⚠ BENANNTE GRENZE: in Bildpunkten versteckte
+ * Botschaften werden NICHT gelesen. Der Seitentext eines PDFs wird seit
+ * Stufe 2 D (2026-09-29) gelesen — mit pdf.js, das die App nachlädt
+ * (pfade({pdfjs})). Fehlt es, bleibt der Seitentext UNGEPRÜFT und das steht da.
+ * Text IN einem Bild (PNG, JPEG, WebP, GIF) und auf PDF-Seiten ohne Textebene
+ * liest seit Stufe 2 A (2026-09-30) die Texterkennung (Tesseract, von der App
+ * nachgeladen: pfade({tesseract})). Liest sie nichts Sicheres, steht „Text im
+ * Bild ungeprüft" da — nie „kein Befund".
  *
  * ausMail(roh) packt die Anhänge einer Mail aus: base64 und quoted-printable,
  * Namen nach RFC 2047/2231. Nichts davon wird ausgeführt oder angezeigt; eine
@@ -30,7 +32,7 @@
 
   var BEFUNDE = ["ANHANG-TARNUNG", "ANHANG-PROGRAMM", "BILD-ANHAENGSEL", "BILD-METADATEN",
     "SVG-SKRIPT", "SVG-VERWEIS", "OFFICE-MAKRO", "OFFICE-VERWEIS", "OFFICE-EINBETTUNG",
-    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG"];
+    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG", "BILD-KI-ANWEISUNG"];
 
   function alsBytes(b) { return b instanceof Uint8Array ? b : new Uint8Array(b || []); }
   function latin1(b, von, bis) {
@@ -263,7 +265,7 @@
    * ⚠ Höchstens SEITEN_TEXT_MAX Seiten; was dahinter liegt, wird benannt.
    * Die Anweisungen an eine KI sucht dieselbe Liste wie im Mail-Eingang
    * (PrueferMail) — eine zweite Liste liefe auseinander. Fehlt sie, steht das da. */
-  var SEITEN_TEXT_MAX = 100, PFADE = { pdfjs: null }, pdfjsVersprechen = null;
+  var SEITEN_TEXT_MAX = 100, PFADE = { pdfjs: null, tesseract: null }, pdfjsVersprechen = null;
   function pfade(neu) { for (var k in neu || {}) PFADE[k] = neu[k]; return PFADE; }
   function pdfjsHolen() {
     if (welt.pdfjsLib) return Promise.resolve(welt.pdfjsLib);
@@ -298,10 +300,147 @@
             seiten.push({ seite: nr, text: zeilen.map(function (x) { return x.replace(/\s+/g, " ").trim(); }).filter(Boolean).join("\n") });
           });
       })(i);
-      return kette.then(function () { var alle = doc.numPages; doc.destroy(); return { seiten: seiten, alle: alle }; });
+      return kette.then(function () { return { seiten: seiten, alle: doc.numPages, doc: doc }; });
     });
   }
-  function pdfTextPruefen(b, melde, hinweise) {
+  /* ══ TEXT IM BILD — Stufe 2 A (2026-09-30)
+   * Tesseract.js 7.0.0 liegt im eigenen Ordner der App (vendor/tesseract/, 21 MB,
+   * nicht im Installations-Vorrat); die App setzt pfade({tesseract}). Gelesen
+   * wird Deutsch, Englisch und Russisch in einem Durchgang.
+   * ⚠ Gewählte Zahlen, nicht gemessen am Tablet:
+   *   OCR_FRIST 90 s je Bild — das erste Bild trägt das Laden der Sprachdaten
+   *   (9,5 MB) mit. OCR_SICHER 60 — Zeilen mit geringerer Sicherheit zählen
+   *   nicht (Kanten und Muster eines Fotos liest Tesseract sonst als Buchstaben).
+   *   OCR_SEITEN_MAX 10 PDF-Seiten ohne Textebene; dahinter wird benannt.
+   *   OCR_KANTE 3000 px lange Kante; größere Bilder werden verkleinert gelesen. */
+  var OCR_SPRACHEN = ["deu", "eng", "rus"], OCR_FRIST = 90000, OCR_SICHER = 60, OCR_SEITEN_MAX = 10, OCR_KANTE = 3000;
+  var tessVersprechen = null;
+  function absolut(u) { try { return welt.location ? new URL(u, welt.location.href).href : u; } catch (_e) { return u; } }
+  function tesseractHolen() {
+    if (tessVersprechen) return tessVersprechen;
+    if (!welt.Tesseract && (!PFADE.tesseract || !welt.document)) return Promise.reject(new Error("die Texterkennung ist nicht erreichbar"));
+    /* Unter file:// startet der Worker nicht, er HÄNGT bis zur Frist (gemessen
+       2026-09-30). Dann lieber sofort und mit Grund. */
+    if (!welt.Tesseract && welt.location && welt.location.protocol === "file:") return Promise.reject(new Error("die Texterkennung läuft nicht aus einer lokal geöffneten Datei (file://)"));
+    var basis = PFADE.tesseract ? absolut(PFADE.tesseract) : "";
+    tessVersprechen = (welt.Tesseract ? Promise.resolve(welt.Tesseract) : new Promise(function (ok, nein) {
+      var s = welt.document.createElement("script"), uhr = setTimeout(function () { nein(new Error("die Texterkennung kam nicht an")); }, 30000);
+      s.src = basis + "tesseract.min.js";
+      s.onload = function () { clearTimeout(uhr); welt.Tesseract ? ok(welt.Tesseract) : nein(new Error("die Texterkennung meldet sich nicht")); };
+      s.onerror = function () { clearTimeout(uhr); nein(new Error("die Texterkennung kam nicht an")); };
+      welt.document.head.appendChild(s);
+    })).then(function (T) {
+      return T.createWorker(OCR_SPRACHEN, 1, { workerPath: basis + "worker.min.js", corePath: basis, langPath: basis + "lang",
+        gzip: false, cacheMethod: "none" });
+    });
+    tessVersprechen.catch(function () { tessVersprechen = null; });   // ein späterer Versuch darf neu holen
+    return tessVersprechen;
+  }
+  /* quelle: ein Canvas oder Bild-Bytes. Gibt {zeilen:[text], unsicher:n} zurück. */
+  function bildLesen(quelle) {
+    var uhr, frist = new Promise(function (_ok, nein) { uhr = setTimeout(function () { nein(new Error("Zeit abgelaufen (" + OCR_FRIST / 1000 + " s)")); }, OCR_FRIST); });
+    var arbeit = tesseractHolen().then(function (w) {
+      return w.recognize(quelle, {}, { blocks: true, text: false });
+    }).then(function (r) {
+      var zeilen = [], unsicher = 0;
+      ((r && r.data && r.data.blocks) || []).forEach(function (bl) {
+        (bl.paragraphs || []).forEach(function (pa) {
+          (pa.lines || []).forEach(function (li) {
+            var t = String(li.text || "").replace(/\s+/g, " ").trim();
+            if (!t || !/[\p{L}\p{N}]/u.test(t)) return;
+            if (!(li.confidence >= OCR_SICHER)) { unsicher++; return; }
+            zeilen.push(t);
+          });
+        });
+      });
+      return { zeilen: zeilen, unsicher: unsicher };
+    });
+    return Promise.race([arbeit, frist]).then(function (x) { clearTimeout(uhr); return x; }, function (e) {
+      clearTimeout(uhr);
+      /* Ein hängender Leser darf das nächste Bild nicht mitnehmen. */
+      if (/Zeit abgelaufen/.test(e && e.message) && tessVersprechen) {
+        tessVersprechen.then(function (w) { try { w.terminate(); } catch (_e) {} }, function () {});
+        tessVersprechen = null;
+      }
+      throw e;
+    });
+  }
+  /* Bild-Bytes → Canvas (lange Kante höchstens OCR_KANTE). Ohne Browser: die Bytes selbst. */
+  function bildQuelle(b, art) {
+    if (!welt.document || !welt.createImageBitmap || !welt.Blob) return Promise.resolve(b);
+    return welt.createImageBitmap(new welt.Blob([b], { type: "image/" + art })).then(function (bm) {
+      var f = Math.min(1, OCR_KANTE / Math.max(bm.width, bm.height)), c = welt.document.createElement("canvas");
+      c.width = Math.max(1, Math.round(bm.width * f)); c.height = Math.max(1, Math.round(bm.height * f));
+      var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(bm, 0, 0, c.width, c.height); if (bm.close) bm.close();
+      return c;
+    }, function () { return b; });
+  }
+  /* Den gelesenen Text auf Anweisungen an eine KI prüfen — dieselbe Liste wie
+     der Mail-Eingang. wo: "" beim Bild, "Seite n, " beim PDF. */
+  function bildtextPruefen(text, wo, melde, hinweise) {
+    var PM = welt.PrueferMail;
+    if (!PM) { hinweise.push("Der Text im Bild wurde gelesen, aber die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — auf Anweisungen an eine KI ist er ungeprüft."); return; }
+    PM.pruefeMail(text).stellen.forEach(function (st) {
+      if (st.kennung !== "KI-ANWEISUNG") return;
+      melde("BILD-KI-ANWEISUNG", st.satz + " (" + wo + "Bildtext Zeile " + st.zeile + ")");
+    });
+  }
+  function bildTextPruefen(b, art, melde, hinweise, stand) {
+    return bildQuelle(b, art).then(bildLesen).then(function (r) {
+      if (!r.zeilen.length) {
+        stand.bildUngeprueft = true;
+        hinweise.push("Text im Bild ungeprüft: die Texterkennung fand keine sicher lesbare Zeile" +
+          (r.unsicher ? " (" + r.unsicher + " unsichere verworfen)" : "") + ". Ein Bild ohne Text sieht genauso aus.");
+        return null;
+      }
+      var text = r.zeilen.join("\n");
+      hinweise.push("Text im Bild gelesen: " + r.zeilen.length + " Zeile(n)" + (r.unsicher ? ", " + r.unsicher + " unsichere verworfen" : "") + ".");
+      bildtextPruefen(text, "", melde, hinweise);
+      return text;
+    }, function (e) {
+      stand.bildUngeprueft = true;
+      hinweise.push("Text im Bild ungeprüft: die Texterkennung lief nicht (" + ((e && e.message) || "unbekannt") + ").");
+      return null;
+    });
+  }
+  /* Eine PDF-Seite ohne Textebene zeichnen und lesen. */
+  function seiteLesen(doc, nr) {
+    return doc.getPage(nr).then(function (pg) {
+      var v1 = pg.getViewport({ scale: 1 }), f = Math.min(2, OCR_KANTE / Math.max(v1.width, v1.height)), vp = pg.getViewport({ scale: f });
+      var c = welt.document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      return pg.render({ canvasContext: g, viewport: vp }).promise.then(function () { return bildLesen(c); });
+    });
+  }
+  function scanSeitenLesen(doc, leer, melde, hinweise, stand) {
+    var liste = leer.slice(0, OCR_SEITEN_MAX), gelesen = [], kette = Promise.resolve(), abbruch = null;
+    if (!welt.document) {
+      stand.bildUngeprueft = true;
+      hinweise.push(leer.length + " Seite(n) ohne Textebene (" + leer.slice(0, 8).join(", ") + (leer.length > 8 ? " …" : "") + ") — Text im Bild ungeprüft: die Texterkennung läuft nur im Browser.");
+      return Promise.resolve(gelesen);
+    }
+    liste.forEach(function (nr) {
+      kette = kette.then(function () {
+        if (abbruch) return;
+        return seiteLesen(doc, nr).then(function (r) {
+          if (!r.zeilen.length) { stand.bildUngeprueft = true; hinweise.push("Seite " + nr + " ohne Textebene: Text im Bild ungeprüft — die Texterkennung fand keine sicher lesbare Zeile."); return; }
+          var text = r.zeilen.join("\n");
+          gelesen.push({ seite: nr, text: text, bild: true });
+          hinweise.push("Seite " + nr + " ohne Textebene: Text im Bild gelesen, " + r.zeilen.length + " Zeile(n).");
+          bildtextPruefen(text, "Seite " + nr + ", ", melde, hinweise);
+        }, function (e) { abbruch = e; });
+      });
+    });
+    return kette.then(function () {
+      var rest = abbruch ? leer.filter(function (n) { return !gelesen.some(function (x) { return x.seite === n; }); }) : leer.slice(OCR_SEITEN_MAX);
+      if (rest.length) stand.bildUngeprueft = true;
+      if (abbruch) hinweise.push("Text im Bild ungeprüft auf Seite " + rest.slice(0, 8).join(", ") + (rest.length > 8 ? " …" : "") + ": die Texterkennung lief nicht (" + ((abbruch && abbruch.message) || "unbekannt") + ").");
+      else if (rest.length) hinweise.push("Seiten ohne Textebene hinter den ersten " + OCR_SEITEN_MAX + " (" + rest.slice(0, 8).join(", ") + (rest.length > 8 ? " …" : "") + ") wurden NICHT gelesen — dort ist der Text im Bild ungeprüft.");
+      return gelesen;
+    });
+  }
+  function pdfTextPruefen(b, melde, hinweise, stand) {
     var frist = new Promise(function (_ok, nein) { setTimeout(function () { nein(new Error("Zeit abgelaufen")); }, 60000); });
     return Promise.race([pdfSeitentext(b), frist]).then(function (r) {
       var leer = r.seiten.filter(function (x) { return !x.text; }).map(function (x) { return x.seite; });
@@ -316,8 +455,12 @@
       });
       hinweise.push("Seitentext gelesen: " + r.seiten.length + " von " + r.alle + " Seite(n).");
       if (r.alle > r.seiten.length) hinweise.push("Seiten " + (r.seiten.length + 1) + "–" + r.alle + " wurden NICHT gelesen (höchstens " + SEITEN_TEXT_MAX + ") — dort ungeprüft, nicht sauber.");
-      if (leer.length) hinweise.push(leer.length + " Seite(n) ohne Textebene (z. B. gescannt: " + leer.slice(0, 8).join(", ") + (leer.length > 8 ? " …" : "") + ") — deren Text wird in dieser Fassung nicht gelesen.");
-      return r.seiten.filter(function (x) { return x.text; });
+      var mitText = r.seiten.filter(function (x) { return x.text; });
+      var fertig = function (x) { try { r.doc.destroy(); } catch (_e) {} return x; };
+      if (!leer.length) return fertig(mitText);
+      return scanSeitenLesen(r.doc, leer, melde, hinweise, stand).then(function (g) {
+        return fertig(mitText.concat(g).sort(function (a, z) { return a.seite - z.seite; }));
+      }, function () { return fertig(mitText); });
     }, function (e) {
       var grund = /password/i.test((e && (e.name + e.message)) || "") ? "das PDF ist mit einem Passwort geschützt" : (e && e.message) || "unbekannt";
       hinweise.push("Der Seitentext des PDFs wurde NICHT gelesen (" + grund + ") — er ist ungeprüft, nicht sauber.");
@@ -327,11 +470,14 @@
 
   /* ══ DIE EINE TÜR
    * @returns Promise<{art, artName, befunde:[{kennung,satz}], text:string|null,
-   *                   seiten:[{seite,text}]|null, hinweise:[], sicher:boolean}>
+   *                   textQuelle:"bild"|null, seiten:[{seite,text,bild?}]|null,
+   *                   hinweise:[], sicher:boolean, bildUngeprueft:boolean}>
+   * bildUngeprueft: Text in einem Bild oder auf einer Scan-Seite wurde NICHT
+   * gelesen — die App darf dann nicht „kein Befund" melden.
    * text: was Modul 25 danach lesen soll (null = kein Text gelesen).
    * seiten: beim PDF der Text je Seite, damit ein Fund seine Seite nennt. */
   function pruefe(name, bytes) {
-    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null, seiten = null;
+    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null, seiten = null, stand = { bildUngeprueft: false };
     function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
     name = String(name || "");
     var endung = (/\.([A-Za-z0-9]{1,6})$/.exec(name) || [])[1];
@@ -360,13 +506,17 @@
         r.stellen.forEach(function (x) { melde(x.kennung, x.satz + " (" + x.stelle + ")"); });
         hinweise.push.apply(hinweise, r.hinweise);
       });
-      weiter = weiter.then(function () { return pdfTextPruefen(b, melde, hinweise); }).then(function (s) {
+      weiter = weiter.then(function () { return pdfTextPruefen(b, melde, hinweise, stand); }).then(function (s) {
         if (s && s.length) { seiten = s; text = s.map(function (x) { return x.text; }).join("\n"); }
       });
     }
-    if (/^(png|jpeg|webp|gif)$/.test(art)) hinweise.push("Text im Bild (Texterkennung) wird in dieser Fassung nicht gelesen.");
+    var textQuelle = null;
+    if (/^(png|jpeg|webp|gif)$/.test(art)) weiter = weiter.then(function () {
+      return bildTextPruefen(b, art, melde, hinweise, stand).then(function (t) { if (t) { text = t; textQuelle = "bild"; } });
+    });
     return weiter.then(function () {
-      return { art: art, artName: ART_NAME[art] || art, befunde: befunde, text: text, seiten: seiten, hinweise: hinweise,
+      return { art: art, artName: ART_NAME[art] || art, befunde: befunde, text: text, textQuelle: textQuelle, seiten: seiten, hinweise: hinweise,
+        bildUngeprueft: stand.bildUngeprueft,
         sicher: /^(png|jpeg|webp|gif|svg)$/.test(art) };
     });
   }
@@ -434,7 +584,10 @@
   }
 
   var API = { pruefe: pruefe, artVon: artVon, zipEintraege: zipEintraege, ausMail: ausMail,
-    BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX };
+    BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX,
+    OCR_SICHER: OCR_SICHER, OCR_SEITEN_MAX: OCR_SEITEN_MAX,
+    /* nur für die Proben: die Frist kürzen, um das Hängen zu messen */
+    ocrFrist: function (ms) { if (ms > 0) OCR_FRIST = ms; return OCR_FRIST; } };
   welt.PrueferAnhang = API;
   welt.SPAnhang = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
