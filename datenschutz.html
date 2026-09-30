@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sende-Prüfer · Datenschutz</title>
+<meta name="description" content="Datenschutzerklärung des Sende-Prüfers: was auf dem Gerät bleibt und was wann an wen geht.">
+<meta name="theme-color" content="#0b1418">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<style>
+:root{--bg:#0b1418;--fl:#122128;--fl2:#17303a;--linie:#24414b;--schrift:#e8f0f3;--leise:#9db3bb;--petrol:#5cc2c9;--glanz:#8fe4ea;--gold:#f3b54a;--gold2:#ffd98a;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--schrift);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-wrap:anywhere}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(60vw 40vw at 85% -10%,rgb(92 194 201/.18),transparent 70%),radial-gradient(50vw 40vw at -10% 110%,rgb(243 181 74/.12),transparent 70%)}
+a{color:var(--glanz)}
+b{color:#fff}
+code{font:600 .9em ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--gold2);background:rgb(243 181 74/.12);padding:1px 5px;border-radius:6px;overflow-wrap:anywhere}
+.held{position:relative;padding:48px 20px 28px;text-align:center;max-width:980px;margin:0 auto}
+.held .zurueck{position:absolute;left:16px;top:14px;font-size:.92rem;text-decoration:none;color:var(--leise)}
+.held img{width:72px;height:72px;border-radius:18px;box-shadow:0 12px 30px rgb(0 0 0/.5)}
+.held h1{margin:12px 0 10px;font-size:clamp(1.9rem,5vw,3rem);line-height:1.1;letter-spacing:-.02em;
+ background:linear-gradient(100deg,var(--glanz),#fff 45%,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.held .unter{color:var(--leise);margin:0 auto 22px;max-width:680px;text-align:left}
+.knoepfe{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.knopf{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--linie);
+ background:linear-gradient(180deg,var(--fl2),var(--fl));color:var(--schrift);font:600 .98rem system-ui,sans-serif;text-decoration:none;
+ box-shadow:inset 0 1px 0 rgb(255 255 255/.12),0 6px 18px rgb(0 0 0/.3)}
+.knopf.haupt{border-color:var(--gold);background:linear-gradient(180deg,#3a2c12,#231a0b);color:var(--gold2)}
+.knopf:hover{border-color:var(--petrol)}
+.rahmen{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;max-width:1180px;margin:0 auto;padding:0 20px 60px}
+.film{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid var(--linie);border-radius:18px;background:rgb(18 33 40/.8)}
+.film::before{content:"Inhalt";font:700 .72rem system-ui;letter-spacing:.14em;text-transform:uppercase;color:var(--leise);padding:2px 8px 6px}
+.film a{display:flex;gap:10px;align-items:center;padding:7px 10px;border-radius:10px;color:var(--leise);text-decoration:none;font-size:.9rem;line-height:1.25}
+.film a span{font:700 .78rem ui-monospace,Menlo,monospace;color:var(--petrol);min-width:2ch}
+.film a:hover{background:var(--fl2);color:var(--schrift)}
+.teile{display:flex;flex-direction:column;gap:48px;min-width:0}
+.teil{scroll-margin-top:16px;padding:22px 24px;border:1px solid var(--linie);border-radius:20px;background:linear-gradient(180deg,rgb(23 48 58/.55),rgb(18 33 40/.55));box-shadow:0 24px 50px rgb(0 0 0/.3)}
+.kopfzeile{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.kopfzeile .nr{font:800 2.6rem/1 ui-monospace,Menlo,monospace;color:transparent;-webkit-text-stroke:1.5px var(--gold);opacity:.9}
+.kopfzeile h2{margin:0;font-size:clamp(1.25rem,3vw,1.7rem)}
+.teil p{margin:12px 0}
+.fall{display:flex;gap:14px;align-items:flex-start;margin:14px 0;padding:14px 16px;border-radius:14px;border-left:3px solid var(--petrol);background:rgb(92 194 201/.08)}
+.fall .nr{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--petrol);color:#062026;font:800 1rem system-ui}
+.fall h3{margin:2px 0 4px;font-size:1.05rem;color:var(--glanz)}
+.fall p{margin:0}
+ol{margin:14px 0;padding:0;list-style:none;counter-reset:n;display:flex;flex-direction:column;gap:10px}
+ol>li{counter-increment:n;position:relative;padding:12px 14px 12px 52px;border-radius:14px;border:1px solid var(--linie);background:rgb(11 20 24/.45)}
+ol>li::before{content:counter(n);position:absolute;left:12px;top:11px;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;
+ font:800 .9rem system-ui;color:#062026;background:var(--petrol)}
+ol.grenzen>li{border-color:rgb(243 181 74/.35);background:rgb(243 181 74/.06)}
+ol.grenzen>li::before{background:var(--gold);box-shadow:0 0 16px rgb(243 181 74/.4)}
+ol ul{margin:8px 0 0;padding-left:18px}
+ol ul li{margin:6px 0}
+.tabelle{margin:14px 0;border:1px solid var(--linie);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font:700 .75rem system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--leise);background:var(--fl2);padding:10px 14px}
+td{padding:11px 14px;border-top:1px solid var(--linie);vertical-align:top}
+.sorte{font:800 .82rem ui-monospace,Menlo,monospace;color:var(--gold2);letter-spacing:.04em}
+.grenzen-fuss{max-width:1180px;margin:0 auto 40px;padding:22px 20px;border-top:1px solid var(--linie);color:var(--leise)}
+@media (max-width:900px){
+ .rahmen{grid-template-columns:minmax(0,1fr)}
+ .film{position:static;flex-direction:row;flex-wrap:wrap}
+ .film::before{width:100%}
+ .film a{flex:0 1 auto;min-width:0}
+}
+@media (max-width:560px){
+ .teil{padding:18px 14px}
+ .kopfzeile .nr{font-size:2rem}
+ ol>li{padding-left:46px}
+ /* Tabelle am Handy: jede Reihe eine Karte, damit nichts quer läuft */
+ .tabelle{border:0;border-radius:0}
+ table,thead,tbody,tr,td{display:block;width:100%}
+ thead{display:none}
+ tr{margin:0 0 10px;border:1px solid var(--linie);border-radius:12px;background:rgb(11 20 24/.45);overflow:hidden}
+ td{border:0;padding:6px 12px}
+ td:first-child{background:var(--fl2)}
+ td+td::before{content:attr(data-titel) ": ";color:var(--leise);font-size:.8rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+<style>.recht{max-width:760px;margin:0 auto;padding:0 20px 40px}.recht h2{margin:28px 0 8px;font-size:1.2rem;color:var(--glanz)}.recht ul{padding-left:1.2em}</style>
+</head>
+<body>
+<header class="held">
+ <a class="zurueck" href="sende-pruefer.html">← Zur App</a>
+ <img src="icons/marke-72.png" width="72" height="72" alt="">
+ <h1>Datenschutz</h1>
+ <div class="knoepfe">
+  <a class="knopf haupt" href="sende-pruefer.html">Zur App</a>
+  <a class="knopf" href="impressum.html">Impressum</a>
+ </div>
+</header>
+<main class="recht">
+<p>Dieser Text beschreibt, was der Sende-Prüfer tatsächlich tut. Er ist am Code geprüft, keine Vorlage von der Stange. Wo etwas an einen Dritten geht, steht dessen Name dabei.</p>
+<h2>Verantwortlich</h2>
+<p>Klaus Nitzsche, Märchenweg 14, 21077 Hamburg, Deutschland — <a href="mailto:info@family-projekt.de">info@family-projekt.de</a>. Vollständige Angaben im <a href="impressum.html">Impressum</a>.</p>
+<h2>Was diese Seite nicht tut</h2>
+<p>Kein Konto, keine Anmeldung. Keine Werbe-Netzwerke, keine Zählpixel, keine Analyse. Keine fremden Schriftarten. Es gibt nichts, wofür eine Einwilligung einzuholen wäre — deshalb fragt die Seite auch nicht danach.</p>
+<h2>Was beim Aufruf anfällt</h2>
+<p>Die Seite wird von GitHub Pages ausgeliefert. Dabei verarbeitet GitHub technisch notwendige Verbindungsdaten (unter anderem die IP-Adresse), um die Seite senden zu können. Darauf hat der Betreiber keinen Einfluss. Anbieter: GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA.</p>
+<h2>Was auf Ihrem Gerät bleibt</h2>
+<ul>
+<li><b>Ihre Mails, Entwürfe, Antworten und Anhänge</b> liegen im Speicher Ihres Browsers (IndexedDB). Sie werden nicht hochgeladen.</li>
+<li><b>Die Prüfung</b> — auch von Anhängen, PDF-Seiten und Text in Bildern — läuft vollständig auf Ihrem Gerät. Die Werkzeuge dafür (pdf.js, Tesseract.js) liegen auf derselben Adresse wie die Seite.</li>
+<li><b>Ihr KI-Schlüssel</b> wird nur verschlüsselt abgelegt (AES-256-GCM, mit Ihrem Tresor-Code). Code und offener Schlüssel stehen nur im Arbeitsspeicher, solange die Seite offen ist.</li>
+<li><b>Einstellungen</b> (Hell/Dunkel, eigene Aufgaben) liegen im lokalen Speicher des Browsers.</li>
+</ul>
+<p>Löschen: über die Funktionen der Seite oder über „Browserdaten löschen“. Dann ist alles weg — eine Sicherung beim Betreiber gibt es nicht.</p>
+<h2>Wenn Sie an eine KI senden</h2>
+<p>Nur auf Ihren Knopfdruck und nur mit Ihrem eigenen Schlüssel. Hinaus geht der Text, den Sie vorher unter „Was die KI sieht“ lesen können — mit Platzhaltern statt der erkannten Angaben — und Ihre Aufgabe. Anhänge gehen nicht an die KI. Empfänger ist der Anbieter, den Sie gewählt haben:</p>
+<ul>
+<li>Anthropic (Claude) — api.anthropic.com</li>
+<li>OpenAI (ChatGPT) — api.openai.com</li>
+<li>Google (Gemini) — generativelanguage.googleapis.com</li>
+<li>OpenRouter — openrouter.ai</li>
+<li>Mistral AI — api.mistral.ai</li>
+</ul>
+<p>Dabei erfährt der Anbieter auch Ihre IP-Adresse. Für diese Verarbeitung ist der Anbieter selbst verantwortlich; es gelten seine Bedingungen, teils außerhalb der EU. Der Betreiber dieser Seite sieht davon nichts. Wer stattdessen „Kopieren“ wählt, fügt den Text selbst in eine KI seiner Wahl ein.</p>
+<h2>Teilen und Speichern</h2>
+<p>„Teilen“ gibt den Text an das Teilen-Fenster Ihres Geräts; wohin er geht, entscheiden Sie dort. „.eml speichern“ legt eine Datei auf Ihrem Gerät ab.</p>
+<h2>Die Netzwerk-Funktion (Siegel und Mycel)</h2>
+<p>Der Sende-Prüfer ist ein Knoten im SBKIM-Netz. Beim Laden geht dafür nichts ins Netz. Erst wenn Sie in der Mycel-Blase auf Verbinden tippen, geht die signierte Visitenkarte der App (Name, Kennung, Beschreibung) an das Relais <code>relay.family-projekt.de</code> des Betreibers (Hetzner Online GmbH, Deutschland). Keine Mails, keine Namen, keine Befunde. Das Relais sieht dabei Ihre IP-Adresse.</p>
+<p>Wer im Siegel die Beschreibung neu signiert, lädt einmalig ein Sprachmodell aus dem Netz (über cdn.jsdelivr.net und Hugging Face); dabei wird deren Betreibern Ihre IP-Adresse übermittelt.</p>
+<h2>Externe Links</h2>
+<p>„Schlüssel beim Anbieter erzeugen“ öffnet die Seite des jeweiligen KI-Anbieters in einem neuen Tab — erst, wenn Sie tippen. Dort gelten dessen Bedingungen.</p>
+<h2>Rechtsgrundlage</h2>
+<p>Art. 6 Abs. 1 lit. f DSGVO (Bereitstellung der Seite) und lit. b bzw. a DSGVO (Senden an eine KI auf Ihre ausdrückliche Anweisung).</p>
+<h2>Ihre Rechte</h2>
+<p>Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch nach Art. 15 bis 21 DSGVO. Dazu genügt eine formlose Nachricht an <a href="mailto:info@family-projekt.de">info@family-projekt.de</a>. Außerdem steht Ihnen ein Beschwerderecht bei einer Aufsichtsbehörde zu. Was lokal auf Ihrem Gerät liegt, löschen Sie selbst über Ihren Browser.</p>
+<p style="color:var(--leise)">Stand: 30.09.2026</p>
+</main>
+<footer class="grenzen-fuss">
+ <p>Sende-Prüfer · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a> · &copy; 2026 Klaus Nitzsche</p>
+</footer>
+</body>
+</html>
