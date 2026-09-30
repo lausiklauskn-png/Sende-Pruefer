@@ -58,6 +58,29 @@ nach #23, Kimhub nach #306).
 - Schnell trotz Bildern: Bilder mit `loading="lazy"` und festen Maßen (kein Layout-Sprung),
   bei „weniger Bewegung" keine Bewegung. Die Regeln dazu stehen im Skill `seiten-bauregeln`.
 
+## Die Texte: neu geschrieben, für Leser (Klaus 2026-10-01)
+
+> „Schreibe nicht einfach die Kommentare und die Aussagen, die wir hier in der Sitzung gemacht
+> haben … es soll so sein, als wenn es nicht aus einer Sitzung stammt, in der wir miteinander
+> gesprochen haben."
+
+- **Jeder Satz ist neu geschrieben**, für jemanden, der die App zum ersten Mal öffnet. Nichts
+  wird aus CLAUDE.md, Briefen, Commit-Texten, Code-Kommentaren oder dem Chat übernommen, auch
+  nicht leicht umformuliert. Diese Quellen dienen nur als Sachstand: was die App kann und wo
+  ihre Grenzen liegen.
+- **Kein Werkstatt-Jargon:** nicht „Probe", „Gegenprobe", „Wächter", „gemessen am …", „grün/rot",
+  „Befund" im Sinn einer Sitzung, „Tafel", „Riegel", „byte-1:1", Modulnummern, Commit- oder
+  PR-Nummern. Auch keine Zitate von Klaus aus Sitzungen und kein „wir haben festgestellt …".
+- **Stattdessen die Sprache des Lesers:** was passiert, was er davon hat, was er tun soll. Zum
+  Beispiel „Die App liest den Text im Bild und warnt, wenn darin eine Anweisung an eine KI
+  versteckt ist" statt „`BILD-KI-ANWEISUNG` wird gemeldet, gemessen an Vorlage 1A".
+- **Ehrlich bleibt es trotzdem:** Grenzen stehen in klaren Worten da („Die App ersetzt keinen
+  Virenscanner."), nicht als Messprotokoll.
+- **Der Abschnitt „Warum es das gibt"** ist Klaus' Stimme, nicht die der Sitzung. Er wird mit
+  ihm formuliert, nicht aus seinen Sitzungs-Aussagen zusammengesetzt.
+- **Prüfstein:** Klingt der Satz, als stünde er auf der Seite eines fertigen Produkts, oder als
+  käme er aus einem Arbeitsprotokoll? Im zweiten Fall wird er neu geschrieben.
+
 ## Material, das es schon gibt (nicht neu erfinden)
 
 | | wo |
