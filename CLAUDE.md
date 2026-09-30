@@ -394,3 +394,13 @@ ungeprüft"** (`data-kennung="UNGEPRUEFT"`), nie „nichts gefunden"
 gemessen an Vorlage 1A (`tests/bild-mit-anweisung.png`, erfunden). Cache v30.
 `npm test` 404 grün · Gegenprobe `OCR:` 2 gefangen. ⚠ Tablet nicht gemessen.
 An die KI geht weiterhin nur der Mailtext.
+
+## 🌫 Stufe 2 B · blasser Text (2026-09-30)
+
+`assets/pruefer-anhang.js` byte-1:1 aus dem Auslieferungsprüfer (#23, `ANHANG_SHA`
+nachgezogen): jedes Bild wird zweimal gelesen, das zweite Mal nach einer
+Kontrast-Spreizung; was nur dort steht, heißt „blass“ (`BILD-KI-ANWEISUNG`,
+„blass, erst nach Kontrast-Spreizung lesbar“). Eine Frist für beide Durchgänge.
+Probe mit Vorlage 2B (`tests/bild-blass.png`, erfunden). Cache v31.
+`npm test` 405 grün. Die Gegenprobe `BLASS:` (6) steht im Auslieferungsprüfer.
+⚠ Tablet nicht gemessen; ein Bild kostet jetzt etwa die doppelte Lesezeit.
