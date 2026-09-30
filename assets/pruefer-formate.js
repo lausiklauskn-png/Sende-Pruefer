@@ -157,6 +157,14 @@
      Attribut; hier steht sie nackt. Gemeldet wird nur, was wirklich holt —
      `http(s)://` —, nicht jedes Wort mit einem Punkt darin. */
   var ADRESSE = /\bhttps?:\/\/([A-Za-z0-9._\-]+(?::\d+)?)/g;
+  /* Ein Namensraum ist ein NAME, kein Abruf (Klaus 2026-09-30, H3/H4 im
+     Text-Eingang: „www.w3.org", „schemas.openxmlformats.org", „purl.org" als
+     fremde Rechner gemeldet). Zwei Riegel: alles hinter xmlns="…", und diese
+     Wirte, die in SVG/Office/PDF nur als Kennung stehen. Benannte Grenze: ein
+     echter Abruf von genau diesen Wirten wird im Text-Eingang nicht gemeldet. */
+  var NAMENSRAUM_WIRTE = { "www.w3.org": 1, "schemas.openxmlformats.org": 1,
+    "schemas.microsoft.com": 1, "purl.org": 1, "ns.adobe.com": 1 };
+  var VOR_XMLNS = /xmlns(?::[\w.\-]+)?\s*=\s*["']$/i;
 
   /* Fülltext: dieselbe Liste wie in der HTML-Fassung, damit ein „TODO" in einer
      README genauso auffällt wie eines in der Seite. Eine zweite, eigene Liste
@@ -222,6 +230,7 @@
       while ((am = ADRESSE.exec(zeile)) !== null) {
         var wirt = am[1].toLowerCase().split(":")[0];
         if (gemeldet[wirt]) continue;
+        if (NAMENSRAUM_WIRTE[wirt] || VOR_XMLNS.test(zeile.slice(0, am.index))) continue;
         var eigen = false;
         for (var e = 0; e < erlaubt.length; e++) {
           if (wirt === erlaubt[e] || wirt.slice(-(erlaubt[e].length + 1)) === "." + erlaubt[e]) eigen = true;
