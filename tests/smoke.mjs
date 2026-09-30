@@ -1092,6 +1092,23 @@ try {
     }
     await nCtx.close();
   }
+  /* ── Installieren-Knopf (Klaus 2026-09-30) ── */
+  { const iCtx = await browser.newContext({ viewport: { width: 1300, height: 900 } }); const ip = await iCtx.newPage();
+    await ip.goto(BASIS + "sende-pruefer.html"); await ip.waitForSelector("#installieren", { timeout: 15000 }).catch(() => {});
+    const k = await ip.evaluate(() => { const b = document.getElementById("installieren"); return b && { lage: b.dataset.lage, vorHilfe: b.nextElementSibling && b.nextElementSibling.id === "hilfe", sicht: b.checkVisibility() }; });
+    ok("der Installieren-Knopf steht sichtbar vor dem ?", !!k && k.vorHilfe && k.sicht, JSON.stringify(k));
+    ok("… ohne Angebot des Browsers heißt die Lage nicht-angeboten", !!k && k.lage === "nicht-angeboten", k && k.lage);
+    await ip.click("#installieren").catch(() => {});
+    const t = await ip.evaluate(() => { const m = document.getElementById("install-meldung-text"); return m ? m.textContent : ""; });
+    ok("… und ein Tipp nennt den Weg (Verknüpfung / ⋮ → App installieren)", /schon für installiert/.test(t) && /App installieren/.test(t), t.slice(0, 80));
+    const g = await ip.evaluate(() => new Promise((r) => { const e = new Event("beforeinstallprompt"); let gefragt = false;
+      e.prompt = () => { gefragt = true; }; e.userChoice = Promise.resolve({ outcome: "accepted" });
+      window.dispatchEvent(e); const lage = document.getElementById("installieren").dataset.lage;
+      document.getElementById("installieren").click(); setTimeout(() => r({ lage, gefragt, t: document.getElementById("install-meldung-text").textContent }), 50); }));
+    ok("… bietet der Browser an, öffnet ein Tipp seinen Dialog", g.lage === "angeboten" && g.gefragt && /Installiert/.test(g.t), JSON.stringify(g));
+    const kopf = await ip.evaluate(() => { const k = document.querySelector("header.kopf"); return k.scrollWidth - k.clientWidth; });
+    ok("… und die Kopfleiste läuft nicht über", kopf === 0, kopf);
+    await iCtx.close(); }
   /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
   await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
