@@ -418,3 +418,18 @@ Kontrast-Spreizung; was nur dort steht, heißt „blass“ (`BILD-KI-ANWEISUNG`,
 Probe mit Vorlage 2B (`tests/bild-blass.png`, erfunden). Cache v31.
 `npm test` 405 grün. Die Gegenprobe `BLASS:` (6) steht im Auslieferungsprüfer.
 ⚠ Tablet nicht gemessen; ein Bild kostet jetzt etwa die doppelte Lesezeit.
+
+## 👁 Stufe 2 E · unsichtbarer Text im PDF (2026-09-30)
+
+`assets/pruefer-anhang.js` byte-1:1 aus dem Auslieferungsprüfer (`ANHANG_SHA`
+nachgezogen). Die ersten 10 Seiten eines PDFs werden gegen ihr Seitenbild gelesen
+(Texterkennung auf dem Gerät). Ein Wort der Textebene, das an seiner eigenen Stelle
+keine Tinte hat (winzig, weiß, außerhalb der Seite), ist versteckt. Ab 2 solchen
+Wörtern auf einer Seite gibt es `PDF-VERSTECKTER-TEXT` („Was man sieht und was im
+Text steht, weicht ab (Seite n)"). Hinter Seite 10 und bei hängender Texterkennung
+steht „nicht gegengelesen … ungeprüft", nie „kein Befund". Die Messung dazu steht im
+Auslieferungsprüfer (CLAUDE.md § Stufe 2 E). Die Probe-PDF in `tests/anhaenge.mjs`
+(weißer 1-pt-Text auf Seite 2) meldet im Browser Seite 2 und nicht Seite 1; gemessen
+0,3 s je Seite (Behälter). Cache v36 (auf main war v35). `npm test` 418 grün.
+Von Hand gegengeprüft: ohne den Befund fällt „Stufe 2 E im Browser" mit seinem Namen.
+An die KI geht weiterhin nur der Mailtext. ⚠ Tablet nicht gemessen.
