@@ -307,13 +307,18 @@ gegen — Reihenfolge D → A → B → E → C (Brief `docs/BRIEF_2026-09-29_an
   KI-Anweisungen) sind byte-1:1 aus dem Auslieferungsprüfer, gepinnt in
   `tests/anhaenge.mjs` (`ANHANG_SHA`, `MAIL_SHA`). Dort pflegen, hier neu kopieren.
 - `assets/anhaenge.js` lädt **PDF-Prüfer → KI-Liste → Anhang-Prüfer** der Reihe nach und
-  setzt `pfade({pdfjs: "../Workflow-PDF/vendor/pdfjs/"})`. pdf.js steht **nicht** im
-  Vorrat; fehlt es, heißt der Seitentext „NICHT gelesen … ungeprüft".
+  setzt `pfade({pdfjs: "vendor/pdfjs/"})` — **seit 2026-09-30 im eigenen Ordner** (Klaus:
+  *„Der Sendeprüfer sollte auch eigenständig arbeiten"*; byte-gleich aus dem
+  Auslieferungsprüfer, SHA-gepinnt in `tests/anhaenge.mjs`, Lizenz in `THIRD_PARTY.md`,
+  pdf-lib nur für Proben unter `tests/vendor/`). Keine ausgelieferte Datei nennt
+  `Workflow-PDF` (Wächter), der Proben-Server liefert nur den eigenen Baum. pdf.js steht
+  **nicht** im Vorrat; fehlt es, heißt der Seitentext „NICHT gelesen … ungeprüft".
+  Gemessen in einer Kopie ohne Nachbarn: 374 grün · 0 ROT (15 weniger = Sage-Vergleich
+  ⊘), `ALLEIN:` 2 gefangen. Cache `sende-pruefer-v29`.
 - Gefunden wird `PDF-KI-ANWEISUNG` mit Seite und Zeile; der Seitentext geht an Modul 25
   (Angaben wie im Mailtext). Höchstens 100 Seiten, der Rest wird benannt.
-- Proben: `seitentext()` ohne Browser und ein Block im Browser (der Proben-Server liefert
-  `Workflow-PDF/…` aus dem Nachbar-Klon) · Gegenprobe `NUR_FALL="PDFTEXT:"` (5 Fälle).
-  Fehlt der Nachbar, ist der Teil ⊘ nicht lauffähig.
+- Proben: `seitentext()` ohne Browser und ein Block im Browser · Gegenprobe
+  `NUR_FALL="PDFTEXT:"` (5 Fälle).
 - ⚠ Nicht gemessen: echte PDFs aus Klaus' Postfach, das Tablet (Zeit, Speicher).
 
 ## Prüfen

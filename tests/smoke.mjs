@@ -247,8 +247,8 @@ const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=
   ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 const server = http.createServer((q, a) => {
   const p = decodeURIComponent(new URL(q.url, "http://x").pathname).replace(/^\/+/, "") || "index.html";
-  /* ../Workflow-PDF/ liegt im Netz auf derselben Adresse — hier im Nachbar-Klon */
-  const quelle = p.startsWith("Workflow-PDF/") ? join(WURZEL, "..", p) : join(WURZEL, p);
+  /* nur aus dem eigenen Baum — ein Nachbar-Depot wird NICHT ausgeliefert (die App läuft allein) */
+  const quelle = join(WURZEL, p);
   try { const b = readFileSync(quelle); a.writeHead(200, { "content-type": TYP[extname(p)] || "application/octet-stream" }); a.end(b); }
   catch { a.writeHead(404); a.end(); }
 });

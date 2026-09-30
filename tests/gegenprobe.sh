@@ -18,8 +18,6 @@ frisch() {
   rm -rf "$KOPIE/w"; mkdir -p "$KOPIE/w"
   (cd "$WURZEL" && tar --exclude=node_modules --exclude=.git -cf - .) | (cd "$KOPIE/w" && tar -xf -)
   ln -s "$(readlink -f "$WURZEL/node_modules")" "$KOPIE/w/node_modules"
-  # pdf.js und pdf-lib liegen in Workflow PDF (Nachbar) — ohne ihn wäre der Seitentext-Teil ⊘ und jeder Fall dazu blind
-  [ -d "$WURZEL/../Workflow-PDF" ] && ln -sfn "$(readlink -f "$WURZEL/../Workflow-PDF")" "$KOPIE/Workflow-PDF"
 }
 
 # fall <name> <datei> <anker> <ersatz> <erwartete rote Zeile (grep -E)>
@@ -442,7 +440,7 @@ fall "EXP: die KI-Antwort übernimmt den Anhang nicht" $A \
 fall "EXP: ein entfernter Anhang kommt wieder" $A \
   ' && !m.anhaengeGeerbt && m.bezug) {' ' && m.bezug) {' 'kommt nicht wieder'
 
-# ── Stufe 2 D · PDF-Seitentext (2026-09-29). Nur mit Workflow PDF daneben messbar.
+# ── Stufe 2 D · PDF-Seitentext (2026-09-29). pdf.js aus vendor/pdfjs/ (seit 2026-09-30).
 A=assets/anhaenge.js
 fall "PDFTEXT: die KI-Liste wird nicht mehr geladen" $A \
   '.then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })' '.then(function () { return true; })' 'KI-Liste'
@@ -458,6 +456,12 @@ fall "PDFTEXT: die Mailadresse aus dem Seitentext geht nicht an Modul 25" $A \
   'var funde = r.text && finde ?' 'var funde = r.text && finde && r.art !== "pdf" ?' 'Angabe'
 fall "PDFTEXT: die KI-Liste fehlt im Offline-Vorrat" sw.js \
   ', "assets/pruefer-mail.js"' '' 'Offline-Vorrat'
+
+# ── Eigenständig (2026-09-30): pdf.js aus dem eigenen Ordner, nicht aus Workflow PDF
+fall "ALLEIN: der Weg zu pdf.js zeigt wieder auf Workflow PDF" assets/anhaenge.js \
+  'pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href })' 'pfade({ pdfjs: new URL("../Workflow-PDF/vendor/pdfjs/", location.href).href })' 'EIGENEN Ordner|Workflow-PDF'
+fall "ALLEIN: die mitgelieferte pdf.js ist nicht mehr die gepinnte" vendor/pdfjs/pdf.min.js \
+  '/**' '/* x */ /**' 'byte-gleich'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
