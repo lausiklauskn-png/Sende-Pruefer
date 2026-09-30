@@ -298,6 +298,20 @@ Mail-Programm geöffnet, der Anhang ist nicht da."* Beides stimmte: die Seite ba
   und welche Dateiarten Klaus' Chrome beim Teilen annimmt.
 - Gegenprobe `EXP:` (7 Fälle). Cache `sende-pruefer-v26`.
 
+**Vorher sagen, was mitgeht (Klaus 2026-10-01).** Klaus hängte die .eml an eine neue
+Telekom-Mail und öffnete sie in Chrome: nur Text, kaputte Umlaute — die Anhänge steckten
+IN der Datei (172 KB), ein fremder Leser (Python `email`) findet alle. Seitdem:
+- jede Anhang-Zeile fragt `navigator.canShare` (Chrome, Safari/iOS, Edge — keine geratene
+  Liste je Browser) und sagt VOR dem Tippen: `data-teilbar` ja · nein · ohne (kein Teilen);
+- eine Übersicht (`data-anhang-wege`): was beim Teilen mitgeht, was automatisch wegfällt,
+  und dass die .eml ALLE trägt, aber ein Paket für ein Mail-Programm ist, kein Anhang für
+  eine neue Mail; dieselbe Aussage in der Speichern-Meldung;
+- „⬇ Einzeln speichern" je Anhang (`data-laden`), um Abgewiesenes von Hand anzuhängen.
+- ⚠ Der 8bit-Textteil bleibt: gültiges MIME; die Umlaute zerfallen nur in Betrachtern, die
+  eine .eml als Text lesen. Die Meldung ohne Anhang steht in der Seite (96-KB-Grenze) und
+  sagt weiter „als Entwurf".
+- Gegenprobe `TEILBAR:` (5 Fälle). Cache `sende-pruefer-v35`.
+
 ## 📄 Stufe 2 D · der Seitentext eines PDFs (seit 2026-09-29)
 
 Klaus: C bekommt einen eigenen Knopf mit „Verdacht", E liest höchstens 10 Seiten
