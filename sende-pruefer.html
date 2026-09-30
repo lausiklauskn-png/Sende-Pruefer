@@ -288,7 +288,7 @@ dialog h2{margin:0 0 8px;font-size:1.1rem}
   <p class="meldung" id="test-summe"></p>
  </details>
  <div class="werkzeug"><button class="knopf" id="thema-menue" type="button">☀ / 🌙 Hell oder dunkel</button></div>
- <p><a href="handbuch.html">Handbuch mit Bildern</a> · <a href="anleitung.html">Anleitung und Grenzen</a> · Der Sende-Prüfer läuft vollständig in diesem Browser.</p>
+ <p><a href="handbuch.html">Handbuch</a> · <a href="anleitung.html">Anleitung und Grenzen</a> · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>
  <div class="fuss"><button class="knopf haupt" id="menue-zu" type="button">Schließen</button></div>
 </dialog>
 
@@ -454,7 +454,7 @@ function jetztSpeichern(m) { clearTimeout(merke.get(m.id)); merke.delete(m.id); 
 function lies(k) { try { return localStorage.getItem(k) || ""; } catch (_e) { return ""; } }
 function schreib(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (_e) {} }
 
-/* ══ .eml — ein Entwurf, den Outlook, Gmail oder Samsung-Mail öffnen */
+/* ══ .eml — ein Entwurf für Outlook, Gmail, Samsung-Mail */
 function b64utf8(s) { const b = new TextEncoder().encode(s); let x = ""; for (const c of b) x += String.fromCharCode(c); return btoa(x); }
 function kodiereWort(s) {
   s = String(s || "");
