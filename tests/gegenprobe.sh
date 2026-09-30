@@ -463,5 +463,11 @@ fall "ALLEIN: der Weg zu pdf.js zeigt wieder auf Workflow PDF" assets/anhaenge.j
 fall "ALLEIN: die mitgelieferte pdf.js ist nicht mehr die gepinnte" vendor/pdfjs/pdf.min.js \
   '/**' '/* x */ /**' 'byte-gleich'
 
+# OCR (Stufe 2 A, 2026-09-30): Text im Bild lesen
+fall "OCR: der Weg zur Texterkennung fehlt" $A \
+  ', tesseract: new URL("vendor/tesseract/", location.href).href' '' 'BILD-KI-ANWEISUNG|Texterkennung'
+fall "OCR: nichts gelesen heisst wieder nichts gefunden" $A \
+  '      if (!r.befunde.length && !funde.length) liste.append(r.bildUngeprueft' '      if (!r.befunde.length && !funde.length) liste.append(false' 'ungepr'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

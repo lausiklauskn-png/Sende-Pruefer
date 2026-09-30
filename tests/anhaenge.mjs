@@ -14,7 +14,7 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "2082b83dc5adcf58a4090093d95161c373145c7e981bf2c9a10826c5d3b36177";
+export const ANHANG_SHA = "ed7dde256dbeda6d098714f63e0c18f34e8f33e052737bec1c6891713471439d";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";
@@ -39,6 +39,24 @@ export async function ohneBrowser(ok, WURZEL) {
   for (const [d, h] of Object.entries(PDFJS_PINS)) {
     let ist = "fehlt"; try { ist = createHash("sha256").update(readFileSync(join(WURZEL, d))).digest("hex"); } catch {}
     ok("eigenständig: " + d + " liegt im Depot, byte-gleich mit dem Auslieferungsprüfer (SHA gepinnt)", ist === h, ist);
+  }
+  /* Tesseract (Stufe 2 A, 2026-09-30): byte-gleich aus dem Auslieferungsprüfer, nicht im Vorrat. */
+  const TESS_PINS = {
+    "vendor/tesseract/LICENSE-Apache-2.0.txt": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+    "vendor/tesseract/lang/deu.traineddata": "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d",
+    "vendor/tesseract/lang/eng.traineddata": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+    "vendor/tesseract/lang/rus.traineddata": "e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225",
+    "vendor/tesseract/tesseract-core-lstm.wasm.js": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
+    "vendor/tesseract/tesseract-core-relaxedsimd-lstm.wasm.js": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
+    "vendor/tesseract/tesseract-core-simd-lstm.wasm.js": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
+    "vendor/tesseract/tesseract.min.js": "000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e",
+    "vendor/tesseract/tesseract.min.js.LICENSE.txt": "cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2",
+    "vendor/tesseract/worker.min.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+    "vendor/tesseract/worker.min.js.LICENSE.txt": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac"
+  };
+  for (const [d, h] of Object.entries(TESS_PINS)) {
+    let ist = "fehlt"; try { ist = createHash("sha256").update(readFileSync(join(WURZEL, d))).digest("hex"); } catch {}
+    ok("eigenständig: " + d + " liegt im Depot, byte-gleich (Tesseract.js 7.0.0, SHA gepinnt)", ist === h, ist);
   }
   const fsx = await import("node:fs");
   const ausgeliefert = ["sende-pruefer.html", "index.html", "handbuch.html", "anleitung.html", "sicherheit.html", "sw.js", "manifest.json"]
@@ -65,6 +83,10 @@ export async function ohneBrowser(ok, WURZEL) {
     reihe.every((x) => x > 0) && reihe[0] < reihe[1] && reihe[1] < reihe[2], JSON.stringify(reihe));
   ok("… und der Weg zu pdf.js zeigt auf den EIGENEN Ordner vendor/pdfjs/ (nicht im Vorrat)",
     /pfade\(\{ pdfjs: new URL\("vendor\/pdfjs\/", location\.href\)/.test(ui) && !/pdfjs/.test(sw));
+  ok("… und der Weg zur Texterkennung zeigt auf den EIGENEN Ordner vendor/tesseract/ (nicht im Vorrat)",
+    /tesseract: new URL\("vendor\/tesseract\/", location\.href\)/.test(ui) && !/tesseract/i.test(sw));
+  ok("THIRD_PARTY.md nennt Tesseract.js 7.0.0 und die Sprachdaten",
+    /Tesseract\.js 7\.0\.0/.test(readFileSync(join(WURZEL, "THIRD_PARTY.md"), "utf8")) && /tessdata_fast/.test(readFileSync(join(WURZEL, "THIRD_PARTY.md"), "utf8")));
   if (!A) return;
   const p = (n, x) => A.pruefe(n, x);
 
@@ -181,9 +203,20 @@ export async function imBrowser(ok, browser, BASIS) {
   ok("Anhänge: Word — Makro, Verweis und Angaben im Text", ["OFFICE-MAKRO", "OFFICE-VERWEIS", "ANHANG-ANGABEN"].every((k) => z("brief.docx").k.includes(k)), JSON.stringify(z("brief.docx").k));
   ok("Anhänge: PDF — Aktion (der PDF-Prüfer wurde nachgeladen)", z("r.pdf").k.includes("PDF-AKTION"), JSON.stringify(z("r.pdf").k));
   ok("Anhänge: ein Name mit <b> steht als Text da, nicht als HTML", z("<b>fett</b>.png").name === "<b>fett</b>.png" && !z("<b>fett</b>.png").fett);
-  ok("Anhänge: ein sauberes Bild sagt „nichts gefunden“", z("<b>fett</b>.png").k.join() === "OHNE", JSON.stringify(z("<b>fett</b>.png").k));
+  /* Tafel-Evolution (Stufe 2 A, 2026-09-30): ein Bild ohne lesbaren Text heißt „Text im Bild ungeprüft“, nicht „nichts gefunden“. */
+  ok("Anhänge: ein sauberes Bild ohne Text sagt „Text im Bild ungeprüft“, nicht „nichts gefunden“", z("<b>fett</b>.png").k.join() === "UNGEPRUEFT", JSON.stringify(z("<b>fett</b>.png").k));
   ok("Anhänge: eine sichere Fassung gibt es für Bilder und SVG, nicht für Word und PDF",
     z("foto.png").sicher && z("logo.svg").sicher && !z("brief.docx").sicher && !z("r.pdf").sicher);
+
+  /* Stufe 2 A: Text im Bild — Vorlage 1A aus dem Auslieferungsprüfer (erfunden) trägt in Zeile 9 eine Anweisung an eine KI. */
+  await page.setInputFiles("#anhang-datei", [{ name: "aushang.png", mimeType: "image/png", buffer: readFileSync(new URL("./bild-mit-anweisung.png", import.meta.url)) }]);
+  await page.waitForFunction(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png"); return li && li.dataset.befunde != null; }, null, { timeout: 120000 }).catch(() => {});
+  const bildz = await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png");
+    return li ? { k: [...li.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung), text: li.textContent, angaben: +li.dataset.angaben } : null; });
+  ok("Text im Bild: eine Anweisung an eine KI im Bild wird gemeldet (BILD-KI-ANWEISUNG, Bildtext Zeile 9)",
+    !!bildz && bildz.k.includes("BILD-KI-ANWEISUNG") && /Bildtext Zeile 9/.test(bildz.text), JSON.stringify(bildz));
+  ok("Text im Bild: die Angaben im Bildtext gehen an den Prüfkern (IBAN, Mailadresse)", !!bildz && bildz.angaben >= 2 && /IBAN/.test(bildz.text), JSON.stringify(bildz && bildz.angaben));
+  await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png"); li && li.querySelector("[data-weg]").click(); });
 
   /* sichere Fassung: heruntergeladen, neu geprüft — nichts mehr gefunden */
   for (const [name, art] of [["foto.png", "png"], ["logo.svg", "png"]]) {

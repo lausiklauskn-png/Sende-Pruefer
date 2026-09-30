@@ -10,8 +10,9 @@
  * Endung, die nicht zum Dateikopf passt — und Angaben im TEXT einer Datei
  * (SVG, Word, Excel, PowerPoint), die Modul 25 wie im Mailtext findet.
  *
- * ⚠ BENANNTE GRENZEN dieser Fassung: Text IN einem Bild (Texterkennung) wird
- * NICHT gelesen. Der Seitentext eines PDFs schon (bis 100 Seiten, pdf.js aus
+ * ⚠ BENANNTE GRENZEN dieser Fassung: Text IN einem Bild liest seit Stufe 2 A
+ * die Texterkennung auf dem Gerät (Tesseract aus vendor/tesseract/); liest sie
+ * nichts, heißt es „Text im Bild ungeprüft", nie sauber. Der Seitentext eines PDFs schon (bis 100 Seiten, pdf.js aus
  * vendor/pdfjs/) — fehlt pdf.js, heißt er „ungeprüft". An die KI geht weiterhin
  * nur der Mailtext, keine Datei.
  *
@@ -53,7 +54,7 @@
       /* pdf.js liegt im eigenen Ordner vendor/pdfjs/ (Klaus 2026-09-30: die
        * App läuft für sich allein, ohne Workflow PDF daneben). Nicht im
        * Installations-Vorrat; geholt erst, wenn ein PDF kommt. */
-      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href });
+      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade({ pdfjs: new URL("vendor/pdfjs/", location.href).href, tesseract: new URL("vendor/tesseract/", location.href).href });
       return welt.PrueferAnhang;
     });
   function pruefe(name, bytes) {
@@ -143,7 +144,9 @@
           Object.keys(z).map(function (s) { return z[s].length + "× " + s + " (" + z[s].slice(0, 3).join(", ") + ")"; }).join(" · ") +
           ". In der Datei selbst bleiben sie stehen."));
       }
-      if (!r.befunde.length && !funde.length) liste.append(el("li", { "data-kennung": "OHNE" }, "Nichts gefunden von dem, wonach gesucht wird."));
+      if (!r.befunde.length && !funde.length) liste.append(r.bildUngeprueft
+        ? el("li", { "data-kennung": "UNGEPRUEFT" }, "Text im Bild ungeprüft — die Texterkennung hat nichts sicher gelesen. Das heißt nicht, dass nichts darin steht.")
+        : el("li", { "data-kennung": "OHNE" }, "Nichts gefunden von dem, wonach gesucht wird."));
       r.hinweise.forEach(function (h) { liste.append(el("li", { class: "gedaempft", "data-hinweis": "" }, h)); });
       if (r.sicher) fuss.append(el("button", { class: "knopf", type: "button", "data-sicher": "", onclick: function () {
         sichereFassung(a).then(function (s) {
@@ -171,7 +174,7 @@
       liste,
       m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
-      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern wird noch nicht gelesen; den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten). An die KI geht nur der Mailtext, keine Datei."));
+      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten). An die KI geht nur der Mailtext, keine Datei."));
   }
 
   function zeichne() {

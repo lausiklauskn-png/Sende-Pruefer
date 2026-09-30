@@ -381,3 +381,16 @@ zusammen wegzunehmen misst etwas.
 
 Freibrief zum Selbst-Mergen · frisch von `origin/main` · Ton · kein PII ·
 Ehrlichkeit: [Sage-Protokol/docs/NETZWEIT.md](https://github.com/lausiklauskn-png/Sage-Protokol/blob/main/docs/NETZWEIT.md)
+
+## 🔤 Stufe 2 A · Text im Bild (2026-09-30)
+
+`assets/pruefer-anhang.js` byte-1:1 aus dem Auslieferungsprüfer (`ANHANG_SHA`
+nachgezogen). Tesseract.js 7.0.0 (deu/eng/rus) byte-gleich unter
+`vendor/tesseract/`, SHA-gepinnt in `tests/anhaenge.mjs`, Lizenzen in
+THIRD_PARTY.md, **nicht** im Vorrat. `assets/anhaenge.js` setzt
+`pfade({tesseract})`; ein Bild ohne lesbaren Text heißt **„Text im Bild
+ungeprüft"** (`data-kennung="UNGEPRUEFT"`), nie „nichts gefunden"
+(Tafel-Evolution eines Wächters). Anweisung im Bild → `BILD-KI-ANWEISUNG`,
+gemessen an Vorlage 1A (`tests/bild-mit-anweisung.png`, erfunden). Cache v30.
+`npm test` 404 grün · Gegenprobe `OCR:` 2 gefangen. ⚠ Tablet nicht gemessen.
+An die KI geht weiterhin nur der Mailtext.
