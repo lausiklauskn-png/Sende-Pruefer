@@ -14,7 +14,7 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "10616efbb1a862ad989e2ac6b69c27d7d43e67ac1ae86b45e85b10097d7304d3";
+export const ANHANG_SHA = "3f0c28f0294ff65f754702fad5f1749f244082ebebff57d31a74592da9abfc09";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "27e86606a3de4592100f20224eb955cb2f6e48339a82dc40e48fe309f8bdc989";
