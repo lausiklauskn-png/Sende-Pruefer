@@ -12,8 +12,10 @@
  * PDFs gehen an assets/pruefer-formate.js. Den TEXT einer Datei (SVG, Word,
  * Excel, PowerPoint) gibt sie heraus; wer ihn weiterprüft, entscheidet die App.
  *
- * ⚠ KEIN VIRENSCANNER. ⚠ BENANNTE GRENZE: in Bildpunkten versteckte
- * Botschaften werden NICHT gelesen. Der Seitentext eines PDFs wird seit
+ * ⚠ KEIN VIRENSCANNER. In Bildpunkten versteckte Botschaften sucht seit
+ * Stufe 2 C (2026-10-01) verdachtPruefen() — NUR auf einen eigenen Knopf, nie
+ * bei jeder Prüfung, und das Ergebnis heißt „Verdacht", nie „gefunden".
+ * Der Seitentext eines PDFs wird seit
  * Stufe 2 D (2026-09-29) gelesen — mit pdf.js, das die App nachlädt
  * (pfade({pdfjs})). Fehlt es, bleibt der Seitentext UNGEPRÜFT und das steht da.
  * Text IN einem Bild (PNG, JPEG, WebP, GIF) und auf PDF-Seiten ohne Textebene
@@ -34,7 +36,7 @@
 
   var BEFUNDE = ["ANHANG-TARNUNG", "ANHANG-PROGRAMM", "BILD-ANHAENGSEL", "BILD-METADATEN",
     "SVG-SKRIPT", "SVG-VERWEIS", "OFFICE-MAKRO", "OFFICE-VERWEIS", "OFFICE-EINBETTUNG",
-    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG", "BILD-KI-ANWEISUNG", "PDF-VERSTECKTER-TEXT"];
+    "PDF-VERWEIS", "PDF-AKTION", "PDF-ANHANG", "PDF-METADATEN", "PDF-ALTFASSUNG", "PDF-KI-ANWEISUNG", "BILD-KI-ANWEISUNG", "PDF-VERSTECKTER-TEXT", "BILD-LSB-VERDACHT"];
 
   function alsBytes(b) { return b instanceof Uint8Array ? b : new Uint8Array(b || []); }
   function latin1(b, von, bis) {
@@ -737,6 +739,99 @@
     return entitaeten(sichtbar).replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
   }
 
+  /* ══ VERSTECKTE DATEN IN BILDPUNKTEN — Stufe 2 C (2026-10-01)
+   * Nur auf einen eigenen Knopf (Klaus 2026-09-29), und das Ergebnis heißt
+   * „Verdacht", nie „gefunden".
+   * GEMESSEN, BEVOR GEBAUT WURDE (17 Testfotos aus Workflow-PDF, als
+   * verlustfreie Bildpunkte, dazu sechs Testvorlagen):
+   *   · Chi-Quadrat auf den Wertepaaren (Westfeld/Pfitzmann), wachsende Fenster
+   *     ab dem ersten Bildpunkt: auf SAUBEREN Fotos bis 4096 Bildpunkte mit
+   *     p ≥ 0,01 — Fehlalarme. Und 4C trifft es nicht verlässlich: dort steht
+   *     Klartext auf weißem Grund, die Bits sind nicht gleich verteilt.
+   *   · Text aus den untersten Bits lesen: 0 Fehlalarme auf allen 23 Bildern,
+   *     4C mit Botschaft gefunden, 4C ohne nicht. Gebaut ist nur das.
+   * Gelesen werden die untersten Bits ab dem ersten Bildpunkt, Zeile für
+   * Zeile, in vier Wegen (Rot, Grün, Blau, alle drei der Reihe nach), höchstes
+   * Bit zuerst. Verdacht heißt: (a) 16 Bit Länge, dann so viele Bytes gültiger
+   * Text ohne Steuerzeichen (mindestens VERDACHT_MIN_TEXT Zeichen), oder (b)
+   * ohne Längenangabe mindestens VERDACHT_MIN_LAUF druckbare Zeichen in Folge.
+   * ⚠ BENANNTE GRENZEN: verschlüsselte, gepackte oder verstreute Botschaften
+   *   erkennt das nicht (sie sehen aus wie Rauschen) · JPEG und verlustbehaftetes
+   *   WebP haben keine verlässlichen untersten Bits → „nicht geprüft" · GIF
+   *   (Farbtabelle) → „nicht geprüft" · durchsichtige Bildpunkte verlieren beim
+   *   Zeichnen ihre untersten Bits → benannt · über VERDACHT_MAX_PIXEL → „nicht
+   *   geprüft". Die Zahlen 8 und 16 und die Grenze sind gewählt, nicht am Tablet
+   *   gemessen. */
+  var VERDACHT_MIN_TEXT = 8, VERDACHT_MIN_LAUF = 16, VERDACHT_LESEN_MAX = 70000, VERDACHT_MAX_PIXEL = 40000000;
+  var LSB_WEGE = [["Rot", [0]], ["Grün", [1]], ["Blau", [2]], ["Rot, Grün und Blau", [0, 1, 2]]];
+  function lsbBytes(d, n, kanaele, anzahl) {
+    var out = new Uint8Array(anzahl), bit = 0, max = anzahl * 8;
+    for (var i = 0; i < n && bit < max; i++)
+      for (var c = 0; c < kanaele.length && bit < max; c++) {
+        if (d[i * 4 + kanaele[c]] & 1) out[bit >> 3] |= 128 >> (bit & 7);
+        bit++;
+      }
+    return out;
+  }
+  function lsbDruckbar(x) { return x === 9 || x === 10 || x === 13 || (x >= 32 && x < 127); }
+  function lsbTextOk(t) { return t.length >= VERDACHT_MIN_TEXT && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F�]/.test(t); }
+  /* Reine Rechnung auf einem RGBA-Feld. Gibt die Funde zurück: {weg, kopf, text}. */
+  function bildpunkteLesen(d, w, h) {
+    var n = w * h, funde = [];
+    LSB_WEGE.forEach(function (wg) {
+      var kap = Math.floor(n * wg[1].length / 8);
+      if (kap < 4) return;
+      var roh = lsbBytes(d, n, wg[1], Math.min(kap, VERDACHT_LESEN_MAX));
+      var L = (roh[0] << 8) | roh[1], t = null;
+      if (L >= VERDACHT_MIN_TEXT && L + 2 <= roh.length) {
+        try { t = new TextDecoder("utf-8", { fatal: true }).decode(roh.subarray(2, 2 + L)); } catch (_e) { t = null; }
+        if (t && lsbTextOk(t)) { funde.push({ weg: wg[0], kopf: true, text: t }); return; }
+      }
+      var r = 0;
+      while (r < roh.length && lsbDruckbar(roh[r])) r++;
+      if (r >= VERDACHT_MIN_LAUF) funde.push({ weg: wg[0], kopf: false, text: latin1(roh, 0, r) });
+    });
+    return funde;
+  }
+  /* @returns Promise<{art, artName, geprueft, grund, verdacht, befunde, hinweise}>
+     geprueft:false heißt „nicht geprüft" mit grund — nie „kein Verdacht". */
+  function verdachtPruefen(name, bytes) {
+    var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [];
+    function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
+    function aus(geprueft, grund) {
+      return { art: art, artName: ART_NAME[art] || art, geprueft: geprueft, grund: grund || "", befunde: befunde, hinweise: hinweise,
+        verdacht: befunde.some(function (x) { return x.kennung === "BILD-LSB-VERDACHT"; }) };
+    }
+    var nicht = "Bildpunkte nicht geprüft: ";
+    if (art === "jpeg") return Promise.resolve(aus(false, nicht + "ein JPEG ist verlustbehaftet gepackt — die untersten Bits trägt dort die Kompression, nicht der Absender. Verfahren für JPEG (F5, OutGuess, steghide) erkennt diese Prüfung nicht."));
+    if (art === "gif") return Promise.resolve(aus(false, nicht + "ein GIF speichert Farben über eine Farbtabelle; deren untersten Bits liest diese Prüfung nicht."));
+    if (art === "webp" && latin1(b, 12, 16) !== "VP8L") return Promise.resolve(aus(false, nicht + "dieses WebP ist verlustbehaftet gepackt — die untersten Bits trägt die Kompression."));
+    if (art !== "png" && art !== "webp") return Promise.resolve(aus(false, nicht + "das ist kein Bild (" + (ART_NAME[art] || art) + ")."));
+    if (!welt.document || !welt.createImageBitmap || !welt.Blob) return Promise.resolve(aus(false, nicht + "ohne Browser lassen sich die Bildpunkte nicht auspacken."));
+    return welt.createImageBitmap(new welt.Blob([b], { type: "image/" + art }), { premultiplyAlpha: "none", colorSpaceConversion: "none" }).then(function (bm) {
+      var w = bm.width, h = bm.height;
+      if (w * h > VERDACHT_MAX_PIXEL) { if (bm.close) bm.close(); return aus(false, nicht + "das Bild ist mit " + w + " × " + h + " Bildpunkten zu groß (Grenze " + (VERDACHT_MAX_PIXEL / 1e6) + " Millionen)."); }
+      var c = welt.document.createElement("canvas"); c.width = w; c.height = h;
+      var g = c.getContext("2d"); g.drawImage(bm, 0, 0); if (bm.close) bm.close();
+      var d = g.getImageData(0, 0, w, h).data, durch = 0, probe = Math.min(w * h, VERDACHT_LESEN_MAX * 8);
+      for (var i = 0; i < probe; i++) if (d[i * 4 + 3] < 255) durch++;
+      if (durch) hinweise.push(durch + " der ersten " + probe + " Bildpunkte sind durchsichtig — dort gehen beim Auspacken die untersten Bits verloren; was dort steckt, ist ungeprüft.");
+      var funde = bildpunkteLesen(d, w, h);
+      funde.forEach(function (f) {
+        melde("BILD-LSB-VERDACHT", "Verdacht auf versteckte Daten in Bildpunkten: in den untersten Bits (" + f.weg + ") steht ab dem ersten Bildpunkt lesbarer Text" +
+          (f.kopf ? " mit einer Längenangabe davor" : "") + ", " + f.text.length + " Zeichen: „" + (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text) +
+          "“. Gemessen wurde, ob dort Text steht — nicht, wer ihn hineingeschrieben hat.");
+        var PM = welt.PrueferMail;
+        if (PM) PM.pruefeMail(f.text).stellen.forEach(function (st) {
+          if (st.kennung === "KI-ANWEISUNG") melde("BILD-KI-ANWEISUNG", st.satz + " (in den Bildpunkten versteckt, " + f.weg + ")");
+        });
+        else hinweise.push("Die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — der versteckte Text ist auf Anweisungen an eine KI ungeprüft.");
+      });
+      if (!funde.length) hinweise.push("Kein Verdacht: in den untersten Bits steht ab dem ersten Bildpunkt kein lesbarer Text (Rot, Grün, Blau, alle drei). Verschlüsselte, gepackte oder verstreute Botschaften erkennt dieses Verfahren nicht.");
+      return aus(true);
+    }, function () { return aus(false, nicht + "das Bild ließ sich nicht auspacken."); });
+  }
+
   /* ══ DIE EINE TÜR
    * @returns Promise<{art, artName, befunde:[{kennung,satz}], text:string|null,
    *                   textQuelle:"bild"|null, seiten:[{seite,text,bild?}]|null,
@@ -857,6 +952,7 @@
     BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX,
     OCR_SICHER: OCR_SICHER, OCR_SEITEN_MAX: OCR_SEITEN_MAX,
     kontrastStrecken: kontrastStrecken, neueZeilen: neueZeilen,
+    verdachtPruefen: verdachtPruefen, bildpunkteLesen: bildpunkteLesen, VERDACHT_MIN_LAUF: VERDACHT_MIN_LAUF, VERDACHT_MAX_PIXEL: VERDACHT_MAX_PIXEL,
     vergleiche: vergleiche, GEGEN_SEITEN_MAX: GEGEN_SEITEN_MAX, GEGEN_MIN_VERSTECKT: GEGEN_MIN_VERSTECKT, versteckteWoerter: versteckteWoerter, wortKaesten: wortKaesten,
     /* nur für die Proben: die Frist kürzen, um das Hängen zu messen */
     ocrFrist: function (ms) { if (ms > 0) OCR_FRIST = ms; return OCR_FRIST; } };

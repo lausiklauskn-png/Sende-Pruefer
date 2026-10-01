@@ -463,3 +463,22 @@ macht die Marke in der Kopfleiste zum Link `#ueberblick`; am Handy (Marke ausgeb
 steht „Überblick“ im Handbuch (Vorlage `tools/handbuch-vorlage.html`). `assets/start.css`
 ist identisch im Auslieferungsprüfer. ⚠ „Warum es diese App gibt“ und die Schritte unter
 „Was tun“ sind ein Entwurf, nicht Klaus' Wortlaut. Gegenprobe `NUR_FALL="START:"`. Cache v38.
+
+## 🔍 Stufe 2 C · Verdacht in den Bildpunkten (2026-10-01)
+
+`assets/pruefer-anhang.js` ist byte-1:1 aus dem Auslieferungsprüfer kopiert, `ANHANG_SHA` ist nachgezogen.
+Dort steht die Messung (CLAUDE.md § Stufe 2 C). Das Text-Lesen aus den untersten Bits ergab
+0 Fehlalarme auf den 17 Testfotos und 4C ohne Botschaft; es findet 4C mit Botschaft. Chi-Quadrat
+wurde verworfen.
+
+- An jedem Bild-Anhang steht **„🔍 Bildpunkte auf Verdacht prüfen“** (`data-verdacht-knopf`
+  in `assets/anhaenge.js`). Die Suche läuft **nur auf Tipp**, nie beim Prüfen.
+- Das Ergebnis heißt **Verdacht** (`data-verdacht` ja · nein · ungeprueft). Bei einem Verdacht
+  wird `BILD-LSB-VERDACHT` gemeldet, samt Satz. Steht darin eine Anweisung an eine KI, kommt
+  `BILD-KI-ANWEISUNG` dazu.
+- JPEG, GIF und verlustbehaftetes WebP ergeben **„nicht geprüft“** mit Grund, nie „kein Verdacht“.
+- Probe: `tests/anhaenge.mjs` mit den Vorlagen 4C (`tests/bild-lsb-mit.png`, `tests/bild-lsb-ohne.png`,
+  erfunden). Die Gegenprobe `VERDACHT:` (8 Fälle) steht im Auslieferungsprüfer. Cache v39.
+- An die KI geht weiterhin nur der Mailtext.
+- ⚠ Nicht gemessen: Zeit und Speicher am Tablet; verschlüsselte oder verstreute Botschaften
+  fremder Werkzeuge.
