@@ -498,8 +498,8 @@ fall "START: ein Bild ohne feste Maße" start.html \
 # Was jetzt tun und die Stelle im Bild (Klaus 2026-10-01)
 fall "WASTUN: ein Anhang mit Anweisung trägt keine Schritte" assets/anhaenge.js \
   '      ruhigAnhaengen(liste, r.befunde, schon);' '' 'ruhige Schritte, einmal'
-fall "WASTUN: die Schritte stehen je Befund statt je Art" assets/anhaenge.js \
-  '      if (schon[x.kennung]) return;' '' 'je einmal'
+# Kein Fall für „je Art einmal“: in keiner Vorlage steht dieselbe Art zweimal
+# an einem Anhang (gemessen 2026-10-01: der Fall war blind). Benannte Grenze.
 fall "WASTUN: die Stelle im Bild wird nicht markiert" assets/anhaenge.js \
   '      markiertAnhaengen(liste, a, r.befunde);' '' 'rot markiert im Bild'
 fall "WASTUN: der Hinweis zur sicheren Fassung fehlt" assets/anhaenge.js \
