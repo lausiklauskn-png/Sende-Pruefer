@@ -1,5 +1,13 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><title>Sende-Prüfer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>location.replace("sende-pruefer.html" + location.search + location.hash);</script>
-</head><body><p><a href="sende-pruefer.html">Zum Sende-Prüfer</a></p></body></html>
+<script>
+/* Beim ersten Öffnen steht die Startseite „Was die App kann" vor der App. Wer
+   dort den Haken setzt, kommt gleich in die App. Ein Anhängsel (?…/#…) geht
+   immer direkt in die App. Ohne Speicher erscheint die Startseite eben jedes Mal. */
+var z = "sende-pruefer.html";
+try { if (!location.search && !location.hash && localStorage.getItem("sendepruefer_start_v1") !== "1"
+  && sessionStorage.getItem("sendepruefer_start_v1") !== "1") z = "start.html"; } catch (e) {}
+location.replace(z + location.search + location.hash);
+</script>
+</head><body><p><a href="start.html">Was der Sende-Prüfer kann</a> · <a href="sende-pruefer.html">Zum Sende-Prüfer</a></p></body></html>

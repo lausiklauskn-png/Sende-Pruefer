@@ -453,3 +453,13 @@ heißt **„HTML-Seite"** und geht durch den HTML-Prüfer des Auslieferungsprüf
   rot, und die rote Zeile nennt den fehlenden Prüfer. Die Gegenprobe `HTMLANH:` (6 Fälle)
   steht im Auslieferungsprüfer.
 - ⚠ Das Tablet ist nicht gemessen.
+## 🏠 Startseite „Was die App kann“ (2026-10-01)
+
+`start.html` steht beim ersten Öffnen vor der App: `index.html` leitet hin, solange
+`sendepruefer_start_v1` nicht "1" ist (Haken „nicht mehr zeigen“); mit Suche/Hash geht
+es direkt in die App. `manifest.json` startet über `index.html`. Die vier Dateien waren
+voll (98 294 / 98 304) — der Weg zurück hängt deshalb im Klebstoff: `assets/sbkim-init.js`
+macht die Marke in der Kopfleiste zum Link `#ueberblick`; am Handy (Marke ausgeblendet)
+steht „Überblick“ im Handbuch (Vorlage `tools/handbuch-vorlage.html`). `assets/start.css`
+ist identisch im Auslieferungsprüfer. ⚠ „Warum es diese App gibt“ und die Schritte unter
+„Was tun“ sind ein Entwurf, nicht Klaus' Wortlaut. Gegenprobe `NUR_FALL="START:"`. Cache v38.

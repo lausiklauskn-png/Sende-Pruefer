@@ -246,3 +246,22 @@
   if (document.readyState === "complete") pause(function () { naechste(0, starten); });
   else window.addEventListener("load", function () { pause(function () { naechste(0, starten); }); });
 })();
+/* Überblick (Klaus 2026-10-01): das Zeichen links in der Kopfleiste führt zur
+   Startseite „Was die App kann". Ein eigener Knopf daneben nähme dem Suchfeld
+   den Platz (gemessen: 42 px bei 1280, 26 px bei 320). Am Handy, wo das Zeichen
+   ausgeblendet ist, führt das Handbuch (?) dorthin. Hier eingehängt, weil in der
+   Seite kein Platz mehr ist (96-KB-Grenze). Fehlt .marke, fehlt nur der Weg. */
+(function () {
+  function einhaengen() {
+    var m = document.querySelector("header.kopf > .marke");
+    if (!m || m.tagName === "A") return;
+    var a = document.createElement("a");
+    a.className = m.className; a.id = "ueberblick"; a.href = "start.html";
+    a.title = "Überblick: was der Sende-Prüfer kann und was bei einem Fund zu tun ist";
+    a.setAttribute("aria-label", a.title);
+    a.style.color = "inherit"; a.style.textDecoration = "none";
+    while (m.firstChild) a.appendChild(m.firstChild);
+    m.replaceWith(a);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", einhaengen); else einhaengen();
+})();

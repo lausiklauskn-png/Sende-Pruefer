@@ -244,7 +244,7 @@ ok("das Handbuch steht im Offline-Vorrat", /"handbuch\.html"/.test(readFileSync(
 
 /* ── Server auf Port 0 — ein fester Port kollidiert mit einem zweiten Lauf ─ */
 const TYP = { ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
-  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
+  ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".jpg": "image/jpeg", ".css": "text/css", ".webp": "image/webp", ".png": "image/png" };
 const server = http.createServer((q, a) => {
   const p = decodeURIComponent(new URL(q.url, "http://x").pathname).replace(/^\/+/, "") || "index.html";
   /* nur aus dem eigenen Baum — ein Nachbar-Depot wird NICHT ausgeliefert (die App läuft allein) */
@@ -305,10 +305,37 @@ try {
     await ((await unten.isVisible()) ? unten : p.locator(`#ordnerliste [data-ordner="${id}"]`)).click(); };
   const verfassen = async (p) => { const f = p.locator("#fab"); await ((await f.isVisible()) ? f : p.locator("#neu")).click(); await p.waitForSelector("#text"); };
   const sichtbar = (p, sel) => p.evaluate((s) => { const e = document.querySelector(s); return !!e && e.checkVisibility(); }, sel);
+  /* ══ STARTSEITE „Was die App kann" (Klaus 2026-10-01): beim ersten Öffnen vor
+     der App, mit Haken nicht mehr, aus der Kopfleiste jederzeit (ℹ). */
+  await page.goto(BASIS + "index.html");
+  await page.waitForFunction(() => location.pathname.endsWith("start.html"), null, { timeout: 8000 }).catch(() => {});
+  ok("START: beim ersten Öffnen steht die Startseite vor der App", page.url().endsWith("start.html"));
+  const stS = await page.evaluate(() => {
+    const t = document.body.innerText, h = document.querySelector("#nichtMehr");
+    const tun = [...document.querySelectorAll("#tun details")];
+    return { h1: document.querySelector("h1")?.textContent || "", haken: !!h && !h.checked,
+      zurApp: [...document.querySelectorAll("a[data-zur-app]")].every((a) => a.getAttribute("href") === "sende-pruefer.html") && document.querySelectorAll("a[data-zur-app]").length >= 2,
+      tun: tun.length, tunSchritte: tun.every((d) => d.querySelectorAll("ol li").length >= 2),
+      bilder: [...document.querySelectorAll("main img")].every((i) => i.hasAttribute("alt") && i.getAttribute("width") && i.getAttribute("height")),
+      grenze: /kein Virenscanner/i.test(t), quer: document.documentElement.scrollWidth <= innerWidth + 1, querW: [document.documentElement.scrollWidth, innerWidth, [...document.querySelectorAll("*")].filter((e) => e.getBoundingClientRect().right > innerWidth + 1).slice(0, 3).map((e) => e.tagName + "." + e.className).join(" ")].join(" "),
+      jargon: (t.match(/Gegenprobe|Wächter|Probe|byte-1:1|Modul \d|Stufe \d|Klaus|Befund/g) || []) };
+  });
+  ok("START: sie trägt den Kernsatz", /ohne Kundendaten/.test(stS.h1), stS.h1);
+  ok("START: der Haken ist beim ersten Mal nicht gesetzt", stS.haken);
+  ok("START: jeder Weg zur App ist ein echter Link auf die App", stS.zurApp);
+  ok("START: „Was tun, wenn …“ nennt je Fund Schritte in Reihenfolge", stS.tun >= 4 && stS.tunSchritte, stS.tun);
+  ok("START: jedes Bild hat alt und feste Maße (kein Sprung beim Laden)", stS.bilder);
+  ok("START: die Grenzen stehen sichtbar da", stS.grenze);
+  ok("START: kein Werkstatt-Jargon auf der Seite", stS.jargon.length === 0, stS.jargon.join(", "));
+  ok("START: keine Querlauf-Breite", stS.quer, stS.querW);
+  if (page.url().endsWith("start.html")) await page.check("#nichtMehr");   // sonst fällt der Haken-Wächter, ohne dass die Probe stolpert
+  ok("START: der Haken merkt sich die Wahl", await page.evaluate(() => localStorage.getItem("sendepruefer_start_v1") === "1"));
   await page.goto(BASIS + "index.html");
   await page.waitForFunction(() => location.pathname.endsWith("sende-pruefer.html"));
   await bereit(page);
-  ok("index.html leitet auf die Seite weiter", page.url().endsWith("sende-pruefer.html"));
+  ok("index.html leitet mit Haken auf die App weiter", page.url().endsWith("sende-pruefer.html"));
+  ok("START: das Zeichen in der Kopfleiste führt zur Startseite", await page.evaluate(() => { const a = document.querySelector("#ueberblick");
+    return !!a && a.getAttribute("href") === "start.html" && a.checkVisibility() && a.closest("header.kopf") !== null && !!a.querySelector(".marke-bild"); }));
   await page.waitForFunction(() => window.SP_KNOTEN_BEREIT === true, null, { timeout: 30000 }).catch(() => {});
   await page.waitForTimeout(300);
   ok("beim Laden geht kein Aufruf nach draußen, auch nicht, wenn der Knoten gestartet ist", draussen.length === 0, draussen.map((d) => d.url).join(", "));
