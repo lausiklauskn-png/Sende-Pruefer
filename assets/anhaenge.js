@@ -71,6 +71,7 @@
   /* ══ SICHERE FASSUNG — ein Bild wird auf einer Leinwand neu gezeichnet.
    * Übrig bleiben nur die Bildpunkte: keine Metadaten, kein Anhängsel, bei
    * SVG kein Skript. Eine SVG wird dabei zum PNG. */
+  var WEG_BEIM_ZEICHNEN = ["BILD-METADATEN", "BILD-ANHAENGSEL", "SVG-SKRIPT", "SVG-VERWEIS"];
   function sichereFassung(a) {
     var ist = artVon(new Uint8Array(0));
     return a.blob.arrayBuffer().then(function (x) {
@@ -204,8 +205,12 @@
         sichereFassung(a).then(function (s) {
           herunterladen(s.blob, s.name);
           meldung.className = "meldung gut";
+          /* Ehrlich sagen, was das Neuzeichnen NICHT entfernt (ChatGPT-Prüfbericht 2026-10-01): sichtbarer Text bleibt, ein PNG behält seine Bildpunkte. */
+          var weg = r.befunde.filter(function (x) { return WEG_BEIM_ZEICHNEN.indexOf(x.kennung) >= 0; }).map(function (x) { return x.kennung; });
           meldung.textContent = "Gespeichert: " + s.name + " (" + gross(s.blob.size) + "). Neu gezeichnet — " +
-            (r.befunde.length ? "entfernt ist: " + r.befunde.map(function (x) { return x.kennung; }).join(", ") + "." : "Metadaten und Anhängsel fallen dabei weg.");
+            (weg.length ? "entfernt ist: " + weg.filter(function (k, i) { return weg.indexOf(k) === i; }).join(", ") + "." : "Metadaten und Anhängsel fallen dabei weg.") +
+            " Was sichtbar im Bild steht, bleibt — auch blasser Text und eine Anweisung an eine KI." +
+            (/\.png$/.test(s.name) && r.art !== "svg" ? " Als PNG bleiben die Bildpunkte gleich, eine Botschaft in den untersten Bits bleibt also auch." : "");
         }, function (e) { meldung.className = "meldung warn"; meldung.textContent = e.message; });
       } }, "🧼 Sichere Fassung speichern"));
       /* Stufe 2 C: Text in den untersten Bits — NUR auf diesen Knopf, das Ergebnis heißt „Verdacht“. */

@@ -29,4 +29,9 @@
     return "";
   }
   window.SPAblehnung = { holen: holen, deuten: deuten };
+  /* Die Seite ist voll — assets/aussen.js (KI-Anweisungen in der Mail,
+     Systemkanal und Marken) wird von hier nachgeladen. */
+  if (typeof document !== "undefined") {
+    var s = document.createElement("script"); s.src = "assets/aussen.js"; document.head.append(s);
+  }
 })();
