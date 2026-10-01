@@ -529,6 +529,8 @@ fall "AUSSEN: assets/aussen.js wird nicht mehr nachgeladen" assets/ablehnung.js 
   'document.head.append(s);' '' 'aussen.js ist geladen'
 fall "SICHER: die sichere Fassung nennt den KI-Fund als entfernt" assets/anhaenge.js \
   'var WEG_BEIM_ZEICHNEN = ["BILD-METADATEN",' 'var WEG_BEIM_ZEICHNEN = ["BILD-KI-ANWEISUNG", "BILD-METADATEN",' 'nur, was das Neuzeichnen'
+fall "LESEN: das Beispiel im Eingang verspricht wieder Überschreiben" assets/aussen.js \
+  'if (h && m && m.ordner === "eingang") {' 'if (h && m && m.ordner === "nie") {' 'kein Überschreiben'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

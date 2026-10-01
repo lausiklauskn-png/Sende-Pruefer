@@ -539,3 +539,5 @@ deshalb steht alles in **`assets/aussen.js`** (app-eigen), nachgeladen von `asse
 Cache v43. `npm test` **462 grün · 0 ROT** · `NUR_ANKER` **206 · 0 tot** · Gegenprobe `AUSSEN:` 5 und `SICHER:` 1
 gefangen, 0 blind. Ein alter toter Anker (`PDFTEXT:` Reihenfolge, seit pruefer.js dazukam) ist nachgezogen.
 ⚠ Nicht gemessen: ob eine echte KI dem Systemkanal folgt, und das Tablet.
+
+**Empfangene Mails sind nur zum Lesen** (Klaus 2026-10-01: „Ich kann nicht in die Beispiel-E-Mails schreiben"). `bearbeitbar(m)` ist im Ordner Eingefügt falsch, und das ist Absicht. Der Beispiel-Hinweis versprach dort trotzdem „alles überschreiben“. `assets/aussen.js` ersetzt ihn an empfangenen Mails (`data-nur-lesen`) und nennt den Weg: ✎ Verfassen. Gegenprobe `LESEN:` (1 Fall). Cache v44.
