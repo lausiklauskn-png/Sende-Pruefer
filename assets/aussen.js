@@ -33,7 +33,7 @@
     var b = new Uint8Array(6); crypto.getRandomValues(b);
     return Array.prototype.map.call(b, function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
   }
-  var aktuell = null;
+  var zuletzt = null;
   function einbauen() {
     var altBereit = window.bereit, altSenden = window.senden, altAnfrage = window.anfrage;
     if (typeof altBereit !== "function" || typeof altSenden !== "function" || typeof altAnfrage !== "function") return;
@@ -55,9 +55,9 @@
         " Die KI könnte das als Auftrag lesen. Fragen Sie im Zweifel beim Absender auf einem anderen Weg nach. Wer trotzdem weitermachen will, tippt noch einmal.");
       return null;
     };
-    window.senden = function (m) { aktuell = m; return altSenden(m); };
+    window.senden = function (m) { zuletzt = m; return altSenden(m); };
     window.anfrage = function (a, schl, text) {
-      var q = altAnfrage(a, schl, text), m = aktuell, bitte = m ? String(m.bitte || "").trim() : "";
+      var q = altAnfrage(a, schl, text), m = zuletzt, bitte = m ? String(m.bitte || "").trim() : "";
       var mail = text, auftrag = "";
       var i = bitte ? text.lastIndexOf("\n\n---\n") : -1;
       if (i >= 0) { mail = text.slice(0, i); auftrag = text.slice(i + 5).trim(); }
@@ -72,6 +72,20 @@
       else q.body.messages = [{ role: "system", content: system }, { role: "user", content: nutzer }];
       window.__spLetzteAnfrage = { marke: z, system: system, nutzer: nutzer };
       return q;
+    };
+    /* Klaus 2026-10-01: „Ich kann nicht in die Beispiel-E-Mails schreiben." Eine
+       empfangene Mail (Ordner Eingefügt) ist mit Absicht nur zum Lesen; der
+       Beispiel-Hinweis versprach dort trotzdem „alles überschreiben". */
+    var altLesen = window.zeichneLesen;
+    if (typeof altLesen === "function") window.zeichneLesen = function () {
+      var r = altLesen.apply(this, arguments), m = typeof aktuell === "function" ? aktuell() : null;
+      var h = document.getElementById("beispiel-meldung");
+      if (h && m && m.ordner === "eingang") {
+        h.textContent = "Beispiel: diese Mail samt Namen und KI-Antwort ist erfunden. So sehen Sie, was verdeckt wird und wie die echten Angaben zurückkommen. " +
+          "Eine empfangene Mail ist nur zum Lesen. Zum Ausprobieren eigener Sätze: oben ✎ Verfassen, Text schreiben, dann Kopieren.";
+        h.dataset.nurLesen = "";
+      }
+      return r;
     };
     window.SPAussen = { kiFunde: kiFunde, eingebaut: true };
   }

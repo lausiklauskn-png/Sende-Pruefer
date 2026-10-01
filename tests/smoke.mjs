@@ -691,6 +691,12 @@ try {
   ok("die Beispiel-Antwort kommt mit den echten Angaben zurück",
     /Frau Beispiel,/.test(bsp.klar) && bsp.klar.includes("RE-2026-04871") && bsp.klar.includes("1.248,50 EUR") && !/⟦/.test(bsp.klar), bsp.klar.slice(0, 120));
   ok("am Beispiel sagt die Seite, dass alles erfunden ist", bsp.hin);
+  await page.click('[data-sicht="original"]');
+  const bspLesen = await page.evaluate(() => { const h = document.querySelector("[data-beispiel-meldung]");
+    return { t: h ? h.textContent : "", nur: !!(h && h.hasAttribute("data-nur-lesen")), ta: !!document.getElementById("text") }; });
+  /* Klaus 2026-10-01: „Ich kann nicht in die Beispiel-E-Mails schreiben." */
+  ok("eine empfangene Beispiel-Mail verspricht kein Überschreiben, sondern nennt ✎ Verfassen",
+    !bspLesen.ta && bspLesen.nur && /Verfassen/.test(bspLesen.t) && !/überschreiben/.test(bspLesen.t), bspLesen.t.slice(-120));
   /* Klaus 2026-09-29: „Musterbau GmbHBeispiel“ — ein Zeilenumbruch aus einer
      älteren Fassung verschwand im einzeiligen Feld. Gestellt wie auf seinem Gerät. */
   const namenFeld = await page.evaluate(() => { const m = window.SendePruefer.mails().find((x) => x.bid === "petra" && x.ordner === "eingang");
