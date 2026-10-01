@@ -14,7 +14,7 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "9aea4cf75393e5195ef562b3d14c3e59c60faac3bd598571a6d148c5e1fc9088";
+export const ANHANG_SHA = "8f64d91afdd08a08ed165142fc1d5812ce5e894441f0c3f31be592d99c6663c5";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";
@@ -241,6 +241,27 @@ export async function imBrowser(ok, browser, BASIS) {
   ok("Text im Bild: die BLASSE Anweisung wird gemeldet, mit „blass“ (Stufe 2 B)",
     !!blassz && blassz.k.includes("BILD-KI-ANWEISUNG") && /blass, erst nach Kontrast-Spreizung/.test(blassz.text), JSON.stringify(blassz));
   await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "blass.png"); li && li.querySelector("[data-weg]").click(); });
+
+  /* Stufe 2 C: Verdacht in den Bildpunkten — NUR auf den Knopf (Vorlage 4C aus dem Auslieferungsprüfer, erfunden). */
+  for (const [datei, name] of [["bild-lsb-mit.png", "lsb-mit.png"], ["bild-lsb-ohne.png", "lsb-ohne.png"]]) {
+    await page.setInputFiles("#anhang-datei", [{ name, mimeType: "image/png", buffer: readFileSync(new URL("./" + datei, import.meta.url)) }]);
+  }
+  const lsbLi = (n) => page.locator("#anhang-liste > li", { has: page.locator(".anhang-name", { hasText: n }) });
+  await page.waitForFunction(() => ["lsb-mit.png", "lsb-ohne.png"].every((n) => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === n); return li && li.dataset.befunde != null; }), null, { timeout: 180000 }).catch(() => {});
+  const vorTipp = await page.evaluate(() => document.querySelectorAll("#anhang-liste [data-verdacht]").length);
+  ok("Stufe 2 C: ohne Tipp läuft keine Suche in den Bildpunkten", vorTipp === 0, String(vorTipp));
+  const lsb = {};
+  for (const n of ["lsb-mit.png", "lsb-ohne.png"]) {
+    const li = lsbLi(n);
+    ok("… " + n + " trägt den Knopf „Bildpunkte auf Verdacht prüfen“", (await li.locator("[data-verdacht-knopf]").count()) === 1);
+    await li.locator("[data-verdacht-knopf]").click().catch(() => {});
+    await page.waitForFunction((n) => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === n); return li && li.querySelector("[data-verdacht]"); }, n, { timeout: 30000 }).catch(() => {});
+    lsb[n] = await li.evaluate((x) => ({ lage: (x.querySelector("[data-verdacht]") || {}).dataset?.verdacht || "", k: [...x.querySelectorAll("[data-kennung]")].map((y) => y.dataset.kennung), text: x.textContent }));
+  }
+  ok("4C mit Botschaft: „Verdacht“ samt dem versteckten Satz und der KI-Anweisung",
+    lsb["lsb-mit.png"].lage === "ja" && lsb["lsb-mit.png"].k.includes("BILD-LSB-VERDACHT") && lsb["lsb-mit.png"].k.includes("BILD-KI-ANWEISUNG") && /Ignore previous instructions/.test(lsb["lsb-mit.png"].text), JSON.stringify(lsb["lsb-mit.png"]).slice(0, 300));
+  ok("Gegenrichtung (4C ohne): kein Verdacht", lsb["lsb-ohne.png"].lage === "nein" && !lsb["lsb-ohne.png"].k.includes("BILD-LSB-VERDACHT"), JSON.stringify(lsb["lsb-ohne.png"]).slice(0, 300));
+  for (const n of ["lsb-mit.png", "lsb-ohne.png"]) await lsbLi(n).locator("[data-weg]").click().catch(() => {});
 
   /* sichere Fassung: heruntergeladen, neu geprüft — nichts mehr gefunden */
   for (const [name, art] of [["foto.png", "png"], ["logo.svg", "png"]]) {

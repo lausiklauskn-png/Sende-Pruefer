@@ -173,6 +173,19 @@
             (r.befunde.length ? "entfernt ist: " + r.befunde.map(function (x) { return x.kennung; }).join(", ") + "." : "Metadaten und Anhängsel fallen dabei weg.");
         }, function (e) { meldung.className = "meldung warn"; meldung.textContent = e.message; });
       } }, "🧼 Sichere Fassung speichern"));
+      /* Stufe 2 C: Text in den untersten Bits — NUR auf diesen Knopf, das Ergebnis heißt „Verdacht“. */
+      if (/^(png|jpeg|webp|gif)$/.test(r.art) && welt.PrueferAnhang.verdachtPruefen) fuss.append(el("button", { class: "knopf", type: "button", "data-verdacht-knopf": "", onclick: function (e) {
+        var k = e.currentTarget; k.disabled = true;
+        a.blob.arrayBuffer().then(function (x) { return welt.PrueferAnhang.verdachtPruefen(a.name, x); }).then(function (v) {
+          var lage = !v.geprueft ? "ungeprueft" : v.verdacht ? "ja" : "nein";
+          var vl = el("li", { "data-verdacht": lage }, el("span", { class: "sorte" }, lage === "ja" ? "VERDACHT" : lage === "nein" ? "KEIN VERDACHT" : "NICHT GEPRÜFT"),
+            lage === "ja" ? "Verdacht auf versteckte Daten in Bildpunkten." : lage === "nein" ? "Kein Verdacht in den Bildpunkten." : v.grund);
+          liste.append(vl);
+          v.befunde.forEach(function (x) { liste.append(el("li", { "data-kennung": x.kennung }, el("span", { class: "sorte" }, x.kennung), x.satz)); });
+          v.hinweise.forEach(function (h) { liste.append(el("li", { class: "gedaempft", "data-hinweis": "" }, h)); });
+          k.disabled = false;
+        }, function () { liste.append(el("li", { "data-verdacht": "ungeprueft" }, "Bildpunkte nicht geprüft: das Bild ließ sich nicht lesen.")); k.disabled = false; });
+      } }, "🔍 Bildpunkte auf Verdacht prüfen"));
     }, function () { li.querySelector("[data-anhang-art]").textContent = " · nicht lesbar — ungeprüft, nicht sauber"; });
     fuss.append(el("button", { class: "knopf", type: "button", "data-laden": "", title: "Diese Datei einzeln speichern, um sie im Mail-Programm von Hand anzuhängen", onclick: function () {
       herunterladen(a.blob, a.name);
@@ -208,7 +221,7 @@
       wegeUebersicht(m),
       m.anhaengeGeerbt && (m.anhaenge || []).length ? el("p", { class: "gedaempft", "data-anhang-geerbt": "" }, "Aus der Mail übernommen, auf die diese Antwort zurückgeht. Sie gehen beim Speichern und Teilen mit — „Entfernen“, wenn einer nicht mit soll.") : null,
       el("div", { class: "werkzeug", style: "margin:8px 0 0" }, el("label", { class: "knopf", for: "anhang-datei" }, "📎 Anhang hinzufügen"), eingabe),
-      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner und keine Suche nach Botschaften, die in Bildpunkten versteckt sind. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten) und hält die ersten 10 Seiten gegen ihr Bild — was im Text steht, aber nicht zu sehen ist, wird gemeldet. An die KI geht nur der Mailtext, keine Datei."));
+      el("p", { class: "gedaempft", "data-anhang-grenze": "" }, "Grenze: kein Virenscanner. Botschaften in den Bildpunkten sucht nur der Knopf „Bildpunkte auf Verdacht prüfen“ — und nur lesbaren Text; verschlüsselte erkennt er nicht, ein JPEG prüft er nicht. Text in Bildern liest die Texterkennung auf dem Gerät (bis 10 gescannte Seiten, 90 s je Bild); den Seitentext eines PDFs liest die Prüfung (bis 100 Seiten) und hält die ersten 10 Seiten gegen ihr Bild — was im Text steht, aber nicht zu sehen ist, wird gemeldet. An die KI geht nur der Mailtext, keine Datei."));
   }
 
   function zeichne() {
