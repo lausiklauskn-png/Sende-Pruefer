@@ -354,19 +354,28 @@
     var arbeit = tesseractHolen().then(function (w) {
       return w.recognize(quelle, {}, { blocks: true, text: false });
     }).then(function (r) {
-      var zeilen = [], unsicher = 0, alle = [];
+      var zeilen = [], unsicher = 0, alle = [], boxen = [], alleBoxen = [];
+      /* Je Zeile ihr Kasten als ANTEIL der gelesenen Leinwand (0…1) — so passt
+         er auf das Bild in jeder Größe (Markierung, Klaus 2026-10-01). Ohne
+         Leinwand (Node) gibt es keine Maße, dann null. */
+      var bw = quelle && quelle.width, bh = quelle && quelle.height;
+      function kasten(li) {
+        var b = li.bbox;
+        if (!b || !(bw > 0) || !(bh > 0)) return null;
+        return { x: b.x0 / bw, y: b.y0 / bh, w: (b.x1 - b.x0) / bw, h: (b.y1 - b.y0) / bh };
+      }
       ((r && r.data && r.data.blocks) || []).forEach(function (bl) {
         (bl.paragraphs || []).forEach(function (pa) {
           (pa.lines || []).forEach(function (li) {
             var t = String(li.text || "").replace(/\s+/g, " ").trim();
             if (!t || !/[\p{L}\p{N}]/u.test(t)) return;
-            alle.push(t);
+            alle.push(t); alleBoxen.push(kasten(li));
             if (!(li.confidence >= OCR_SICHER)) { unsicher++; return; }
-            zeilen.push(t);
+            zeilen.push(t); boxen.push(kasten(li));
           });
         });
       });
-      return { zeilen: zeilen, unsicher: unsicher, alle: alle };
+      return { zeilen: zeilen, unsicher: unsicher, alle: alle, boxen: boxen, alleBoxen: alleBoxen };
     });
     return Promise.race([arbeit, frist]).then(function (x) { clearTimeout(uhr); return x; }, function (e) {
       clearTimeout(uhr);
@@ -391,12 +400,12 @@
   }
   /* Den gelesenen Text auf Anweisungen an eine KI prüfen — dieselbe Liste wie
      der Mail-Eingang. wo: "" beim Bild, "Seite n, " beim PDF. */
-  function bildtextPruefen(text, wo, melde, hinweise) {
+  function bildtextPruefen(text, wo, melde, hinweise, boxen) {
     var PM = welt.PrueferMail;
     if (!PM) { hinweise.push("Der Text im Bild wurde gelesen, aber die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — auf Anweisungen an eine KI ist er ungeprüft."); return; }
     PM.pruefeMail(text).stellen.forEach(function (st) {
       if (st.kennung !== "KI-ANWEISUNG") return;
-      melde("BILD-KI-ANWEISUNG", st.satz + " (" + wo + "Bildtext Zeile " + st.zeile + ")");
+      melde("BILD-KI-ANWEISUNG", st.satz + " (" + wo + "Bildtext Zeile " + st.zeile + ")", boxen ? boxen[st.zeile - 1] : null);
     });
   }
   /* ══ BLASSER TEXT — Stufe 2 B (2026-09-30)
@@ -462,13 +471,14 @@
   }
   /* Jede blasse Zeile einzeln, mit ihrer Nummer im zweiten Durchgang (der
      sieht alle Zeilen, die dunklen und die blassen). */
-  function blassPruefen(blass, alle, melde, hinweise) {
+  function blassPruefen(blass, alle, melde, hinweise, alleBoxen) {
     var PM = welt.PrueferMail;
     if (!PM) { hinweise.push("Der blasse Text wurde gelesen, aber die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — auf Anweisungen an eine KI ist er ungeprüft."); return; }
     blass.forEach(function (z) {
       PM.pruefeMail(z).stellen.forEach(function (st) {
         if (st.kennung !== "KI-ANWEISUNG") return;
-        melde("BILD-KI-ANWEISUNG", st.satz + " (blass, erst nach Kontrast-Spreizung lesbar: Bildtext Zeile " + (alle.indexOf(z) + 1) + ")");
+        melde("BILD-KI-ANWEISUNG", st.satz + " (blass, erst nach Kontrast-Spreizung lesbar: Bildtext Zeile " + (alle.indexOf(z) + 1) + ")",
+              alleBoxen ? alleBoxen[alle.indexOf(z)] : null);
       });
     });
   }
@@ -487,12 +497,12 @@
         var text = r.zeilen.length ? r.zeilen.join("\n") : null;
         if (r.zeilen.length) {
           hinweise.push("Text im Bild gelesen: " + r.zeilen.length + " Zeile(n)" + (r.unsicher ? ", " + r.unsicher + " unsichere verworfen" : "") + ".");
-          bildtextPruefen(text, "", melde, hinweise);
+          bildtextPruefen(text, "", melde, hinweise, r.boxen);
         }
         if (r2.fehlt) hinweise.push("Blasser Text ungeprüft: der zweite Lesedurchgang mit mehr Kontrast lief nicht (" + r2.fehlt + ").");
         else if (blass.length) {
           hinweise.push("Blasser Text: " + blass.length + " Zeile(n) erst nach Kontrast-Spreizung lesbar — ein Mensch übersieht sie, eine Bild-KI nicht.");
-          blassPruefen(blass, r2.zeilen, melde, hinweise);
+          blassPruefen(blass, r2.zeilen, melde, hinweise, r2.boxen);
           text = (text ? text + "\n" : "") + blass.join("\n");
         } else hinweise.push("Blasser Text: der zweite Lesedurchgang mit mehr Kontrast fand keine weitere Zeile.");
         return text;
@@ -785,11 +795,11 @@
       var L = (roh[0] << 8) | roh[1], t = null;
       if (L >= VERDACHT_MIN_TEXT && L + 2 <= roh.length) {
         try { t = new TextDecoder("utf-8", { fatal: true }).decode(roh.subarray(2, 2 + L)); } catch (_e) { t = null; }
-        if (t && lsbTextOk(t)) { funde.push({ weg: wg[0], kopf: true, text: t }); return; }
+        if (t && lsbTextOk(t)) { funde.push({ weg: wg[0], kopf: true, text: t, bytes: 2 + L, kanaele: wg[1].length }); return; }
       }
       var r = 0;
       while (r < roh.length && lsbDruckbar(roh[r])) r++;
-      if (r >= VERDACHT_MIN_LAUF) funde.push({ weg: wg[0], kopf: false, text: latin1(roh, 0, r) });
+      if (r >= VERDACHT_MIN_LAUF) funde.push({ weg: wg[0], kopf: false, text: latin1(roh, 0, r), bytes: r, kanaele: wg[1].length });
     });
     return funde;
   }
@@ -797,7 +807,7 @@
      geprueft:false heißt „nicht geprüft" mit grund — nie „kein Verdacht". */
   function verdachtPruefen(name, bytes) {
     var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [];
-    function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
+    function melde(k, satz, box) { var x = { kennung: k, satz: satz }; if (box) x.box = box; befunde.push(x); }
     function aus(geprueft, grund) {
       return { art: art, artName: ART_NAME[art] || art, geprueft: geprueft, grund: grund || "", befunde: befunde, hinweise: hinweise,
         verdacht: befunde.some(function (x) { return x.kennung === "BILD-LSB-VERDACHT"; }) };
@@ -818,18 +828,102 @@
       if (durch) hinweise.push(durch + " der ersten " + probe + " Bildpunkte sind durchsichtig — dort gehen beim Auspacken die untersten Bits verloren; was dort steckt, ist ungeprüft.");
       var funde = bildpunkteLesen(d, w, h);
       funde.forEach(function (f) {
-        melde("BILD-LSB-VERDACHT", "Verdacht auf versteckte Daten in Bildpunkten: in den untersten Bits (" + f.weg + ") steht ab dem ersten Bildpunkt lesbarer Text" +
+        /* Die Bits liegen Bildpunkt für Bildpunkt ab oben links — markiert wird
+           der Streifen, der sie trägt (Klaus 2026-10-01: „an der Stelle, wo das
+           Problem aufgetaucht ist"). */
+        var px = Math.ceil(f.bytes * 8 / f.kanaele), reihen = Math.ceil(px / w);
+        var box = { x: 0, y: 0, w: reihen > 1 ? 1 : px / w, h: reihen / h };
+        melde("BILD-LSB-VERDACHT", "In den untersten Bits (" + f.weg + ") steht ab dem ersten Bildpunkt lesbarer Text" +
           (f.kopf ? " mit einer Längenangabe davor" : "") + ", " + f.text.length + " Zeichen: „" + (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text) +
-          "“. Gemessen wurde, ob dort Text steht — nicht, wer ihn hineingeschrieben hat.");
+          "“. Gemessen wurde, ob dort Text steht — nicht, wer ihn hineingeschrieben hat.", box);
         var PM = welt.PrueferMail;
         if (PM) PM.pruefeMail(f.text).stellen.forEach(function (st) {
-          if (st.kennung === "KI-ANWEISUNG") melde("BILD-KI-ANWEISUNG", st.satz + " (in den Bildpunkten versteckt, " + f.weg + ")");
+          if (st.kennung === "KI-ANWEISUNG") melde("BILD-KI-ANWEISUNG", st.satz + " (in den Bildpunkten versteckt, " + f.weg + ")", box);
         });
         else hinweise.push("Die Liste der KI-Anweisungen (assets/pruefer-mail.js) ist nicht geladen — der versteckte Text ist auf Anweisungen an eine KI ungeprüft.");
       });
       if (!funde.length) hinweise.push("Kein Verdacht: in den untersten Bits steht ab dem ersten Bildpunkt kein lesbarer Text (Rot, Grün, Blau, alle drei). Verschlüsselte, gepackte oder verstreute Botschaften erkennt dieses Verfahren nicht.");
       return aus(true);
     }, function () { return aus(false, nicht + "das Bild ließ sich nicht auspacken."); });
+  }
+
+  /* ══ WAS JETZT TUN (Klaus 2026-10-01) ══════════════════════════════════
+     „… eine Handlungsoption bereitstellen, sodass jemand weiß, was er machen
+     soll, falls er in Panik gerät." Je Befundart ruhige Schritte, im
+     Indikativ, ohne Fachwort. EINE Quelle für beide Apps (Auslieferungs-
+     prüfer und Sende-Prüfer tragen diese Datei byte-1:1) — eine zweite
+     Fassung derselben Anleitung liefe auseinander. Gemeinsame Teile stehen
+     einmal und werden zusammengesetzt. */
+  var RUHE_LESEN = "Ruhig bleiben: Ansehen und Lesen schadet nicht. Gefährlich wird so ein Satz erst, wenn eine KI die Datei oder Mail verarbeitet.";
+  var RUHE_ABSENDER = "Kennen Sie den Absender, fragen Sie auf einem anderen Weg nach, zum Beispiel am Telefon. Kennen Sie ihn nicht: löschen.";
+  var RUHE_SCHON = "Haben Sie die Datei schon einer KI gegeben, sehen Sie nach, was die KI danach getan hat (gesendete Nachrichten, geteilte Dateien), und ändern Sie Passwörter, die darin standen.";
+  var RUHE_KI = [RUHE_LESEN,
+    "Die Datei oder Mail nicht an eine KI geben: keinen Assistenten zusammenfassen, übersetzen oder antworten lassen.",
+    RUHE_ABSENDER,
+    "Wird der Inhalt trotzdem gebraucht: die nötigen Stellen von Hand abschreiben, ohne den verdächtigen Satz.",
+    RUHE_SCHON];
+  var WAS_TUN = {
+    "KI-ANWEISUNG": RUHE_KI,
+    "PDF-KI-ANWEISUNG": RUHE_KI,
+    "BILD-KI-ANWEISUNG": RUHE_KI,
+    "BILD-LSB-VERDACHT": ["Ruhig bleiben: Ansehen schadet nicht. Versteckter Text in den Bildpunkten tut von allein nichts.",
+      "Das Bild nicht weitergeben und nicht an eine KI geben.",
+      RUHE_ABSENDER,
+      "Wird das Bild gebraucht: ein Bildschirmfoto davon weitergeben statt der Datei. Die versteckten Bits gehen dabei meist verloren; prüfen Sie das Bildschirmfoto hier noch einmal.",
+      RUHE_SCHON],
+    "PDF-VERSTECKTER-TEXT": ["Ruhig bleiben: der unsichtbare Text tut beim Lesen nichts.",
+      "Das PDF nicht an eine KI geben und seinen Text nicht kopieren und woanders einfügen: dabei kommt der unsichtbare Text mit.",
+      RUHE_ABSENDER, RUHE_SCHON],
+    "VERSTECKTER-TEXT": ["Ruhig bleiben: der versteckte Text tut beim Lesen nichts.",
+      "Die Mail nicht an eine KI geben und nicht weiterleiten.",
+      RUHE_ABSENDER, RUHE_SCHON]
+  };
+  function wasTun(kennung) { return (WAS_TUN[kennung] || []).slice(); }
+
+  /* ══ IM BILD MARKIERT (Klaus 2026-10-01) ═══════════════════════════════
+     „… ein Vermerk gemacht werden an der Stelle, wo das Problem aufgetaucht
+     ist. Oder der Text kenntlich gemacht werden." Jeder Befund mit Kasten
+     (box: Anteile 0…1) wird rot umrandet und beschriftet. Gezeichnet wird auf
+     eine NEUE Leinwand — die Datei selbst bleibt unverändert. Ohne Browser:
+     null (es gibt nichts zu zeichnen, und das sagt die Oberfläche).
+     ⚠ Ein Kasten der Texterkennung ist so genau wie die Texterkennung. */
+  var MARKE_TEXT = { "BILD-KI-ANWEISUNG": "⚠ Anweisung an eine KI", "BILD-LSB-VERDACHT": "⚠ versteckter Text in den Bildpunkten" };
+  var MARKE_KANTE = 3000;
+  function marken(befunde) {
+    var gesehen = {}, aus = [];
+    (befunde || []).forEach(function (x) {
+      if (!x.box || !MARKE_TEXT[x.kennung]) return;
+      var k = [x.box.x, x.box.y, x.box.w, x.box.h].map(function (v) { return v.toFixed(4); }).join(",");
+      if (gesehen[k]) return;              // dieselbe Stelle nur einmal (LSB + Anweisung darin)
+      gesehen[k] = true;
+      aus.push({ box: x.box, text: MARKE_TEXT[x.kennung], kennung: x.kennung });
+    });
+    return aus;
+  }
+  function markieren(bytes, befunde) {
+    var b = alsBytes(bytes), art = artVon(b), liste = marken(befunde);
+    if (!liste.length || !/^(png|jpeg|webp|gif)$/.test(art) || !welt.document || !welt.createImageBitmap || !welt.Blob) return Promise.resolve(null);
+    return welt.createImageBitmap(new welt.Blob([b], { type: "image/" + art })).then(function (bm) {
+      var f = Math.min(1, MARKE_KANTE / Math.max(bm.width, bm.height)), c = welt.document.createElement("canvas");
+      c.width = Math.max(1, Math.round(bm.width * f)); c.height = Math.max(1, Math.round(bm.height * f));
+      var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(bm, 0, 0, c.width, c.height); if (bm.close) bm.close();
+      var dick = Math.max(2, Math.round(Math.min(c.width, c.height) / 250)), schrift = Math.max(13, Math.round(Math.min(c.width, c.height) / 32));
+      liste.forEach(function (m) {
+        var x = m.box.x * c.width, y = m.box.y * c.height, w = Math.max(dick * 2, m.box.w * c.width), h = Math.max(dick * 2, m.box.h * c.height), r = dick * 2;
+        x = Math.max(0, x - r); y = Math.max(0, y - r); w = Math.min(c.width - x, w + 2 * r); h = Math.min(c.height - y, h + 2 * r);
+        g.fillStyle = "rgba(220,30,30,.18)"; g.fillRect(x, y, w, h);
+        g.lineWidth = dick; g.strokeStyle = "#d61e1e"; g.strokeRect(x + dick / 2, y + dick / 2, w - dick, h - dick);
+        g.font = "600 " + schrift + "px system-ui, sans-serif";
+        var tw = g.measureText(m.text).width + schrift, th = Math.round(schrift * 1.5);
+        var ly = y - th >= 0 ? y - th : Math.min(c.height - th, y + h);   // über dem Kasten, sonst darunter
+        var lx = Math.min(Math.max(0, x), Math.max(0, c.width - tw));
+        g.fillStyle = "#d61e1e"; g.fillRect(lx, ly, tw, th);
+        g.fillStyle = "#fff"; g.textBaseline = "middle"; g.fillText(m.text, lx + schrift / 2, ly + th / 2);
+      });
+      c.__marken = liste.length;
+      return c;
+    }, function () { return null; });
   }
 
   /* ══ DIE EINE TÜR
@@ -842,7 +936,7 @@
    * seiten: beim PDF der Text je Seite, damit ein Fund seine Seite nennt. */
   function pruefe(name, bytes) {
     var b = alsBytes(bytes), art = artVon(b), befunde = [], hinweise = [], text = null, seiten = null, stand = { bildUngeprueft: false };
-    function melde(k, satz) { befunde.push({ kennung: k, satz: satz }); }
+    function melde(k, satz, box) { var x = { kennung: k, satz: satz }; if (box) x.box = box; befunde.push(x); }
     name = String(name || "");
     var endung = (/\.([A-Za-z0-9]{1,6})$/.exec(name) || [])[1];
     endung = endung ? endung.toLowerCase() : "";
@@ -952,7 +1046,7 @@
     BEFUNDE: BEFUNDE, gross: gross, GROESSE_MAX: GROESSE_MAX, pfade: pfade, SEITEN_TEXT_MAX: SEITEN_TEXT_MAX,
     OCR_SICHER: OCR_SICHER, OCR_SEITEN_MAX: OCR_SEITEN_MAX,
     kontrastStrecken: kontrastStrecken, neueZeilen: neueZeilen,
-    verdachtPruefen: verdachtPruefen, bildpunkteLesen: bildpunkteLesen, VERDACHT_MIN_LAUF: VERDACHT_MIN_LAUF, VERDACHT_MAX_PIXEL: VERDACHT_MAX_PIXEL,
+    wasTun: wasTun, markieren: markieren, marken: marken, verdachtPruefen: verdachtPruefen, bildpunkteLesen: bildpunkteLesen, VERDACHT_MIN_LAUF: VERDACHT_MIN_LAUF, VERDACHT_MAX_PIXEL: VERDACHT_MAX_PIXEL,
     vergleiche: vergleiche, GEGEN_SEITEN_MAX: GEGEN_SEITEN_MAX, GEGEN_MIN_VERSTECKT: GEGEN_MIN_VERSTECKT, versteckteWoerter: versteckteWoerter, wortKaesten: wortKaesten,
     /* nur für die Proben: die Frist kürzen, um das Hängen zu messen */
     ocrFrist: function (ms) { if (ms > 0) OCR_FRIST = ms; return OCR_FRIST; } };

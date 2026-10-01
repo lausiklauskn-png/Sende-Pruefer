@@ -14,10 +14,10 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "8f64d91afdd08a08ed165142fc1d5812ce5e894441f0c3f31be592d99c6663c5";
+export const ANHANG_SHA = "10616efbb1a862ad989e2ac6b69c27d7d43e67ac1ae86b45e85b10097d7304d3";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
-export const MAIL_SHA = "7d7c8eea711bcb63e4b7d28fd56f9a2f2d4f74582a542cace80b1e563e7511e9";
+export const MAIL_SHA = "27e86606a3de4592100f20224eb955cb2f6e48339a82dc40e48fe309f8bdc989";
 
 /* byte-1:1 aus Auslieferung-Pruefer — der HTML-Prüfer, für Anhänge, die HTML-Seiten sind (2026-09-30) */
 export const HTML_SHA = "9b004f0c76bf8d79b75d361b5b8d4cae87d2b2becd229f2d37391e93566300fd";
@@ -220,6 +220,9 @@ export async function imBrowser(ok, browser, BASIS) {
   ok("Anhänge: ein Name mit <b> steht als Text da, nicht als HTML", z("<b>fett</b>.png").name === "<b>fett</b>.png" && !z("<b>fett</b>.png").fett);
   /* Tafel-Evolution (Stufe 2 A, 2026-09-30): ein Bild ohne lesbaren Text heißt „Text im Bild ungeprüft“, nicht „nichts gefunden“. */
   ok("Anhänge: ein sauberes Bild ohne Text sagt „Text im Bild ungeprüft“, nicht „nichts gefunden“", z("<b>fett</b>.png").k.join() === "UNGEPRUEFT", JSON.stringify(z("<b>fett</b>.png").k));
+  { await page.waitForTimeout(800);
+    const leer = await page.evaluate(() => ({ tun: document.querySelectorAll("#anhang-liste [data-was-tun]").length, mark: document.querySelectorAll("#anhang-liste [data-markiert]").length }));
+    ok("Gegenrichtung: ohne Anweisung oder Verdacht kein „Was jetzt tun“ und keine Markierung", leer.tun === 0 && leer.mark === 0, JSON.stringify(leer)); }
   ok("Anhänge: eine sichere Fassung gibt es für Bilder und SVG, nicht für Word und PDF",
     z("foto.png").sicher && z("logo.svg").sicher && !z("brief.docx").sicher && !z("r.pdf").sicher);
 
@@ -231,6 +234,13 @@ export async function imBrowser(ok, browser, BASIS) {
   ok("Text im Bild: eine Anweisung an eine KI im Bild wird gemeldet (BILD-KI-ANWEISUNG, Bildtext Zeile 9)",
     !!bildz && bildz.k.includes("BILD-KI-ANWEISUNG") && /Bildtext Zeile 9/.test(bildz.text), JSON.stringify(bildz));
   ok("Text im Bild: die Angaben im Bildtext gehen an den Prüfkern (IBAN, Mailadresse)", !!bildz && bildz.angaben >= 2 && /IBAN/.test(bildz.text), JSON.stringify(bildz && bildz.angaben));
+  /* Was jetzt tun und die Stelle im Bild (Klaus 2026-10-01) */
+  await page.waitForFunction(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png"); return li && li.querySelector("[data-markiert]"); }, null, { timeout: 15000 }).catch(() => {});
+  const ruhe1 = await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png");
+    return li ? { tun: [...li.querySelectorAll("[data-was-tun]")].map((x) => [x.dataset.wasTun, x.querySelectorAll("li").length]), mark: [...li.querySelectorAll("[data-markiert]")].map((x) => x.dataset.markiert),
+      speichern: !!li.querySelector("[data-markiert-speichern]") } : null; });
+  ok("Was jetzt tun: unter der Anweisung im Bild stehen ruhige Schritte, einmal", !!ruhe1 && ruhe1.tun.length === 1 && ruhe1.tun[0][0] === "BILD-KI-ANWEISUNG" && ruhe1.tun[0][1] >= 4, JSON.stringify(ruhe1));
+  ok("Markierung: die Zeile steht rot markiert im Bild, mit „Markierte Kopie speichern“", !!ruhe1 && ruhe1.mark.join() === "1" && ruhe1.speichern, JSON.stringify(ruhe1));
   await page.evaluate(() => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === "aushang.png"); li && li.querySelector("[data-weg]").click(); });
 
   /* Stufe 2 B: blasser Text — Vorlage 2B aus dem Auslieferungsprüfer (erfunden) trägt dieselbe Anweisung in Hellgrau. */
@@ -256,10 +266,23 @@ export async function imBrowser(ok, browser, BASIS) {
     ok("… " + n + " trägt den Knopf „Bildpunkte auf Verdacht prüfen“", (await li.locator("[data-verdacht-knopf]").count()) === 1);
     await li.locator("[data-verdacht-knopf]").click().catch(() => {});
     await page.waitForFunction((n) => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === n); return li && li.querySelector("[data-verdacht]"); }, n, { timeout: 30000 }).catch(() => {});
-    lsb[n] = await li.evaluate((x) => ({ lage: (x.querySelector("[data-verdacht]") || {}).dataset?.verdacht || "", k: [...x.querySelectorAll("[data-kennung]")].map((y) => y.dataset.kennung), text: x.textContent }));
+    if (n === "lsb-mit.png") await page.waitForFunction((n) => { const li = [...document.querySelectorAll("#anhang-liste > li")].find((x) => x.querySelector(".anhang-name").textContent === n); return li && li.querySelector("[data-markiert]"); }, n, { timeout: 15000 }).catch(() => {});
+    lsb[n] = await li.evaluate((x) => ({ lage: (x.querySelector("[data-verdacht]") || {}).dataset?.verdacht || "", k: [...x.querySelectorAll("[data-kennung]")].map((y) => y.dataset.kennung), text: x.textContent,
+      tun: [...x.querySelectorAll("[data-was-tun]")].map((y) => y.dataset.wasTun), mark: [...x.querySelectorAll("[data-markiert]")].map((y) => y.dataset.markiert),
+      warn: !!x.querySelector("[data-sicher-warnung]") }));
   }
   ok("4C mit Botschaft: „Verdacht“ samt dem versteckten Satz und der KI-Anweisung",
     lsb["lsb-mit.png"].lage === "ja" && lsb["lsb-mit.png"].k.includes("BILD-LSB-VERDACHT") && lsb["lsb-mit.png"].k.includes("BILD-KI-ANWEISUNG") && /Ignore previous instructions/.test(lsb["lsb-mit.png"].text), JSON.stringify(lsb["lsb-mit.png"]).slice(0, 300));
+  ok("… darunter „Was jetzt tun“ für den Verdacht und die Anweisung, je einmal", lsb["lsb-mit.png"].tun.join() === "BILD-LSB-VERDACHT,BILD-KI-ANWEISUNG", JSON.stringify(lsb["lsb-mit.png"].tun));
+  ok("… der Streifen mit den Bits ist markiert, einmal (Verdacht und Anweisung stehen an derselben Stelle)", lsb["lsb-mit.png"].mark.join() === "1", JSON.stringify(lsb["lsb-mit.png"].mark));
+  ok("… und der Hinweis steht da, dass die sichere Fassung eines PNG die Bits behält", lsb["lsb-mit.png"].warn);
+  ok("Gegenrichtung (4C ohne): kein „Was jetzt tun“, keine Markierung, kein Hinweis", lsb["lsb-ohne.png"].tun.length === 0 && lsb["lsb-ohne.png"].mark.length === 0 && !lsb["lsb-ohne.png"].warn);
+  /* Gemessen statt behauptet: die sichere Fassung eines PNG mit Botschaft trägt sie weiter. */
+  { const li = lsbLi("lsb-mit.png");
+    const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 10000 }).catch(() => null), li.locator("[data-sicher]").click()]);
+    const neu = dl && (await dl.path()) ? readFileSync(await dl.path()) : null;
+    const v = neu ? await page.evaluate(async (b) => { const x = await window.PrueferAnhang.verdachtPruefen("x.png", Uint8Array.from(b)); return { geprueft: x.geprueft, verdacht: x.verdacht }; }, [...neu]) : null;
+    ok("Gemessen: die sichere Fassung des PNG mit Botschaft trägt sie weiter (deshalb der Hinweis)", !!v && v.geprueft && v.verdacht, JSON.stringify(v)); }
   ok("Gegenrichtung (4C ohne): kein Verdacht", lsb["lsb-ohne.png"].lage === "nein" && !lsb["lsb-ohne.png"].k.includes("BILD-LSB-VERDACHT"), JSON.stringify(lsb["lsb-ohne.png"]).slice(0, 300));
   for (const n of ["lsb-mit.png", "lsb-ohne.png"]) await lsbLi(n).locator("[data-weg]").click().catch(() => {});
 

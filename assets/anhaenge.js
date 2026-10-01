@@ -137,6 +137,38 @@
   }
   var TEILBAR_TEXT = { ja: "📤 geht beim Teilen mit", nein: "✗ dieser Browser teilt diese Art nicht — nur über „Als .eml speichern“ oder ⬇ einzeln", ohne: "Teilen gibt es in diesem Browser nicht — nur über „Als .eml speichern“ oder ⬇ einzeln" };
 
+  /* ══ WAS JETZT TUN · DIE STELLE IM BILD (Klaus 2026-10-01) ══════════════
+     „… nur noch eine Handlungsoption bereitstellen, sodass jemand weiß, was er
+     machen soll, falls er in Panik gerät." Die Schritte kommen aus dem
+     Prüfkern (wasTun), je Art einmal. Und bei einem Bild wird die Stelle in
+     einer KOPIE rot markiert — die Datei bleibt unverändert. */
+  function wasTunKasten(kennung) {
+    var A = welt.PrueferAnhang, sch = A && A.wasTun ? A.wasTun(kennung) : [];
+    if (!sch.length) return null;
+    var ol = el("ol", { style: "margin:4px 0 0;padding-left:1.4em" });
+    sch.forEach(function (x) { ol.append(el("li", null, x)); });
+    return el("li", { "data-was-tun": kennung, style: "border-left:3px solid #2a8a5a;padding:4px 8px;list-style:none" }, el("b", null, "Was jetzt tun"), ol);
+  }
+  function ruhigAnhaengen(liste, befunde, schon) {
+    befunde.forEach(function (x) {
+      if (schon[x.kennung]) return;
+      var k = wasTunKasten(x.kennung); if (k) { schon[x.kennung] = true; liste.append(k); }
+    });
+  }
+  function markiertAnhaengen(liste, a, befunde) {
+    var A = welt.PrueferAnhang;
+    if (!A || !A.markieren || !A.marken(befunde).length) return;
+    a.blob.arrayBuffer().then(function (x) { return A.markieren(x, befunde); }).then(function (c) {
+      if (!c || !document.contains(liste)) return;
+      var url = c.toDataURL("image/jpeg", 0.88), stamm = String(a.name).replace(/\.[^.]*$/, "") || "bild";
+      liste.append(el("li", { "data-markiert": String(c.__marken || 0), style: "list-style:none" },
+        el("img", { src: url, alt: a.name + " — die Stelle ist rot markiert", style: "max-width:100%;max-height:60vh;border-radius:6px;display:block;margin:4px 0" }),
+        el("span", { class: "gedaempft" }, "Rot markiert: die Stelle im Bild, an der der Befund steht. Eine Kopie zum Ansehen — der Anhang selbst ist unverändert. "),
+        el("button", { class: "knopf", type: "button", "data-markiert-speichern": "", onclick: function () {
+          fetch(url).then(function (r) { return r.blob(); }).then(function (b) { herunterladen(b, stamm + "-markiert.jpg"); });
+        } }, "⬇ Markierte Kopie speichern")));
+    }, function () {});
+  }
   function zeile(m, a) {
     var li = el("li", { class: "anhang", "data-anhang": a.id },
       el("div", { class: "anhang-kopf" }, el("b", { class: "anhang-name" }, a.name),
@@ -152,6 +184,9 @@
       li.dataset.befunde = String(r.befunde.length); li.dataset.angaben = String(funde.length); li.dataset.art = r.art;
       li.querySelector("[data-anhang-art]").textContent = " · " + gross(a.groesse || 0) + " · " + r.artName;
       r.befunde.forEach(function (x) { liste.append(el("li", { "data-kennung": x.kennung }, el("span", { class: "sorte" }, x.kennung), x.satz)); });
+      var schon = {};
+      ruhigAnhaengen(liste, r.befunde, schon);
+      markiertAnhaengen(liste, a, r.befunde);
       if (funde.length) {
         var z = {}; funde.forEach(function (f) { z[f.sorte] = (z[f.sorte] || []).concat(f.wert); });
         liste.append(el("li", { "data-kennung": "ANHANG-ANGABEN" }, el("span", { class: "sorte" }, "ANGABEN"),
@@ -183,6 +218,13 @@
           liste.append(vl);
           v.befunde.forEach(function (x) { liste.append(el("li", { "data-kennung": x.kennung }, el("span", { class: "sorte" }, x.kennung), x.satz)); });
           v.hinweise.forEach(function (h) { liste.append(el("li", { class: "gedaempft", "data-hinweis": "" }, h)); });
+          if (lage === "ja") {
+            ruhigAnhaengen(liste, v.befunde, schon);
+            markiertAnhaengen(liste, a, v.befunde);
+            /* Gemessen 2026-10-01: die 🧼 sichere Fassung eines PNG bleibt ein PNG — die Bildpunkte und damit die Bits bleiben. */
+            if (r.art === "png") liste.append(el("li", { class: "gedaempft", "data-sicher-warnung": "" },
+              "Achtung: die „🧼 Sichere Fassung“ eines PNG behält die Bildpunkte und damit diese Botschaft. Die markierte Kopie ist ein JPEG, darin sind die Bits weg."));
+          }
           k.disabled = false;
         }, function () { liste.append(el("li", { "data-verdacht": "ungeprueft" }, "Bildpunkte nicht geprüft: das Bild ließ sich nicht lesen.")); k.disabled = false; });
       } }, "🔍 Bildpunkte auf Verdacht prüfen"));
