@@ -4,7 +4,7 @@
   "description": "Kundendaten verdecken, bevor eine KI sie sieht.",
   "lang": "de",
   "id": "./sende-pruefer-app",
-  "start_url": "sende-pruefer.html",
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b1a26",

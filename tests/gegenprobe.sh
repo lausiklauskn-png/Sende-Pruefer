@@ -479,5 +479,21 @@ fall "OCR: der Weg zur Texterkennung fehlt" $A \
 fall "OCR: nichts gelesen heisst wieder nichts gefunden" $A \
   '      if (!r.befunde.length && !funde.length) liste.append(r.bildUngeprueft' '      if (!r.befunde.length && !funde.length) liste.append(false' 'ungepr'
 
+# START (2026-10-01): die Startseite „Was die App kann"
+fall "START: index.html springt wieder direkt in die App" index.html \
+  'localStorage.getItem("sendepruefer_start_v1") !== "1"' 'false' 'ersten Öffnen steht die Startseite'
+fall "START: der Haken merkt sich nichts mehr" start.html \
+  'if (h.checked) localStorage.setItem(K, "1");' 'if (false) localStorage.setItem(K, "1");' 'Haken merkt sich'
+fall "START: ein Fund ohne Schritte" start.html \
+  '<ol><li>Nicht öffnen, nicht weiterleiten.</li><li>Die Mail löschen.</li><li>Beim Absender auf einem anderen Weg nachfragen, ob er wirklich etwas geschickt hat.</li></ol>' '<ol><li>Nicht öffnen.</li></ol>' 'Schritte in Reihenfolge'
+fall "START: die Grenze verschwindet" start.html \
+  '<b>Kein Virenscanner.</b>' '<b>Sicher.</b>' 'Grenzen stehen'
+fall "START: Werkstatt-Jargon auf der Seite" start.html \
+  'Ein Handyfoto trägt oft' 'Laut Gegenprobe trägt ein Handyfoto oft' 'Jargon'
+fall "START: das Zeichen führt nicht mehr zur Startseite" assets/sbkim-init.js \
+  'a.id = "ueberblick"; a.href = "start.html";' 'a.id = "ueberblick"; a.href = "handbuch.html";' 'Zeichen in der Kopfleiste'
+fall "START: ein Bild ohne feste Maße" start.html \
+  'alt="Das Postfach des Sende-Prüfers mit Ordnern und zwei Beispiel-Mails" width="1280" height="800"' 'alt="Das Postfach des Sende-Prüfers mit Ordnern und zwei Beispiel-Mails"' 'feste Maße'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
