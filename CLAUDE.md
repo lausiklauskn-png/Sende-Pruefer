@@ -503,3 +503,16 @@ selbst anders werden soll, ist Klaus' Entscheidung — nicht geändert.
 `npm test` 450 grün · Gegenprobe `WASTUN:` 3 gefangen (ein vierter Fall war blind: in
 keiner Vorlage steht dieselbe Art zweimal — als benannte Grenze ersetzt). Cache v41.
 
+
+## 🧪 Beispiel-E-Mail mit Test-Anhängen (Klaus 2026-10-01)
+
+„Im Sendeprüfer ebenfalls als E-Mail mit Anhang. Als Beispiel-E-Mail." Unter ⚙ → Beispiele steht unter
+„Beispiel-E-Mail laden" der Knopf **🧪 Beispiel-E-Mail mit Test-Anhängen** (`#beispiel-anhaenge`). Er legt eine erfundene
+Mail an (`bid: "testanhaenge"`). An ihr hängen `beispiele/Testbild-versteckte-Anweisung.png` (eine blasse Anweisung an
+eine KI) und `beispiele/Testdatei-unsichtbarer-Text.pdf`, dieselben Dateien wie in Workflow PDF und im Auslieferungsprüfer.
+Ein zweiter Tipp ersetzt die alte Test-Mail. Die Seite ist voll, deshalb hängen Knopf und Mail in `assets/anhaenge.js`
+(`testKnopfEinbauen`, `testMailLaden`). Sie lesen `MAILS`, `beispielMail`, `oeffne`, `dbTx` und `st` der Seite.
+Die Dateien liegen nicht im Vorrat; offline beim ersten Mal steht das da. Probe in `tests/anhaenge.mjs`, Gegenprobe
+`NUR_FALL="TESTMAIL:"` (4 Fälle, 4 gefangen). Cache v42.
+⚠ Unter Last (zwei Gegenproben daneben) war `npm test` einmal 2× rot. Welche Zeilen es waren, ist nicht gelesen.
+Ohne Last zweimal 455 grün.
