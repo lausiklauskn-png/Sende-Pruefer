@@ -408,5 +408,25 @@ export async function imBrowser(ok, browser, BASIS) {
     ok("… Seite 1 (sichtbarer Text) wird nicht gemeldet", !!pz && !/weicht ab \(Seite 1\)/.test(pz.text), JSON.stringify(pz));
     ok("… und dabei ging nichts nach draußen", draussen.length === 0, JSON.stringify(draussen));
   }
+  /* 🧪 Beispiel-E-Mail mit Test-Anhängen (Klaus 2026-10-01): im Menü ein eigener Knopf,
+     als erfunden benannt; die Mail trägt beide Test-Dateien, und beide melden ihren Befund. */
+  {
+    await page.click("#menue"); await page.waitForSelector("#menue-dialog[open] #beispiel-anhaenge");
+    const hin = await page.evaluate(() => (document.querySelector("[data-test-anhaenge-hin]") || {}).textContent || "");
+    ok("🧪 im Menü steht „Beispiel-E-Mail mit Test-Anhängen“, als erfunden und präpariert benannt", /präparierten Anhängen/.test(hin) && /erfundene/.test(hin), hin);
+    for (let mal = 0; mal < 2; mal++) {
+      if (mal) { await page.click("#menue"); await page.waitForSelector("#menue-dialog[open] #beispiel-anhaenge"); }
+      await page.click("#beispiel-anhaenge");
+      await page.waitForFunction(() => { const l = [...document.querySelectorAll("#anhang-liste > li")]; return l.length === 2 && l.every((x) => x.dataset.befunde != null); }, null, { timeout: 120000 }).catch(() => {});
+    }
+    const tm = await page.evaluate(() => ({ betreff: document.getElementById("lesen").textContent.includes("🧪 Test: Mail mit präparierten Anhängen"),
+      zahl: MAILS.filter((m) => m.bid === "testanhaenge").length,
+      zeilen: [...document.querySelectorAll("#anhang-liste > li")].map((l) => ({ text: l.textContent.slice(0, 60), k: [...l.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung) })) }));
+    const k = tm.zeilen.flatMap((z) => z.k);
+    ok("… ein Tipp legt die Test-Mail an und öffnet sie, mit zwei Anhängen", tm.betreff && tm.zeilen.length === 2, JSON.stringify(tm));
+    ok("… das Bild meldet die blasse Anweisung (BILD-KI-ANWEISUNG)", k.includes("BILD-KI-ANWEISUNG"), JSON.stringify(k));
+    ok("… das PDF meldet unsichtbaren Text (PDF-VERSTECKTER-TEXT)", k.includes("PDF-VERSTECKTER-TEXT"), JSON.stringify(k));
+    ok("… ein zweiter Tipp ersetzt die Test-Mail, statt eine zweite anzulegen", tm.zahl === 1, String(tm.zahl));
+  }
   await ctx.close();
 }
