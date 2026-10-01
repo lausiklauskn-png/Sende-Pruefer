@@ -706,7 +706,7 @@
     kiFolge.forEach(function (kz) {
       melde(kz, "KI-ANWEISUNG",
             "Im Text steht " + kiProZeile[kz].join(", ") + " — das richtet sich " +
-            "an ein Programm, nicht an einen Menschen.");
+            "an eine KI, die den Text liest, nicht an einen Menschen.");
     });
 
     /* ── 5 · Kopfzeilen ─────────────────────────────────────────────────── */

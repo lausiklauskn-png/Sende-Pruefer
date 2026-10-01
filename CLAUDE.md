@@ -482,3 +482,24 @@ wurde verworfen.
 - An die KI geht weiterhin nur der Mailtext.
 - ⚠ Nicht gemessen: Zeit und Speicher am Tablet; verschlüsselte oder verstreute Botschaften
   fremder Werkzeuge.
+
+✅ **Sichttest im Auslieferungsprüfer am Tablet (Klaus 2026-10-01):** 4C mit → Verdacht
+samt KI-Anweisung in unter einer Sekunde, 4C ohne → kein Verdacht. Im Sende-Prüfer selbst
+ist der Knopf am Tablet nicht gesehen.
+
+## 🧭 Was jetzt tun · die Stelle im Bild (Klaus 2026-10-01)
+
+`pruefer-anhang.js` und `pruefer-mail.js` byte-1:1 neu kopiert (Pins nachgezogen). In
+`assets/anhaenge.js`: unter jeder Anweisung oder jedem Verdacht ruhige Schritte
+(`wasTun`, je Art einmal, `[data-was-tun]`) und bei Bildern eine rot markierte JPEG-Kopie
+(`markieren`, `[data-markiert]`, „⬇ Markierte Kopie speichern“). Die Erklärung steht im
+Auslieferungsprüfer (CLAUDE.md, gleicher Abschnitt).
+
+⚠ **Gemessen: die „🧼 Sichere Fassung“ eines PNG trägt eine Botschaft in den Bits weiter**
+(neu gezeichnet, aber als PNG verlustfrei gespeichert). Am Verdacht steht deshalb ein
+Hinweis (`[data-sicher-warnung]`); die markierte Kopie ist ein JPEG. Ob die sichere Fassung
+selbst anders werden soll, ist Klaus' Entscheidung — nicht geändert.
+
+`npm test` 450 grün · Gegenprobe `WASTUN:` 3 gefangen (ein vierter Fall war blind: in
+keiner Vorlage steht dieselbe Art zweimal — als benannte Grenze ersetzt). Cache v41.
+

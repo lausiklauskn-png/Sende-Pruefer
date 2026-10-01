@@ -495,5 +495,15 @@ fall "START: das Zeichen führt nicht mehr zur Startseite" assets/sbkim-init.js 
 fall "START: ein Bild ohne feste Maße" start.html \
   'alt="Das Postfach des Sende-Prüfers mit Ordnern und zwei Beispiel-Mails" width="1280" height="800"' 'alt="Das Postfach des Sende-Prüfers mit Ordnern und zwei Beispiel-Mails"' 'feste Maße'
 
+# Was jetzt tun und die Stelle im Bild (Klaus 2026-10-01)
+fall "WASTUN: ein Anhang mit Anweisung trägt keine Schritte" assets/anhaenge.js \
+  '      ruhigAnhaengen(liste, r.befunde, schon);' '' 'ruhige Schritte, einmal'
+# Kein Fall für „je Art einmal“: in keiner Vorlage steht dieselbe Art zweimal
+# an einem Anhang (gemessen 2026-10-01: der Fall war blind). Benannte Grenze.
+fall "WASTUN: die Stelle im Bild wird nicht markiert" assets/anhaenge.js \
+  '      markiertAnhaengen(liste, a, r.befunde);' '' 'rot markiert im Bild'
+fall "WASTUN: der Hinweis zur sicheren Fassung fehlt" assets/anhaenge.js \
+  '            if (r.art === "png") liste.append' '            if (false) liste.append' 'Bits behält'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
