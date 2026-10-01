@@ -421,7 +421,52 @@
   }
   API.emlMitAnhang = emlMitAnhang; API.mitnehmen = mitnehmen; API.teilbar = teilbar; API.zeichne = function () { zeichne(); };
 
+  /* ══ 🧪 BEISPIEL-E-MAIL MIT TEST-ANHÄNGEN (Klaus 2026-10-01): „im Sendeprüfer ebenfalls
+     als E-Mail mit Anhang. Als Beispiel-E-Mail." Dieselben zwei Dateien wie in Workflow PDF
+     (Hilfe → 🧪) und im Auslieferungsprüfer (Foto · Datei prüfen): ein Bild mit blasser
+     Anweisung an eine KI und ein PDF mit unsichtbarem Text. Mit Absicht präpariert, alles
+     erfunden. Die Seite ist voll — der Knopf hängt sich deshalb von hier in das Menü.
+     Ein zweiter Tipp ersetzt die alte Test-Mail, statt eine zweite daneben zu legen. */
+  var TEST_ANHAENGE = [
+    { pfad: "beispiele/Testbild-versteckte-Anweisung.png", typ: "image/png" },
+    { pfad: "beispiele/Testdatei-unsichtbarer-Text.pdf", typ: "application/pdf" }
+  ];
+  var TEST_MAIL = { bid: "testanhaenge", ordner: "eingang", vonName: "Test-Absender (erfunden)", vonAdr: "test@beispiel.example",
+    anAdr: "buchhaltung@beispiel-firma.example", betreff: "🧪 Test: Mail mit präparierten Anhängen",
+    text: "Guten Tag,\n\nanbei zwei Dateien. Sie sind mit Absicht präpariert und gehören zu den Beispielen dieser App, alles darin ist erfunden:\n\n1. ein Foto mit einer blassen Zeile, die eine KI als Befehl lesen würde,\n2. ein PDF mit Text, der auf der Seite nicht zu sehen ist.\n\nUnten unter „📎 Anhänge“ steht, was der Sende-Prüfer darin findet. Ein Befund ist hier das Soll.\n\nViele Grüße",
+    antwortRoh: "" };
+  function testMailLaden() {
+    var MAILS = g("MAILS"), beispielMail = g("beispielMail"), oeffne = g("oeffne"), dbTx = g("dbTx"), st = g("st");
+    if (!MAILS || !beispielMail || !oeffne) { melde("Die Beispiel-E-Mail ließ sich nicht anlegen — die Seite meldet sich nicht.", false); return; }
+    Promise.all(TEST_ANHAENGE.map(function (t) {
+      return fetch(t.pfad).then(function (a) { if (!a.ok) throw new Error("HTTP " + a.status); return a.blob(); })
+        .then(function (b) { return new File([b], t.pfad.split("/").pop(), { type: t.typ }); });
+    })).then(function (dateien) {
+      for (var i = MAILS.length - 1; i >= 0; i--) if (MAILS[i].bid === TEST_MAIL.bid) {
+        var alt = MAILS.splice(i, 1)[0]; if (dbTx) dbTx("readwrite", function (s) { return s.delete(alt.id); });
+      }
+      var m = beispielMail(TEST_MAIL);
+      m.anhaenge = dateien.map(function (d) { return { id: neueId(), name: d.name, typ: d.type, groesse: d.size, blob: d }; });
+      MAILS.push(m); speichern(m);
+      var dlg = document.getElementById("menue-dialog"); if (dlg && dlg.open) dlg.close();
+      if (st) st.ordner = "eingang";
+      oeffne(m.id);
+    }).catch(function (e) {
+      melde("Die Test-Anhänge ließen sich nicht laden (" + (e && e.message || e) + ") — beim ersten Mal braucht es Internet.", false);
+    });
+  }
+  function testKnopfEinbauen() {
+    var vor = document.getElementById("beispiel");
+    if (!vor || document.getElementById("beispiel-anhaenge")) return;
+    var k = el("button", { class: "knopf", id: "beispiel-anhaenge", type: "button", "data-test-anhaenge": "" }, "🧪 Beispiel-E-Mail mit Test-Anhängen");
+    k.addEventListener("click", testMailLaden);
+    var p = el("p", { "data-test-anhaenge-hin": "" }, "Eine erfundene Mail mit zwei mit Absicht präparierten Anhängen: ein Bild mit blasser Anweisung an eine KI und ein PDF mit unsichtbarem Text. Ein Befund ist hier das Soll.");
+    vor.after(p, k);
+  }
+  API.testMailLaden = testMailLaden;
+
   function start() {
+    testKnopfEinbauen();
     document.head.append(el("style", null, ".anhang-liste{list-style:none;padding:0;margin:8px 0}.anhang{border-top:1px solid color-mix(in srgb,currentColor 15%,transparent);padding:8px 0}.anhang-name{overflow-wrap:anywhere}.anhang-befunde{margin:6px 0 0}"));
     exportEinbauen();
     beobachten();

@@ -505,5 +505,15 @@ fall "WASTUN: die Stelle im Bild wird nicht markiert" assets/anhaenge.js \
 fall "WASTUN: der Hinweis zur sicheren Fassung fehlt" assets/anhaenge.js \
   '            if (r.art === "png") liste.append' '            if (false) liste.append' 'Bits behält'
 
+# 🧪 Beispiel-E-Mail mit Test-Anhängen (Klaus 2026-10-01)
+fall "TESTMAIL: der Knopf im Menü fehlt" assets/anhaenge.js \
+  '    testKnopfEinbauen();' '' 'Beispiel-E-Mail mit Test-Anh'
+fall "TESTMAIL: die Mail kommt ohne Anhänge" assets/anhaenge.js \
+  'm.anhaenge = dateien.map(' 'm.anhaenge = [].map(' 'mit zwei Anh'
+fall "TESTMAIL: ein zweiter Tipp legt eine zweite Mail an" assets/anhaenge.js \
+  'var alt = MAILS.splice(i, 1)[0];' 'var alt = MAILS[i];' 'zweiter Tipp ersetzt'
+fall "TESTMAIL: der Hinweis sagt nicht mehr, dass es erfunden ist" assets/anhaenge.js \
+  '"Eine erfundene Mail mit zwei' '"Eine Mail mit zwei' 'als erfunden'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
