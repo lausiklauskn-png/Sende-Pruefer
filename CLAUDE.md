@@ -516,3 +516,26 @@ Die Dateien liegen nicht im Vorrat; offline beim ersten Mal steht das da. Probe 
 `NUR_FALL="TESTMAIL:"` (4 Fälle, 4 gefangen). Cache v42.
 ⚠ Unter Last (zwei Gegenproben daneben) war `npm test` einmal 2× rot. Welche Zeilen es waren, ist nicht gelesen.
 Ohne Last zweimal 455 grün.
+
+## 🛑 Was hinausgeht: Halt, Systemkanal, ehrliche sichere Fassung (2026-10-01)
+
+Übernommen aus dem ChatGPT-Prüfbericht vom 2026-10-01, Punkte 1, 2, 3 und 8. Die Seite ist voll (98 294 / 98 304),
+deshalb steht alles in **`assets/aussen.js`** (app-eigen), nachgeladen von `assets/ablehnung.js`. Die Datei ersetzt
+`bereit`, `senden` und `anfrage` der Seite. Fehlt sie, läuft alles wie vorher.
+
+- **1 · Halt vor dem Hinausgehen:** Mailtext und Betreff gehen vor Kopieren und Senden durch `PrueferMail.pruefeMail`
+  (KI-ANWEISUNG, UNSICHTBARE-ZEICHEN, VERSTECKTER-TEXT). Der erste Tipp hält an und nennt die Zeile. Ein zweiter Tipp
+  geht weiter. Die eigene Aufgabe (`m.bitte`) zählt nicht mit. Fehlt die Liste, hält der erste Tipp ebenfalls an
+  und meldet „UNGEPRÜFT“.
+- **2 · Systemkanal:** beim Senden steht die Aufgabe im Systemkanal (Anthropic `system`, OpenAI-Form `role: system`).
+  Die Mail steht zwischen `<<<MAIL-z>>>` und `<<<ENDE-MAIL-z>>>`, wobei z bei jedem Senden neu zufällig gezogen wird
+  (12 Hex-Zeichen, nie im Text enthalten). Der Kopier-Weg bleibt ohne Marken. ⚠ Das ist eine Hürde, kein Schutz.
+- **3 · Sichere Fassung:** als entfernt nennt sie nur, was das Neuzeichnen wirklich entfernt (`WEG_BEIM_ZEICHNEN`).
+  Sie sagt dazu, dass sichtbarer Text, auch eine Anweisung an eine KI, bleibt. Bei einem PNG sagt sie außerdem,
+  dass eine Botschaft in den untersten Bits bleibt.
+- **8 · „nicht lauffähig“ ist kein Grün:** `tests/smoke.mjs` endet ohne playwright-core oder Chromium mit
+  Rückgabewert **2** (vorher 0).
+
+Cache v43. `npm test` **462 grün · 0 ROT** · `NUR_ANKER` **206 · 0 tot** · Gegenprobe `AUSSEN:` 5 und `SICHER:` 1
+gefangen, 0 blind. Ein alter toter Anker (`PDFTEXT:` Reihenfolge, seit pruefer.js dazukam) ist nachgezogen.
+⚠ Nicht gemessen: ob eine echte KI dem Systemkanal folgt, und das Tablet.

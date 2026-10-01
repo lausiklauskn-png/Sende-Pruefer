@@ -457,9 +457,11 @@ fall "PDFTEXT: die KI-Liste wird nicht mehr geladen" $A \
 fall "PDFTEXT: der Anhang-Prüfer kommt vor der KI-Liste" $A \
   '  var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
     .then(function () { return laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); })
+    .then(function () { return laden("assets/pruefer.js", function () { return welt.Auslieferungspruefer; }); })
     .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })' '  var bereit = laden("assets/pruefer-formate.js", function () { return welt.PrueferFormate; })
     .then(function () { return laden("assets/pruefer-anhang.js", function () { return welt.PrueferAnhang; }); })
-    .then(function (x) { laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); return x; })' 'Reihenfolge'
+    .then(function (x) { laden("assets/pruefer-mail.js", function () { return welt.PrueferMail; }); return x; })
+    .then(function () { return laden("assets/pruefer.js", function () { return welt.Auslieferungspruefer; }); })' 'Reihenfolge'
 fall "PDFTEXT: der Weg zu pdf.js wird nicht gesetzt" $A \
   '      if (welt.PrueferAnhang.pfade) welt.PrueferAnhang.pfade(' '      if (false) welt.PrueferAnhang.pfade(' 'im Browser: das PDF meldet'
 fall "PDFTEXT: die Mailadresse aus dem Seitentext geht nicht an Modul 25" $A \
@@ -514,6 +516,19 @@ fall "TESTMAIL: ein zweiter Tipp legt eine zweite Mail an" assets/anhaenge.js \
   'var alt = MAILS.splice(i, 1)[0];' 'var alt = MAILS[i];' 'zweiter Tipp ersetzt'
 fall "TESTMAIL: der Hinweis sagt nicht mehr, dass es erfunden ist" assets/anhaenge.js \
   '"Eine erfundene Mail mit zwei' '"Eine Mail mit zwei' 'als erfunden'
+
+fall "AUSSEN: die Mail wird nicht mehr auf KI-Anweisungen geprüft" assets/aussen.js \
+  '      if (!f.length) return r;' '      return r;' 'hält beim ersten Tipp an'
+fall "AUSSEN: ein zweiter Tipp geht nicht weiter" assets/aussen.js \
+  '      if (bestaetigt[k]) return r;' '' 'zweiter Tipp geht trotzdem'
+fall "AUSSEN: die Aufgabe steht nicht mehr im Systemkanal" assets/aussen.js \
+  'q.body.system = system; ' '' 'Aufgabe im Systemkanal'
+fall "AUSSEN: die Marke ist fest statt zufällig" assets/aussen.js \
+  'crypto.getRandomValues(b);' '' 'im OpenAI-Protokoll'
+fall "AUSSEN: assets/aussen.js wird nicht mehr nachgeladen" assets/ablehnung.js \
+  'document.head.append(s);' '' 'aussen.js ist geladen'
+fall "SICHER: die sichere Fassung nennt den KI-Fund als entfernt" assets/anhaenge.js \
+  'var WEG_BEIM_ZEICHNEN = ["BILD-METADATEN",' 'var WEG_BEIM_ZEICHNEN = ["BILD-KI-ANWEISUNG", "BILD-METADATEN",' 'nur, was das Neuzeichnen'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
