@@ -411,14 +411,17 @@ export async function imBrowser(ok, browser, BASIS) {
   /* 🧪 Beispiel-E-Mail mit Test-Anhängen (Klaus 2026-10-01): im Menü ein eigener Knopf,
      als erfunden benannt; die Mail trägt beide Test-Dateien, und beide melden ihren Befund. */
   {
-    await page.click("#menue"); await page.waitForSelector("#menue-dialog[open] #beispiel-anhaenge");
+    /* Gemeldet, nicht abgewartet: fehlt der Knopf, ist das ein Befund mit Namen, kein Zeitablauf. */
+    await page.click("#menue"); await page.waitForSelector("#menue-dialog[open]");
+    const da = await page.evaluate(() => !!document.querySelector("#menue-dialog #beispiel-anhaenge"));
     const hin = await page.evaluate(() => (document.querySelector("[data-test-anhaenge-hin]") || {}).textContent || "");
-    ok("🧪 im Menü steht „Beispiel-E-Mail mit Test-Anhängen“, als erfunden und präpariert benannt", /präparierten Anhängen/.test(hin) && /erfundene/.test(hin), hin);
-    for (let mal = 0; mal < 2; mal++) {
+    ok("🧪 im Menü steht „Beispiel-E-Mail mit Test-Anhängen“, als erfunden und präpariert benannt", da && /präparierten Anhängen/.test(hin) && /erfundene/.test(hin), hin);
+    for (let mal = 0; da && mal < 2; mal++) {
       if (mal) { await page.click("#menue"); await page.waitForSelector("#menue-dialog[open] #beispiel-anhaenge"); }
       await page.click("#beispiel-anhaenge");
       await page.waitForFunction(() => { const l = [...document.querySelectorAll("#anhang-liste > li")]; return l.length === 2 && l.every((x) => x.dataset.befunde != null); }, null, { timeout: 120000 }).catch(() => {});
     }
+    if (!da) await page.evaluate(() => document.getElementById("menue-dialog").close());
     const tm = await page.evaluate(() => ({ betreff: document.getElementById("lesen").textContent.includes("🧪 Test: Mail mit präparierten Anhängen"),
       zahl: MAILS.filter((m) => m.bid === "testanhaenge").length,
       zeilen: [...document.querySelectorAll("#anhang-liste > li")].map((l) => ({ text: l.textContent.slice(0, 60), k: [...l.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung) })) }));
