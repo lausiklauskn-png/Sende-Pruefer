@@ -541,3 +541,12 @@ gefangen, 0 blind. Ein alter toter Anker (`PDFTEXT:` Reihenfolge, seit pruefer.j
 ⚠ Nicht gemessen: ob eine echte KI dem Systemkanal folgt, und das Tablet.
 
 **Empfangene Mails sind nur zum Lesen** (Klaus 2026-10-01: „Ich kann nicht in die Beispiel-E-Mails schreiben"). `bearbeitbar(m)` ist im Ordner Eingefügt falsch, und das ist Absicht. Der Beispiel-Hinweis versprach dort trotzdem „alles überschreiben“. `assets/aussen.js` ersetzt ihn an empfangenen Mails (`data-nur-lesen`) und nennt den Weg: ✎ Verfassen. Gegenprobe `LESEN:` (1 Fall). Cache v44.
+
+## 🧾 Punkte 4–8 aus dem Auslieferungsprüfer nachgezogen (2026-10-01)
+
+`assets/pruefer-anhang.js` byte-1:1 aus Auslieferung-Pruefer #37 (`ANHANG_SHA` nachgezogen,
+`pruefer-mail.js` unverändert gleich). Ein Anhang (TXT, SVG, HTML, Word …) mit einer Anweisung
+an eine KI meldet jetzt `KI-ANWEISUNG` mit Zeile; unsichtbare Zeichen im Bildtext werden
+gemeldet; eine unbekannte Binärdatei, ein PDF ohne pdf.js und eine verworfene OCR-Zeile heißen
+„ungeprüft". Die Erklärung steht im Auslieferungsprüfer (CLAUDE.md, gleicher Abschnitt).
+Cache v45. `npm test` 463 grün · 0 ROT. ⚠ Tablet nicht gemessen.
