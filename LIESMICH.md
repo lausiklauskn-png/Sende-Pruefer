@@ -11,7 +11,7 @@ Der Sende-Prüfer ist ein kleines Postfach, das dafür sorgt, dass die Namen, Nu
 ## So geht es
 
 1. **📥 Mail einfügen:** eine empfangene Mail samt Kopfzeilen (Von, An, Betreff) aus Ihrem Mail-Programm hineinkopieren oder eine gespeicherte `.eml` öffnen. Sie landet in **Eingefügt**. Oder **Verfassen** für einen eigenen Entwurf (Ordner **Entwürfe**).
-2. Die Namen aus Von und An werden von selbst verdeckt. Weitere Personen- und Firmennamen tragen Sie unter **„Weitere Namen“** ein.
+2. Die Namen aus Von, An und Cc werden von selbst verdeckt. Weitere Personen- und Firmennamen tragen Sie unter **„Weitere Namen“** ein.
 3. **Original** zeigt die Mail mit jedem Fund markiert, **Was die KI sieht** zeigt genau den Text, der hinausgeht: Ihre Mail, darunter Ihre Bitte, jede Angabe als Platzhalter.
 4. **✦ Mit KI beantworten** (bzw. überarbeiten). Unter **„Was soll die KI tun?“** eine Aufgabe antippen (Antwort, Rechnung, Mahnung, Angebot …) oder selbst eintragen und **Anweisung bauen**; daraus entsteht die ganze Anweisung, frei änderbar. **Als Knopf merken** legt eine eigene Aufgabe als Knopf an. Dann einen der beiden Wege wählen:
    - **Kopieren**, für Ihr eigenes KI-Abo: einfügen, wo Sie ohnehin arbeiten, ohne Schlüssel und ohne zusätzliche Kosten. Die Antwort fügen Sie danach in das Feld darunter ein.
@@ -36,11 +36,11 @@ Das Postfach füllt immer das ganze Fenster. Als installierte App öffnet es sic
 | IBAN | nur mit stimmender Prüfziffer |
 | BETRAG | `89,90 €`, `1.248,50 EUR`, `EUR 1.234.567,89` — auch mit Tausenderpunkt ganz |
 | RECHNUNG | `Rechnungsnummer: …`, `Kundennummer: …`, freistehend `RE-2026-04871` |
-| NAME | die Namen aus Von und An und aus Ihrer Liste |
+| NAME | die Namen aus Von, An, Cc und Ihrer Liste |
 
 ## Grenzen — was die Seite nicht kann
 
-1. **Namen findet sie nicht selbst.** Ein Muster unterscheidet „Müller“ die Person nicht von „Müller-Thurgau“ der Rebsorte. Verdeckt werden die Namen aus Von und An und die, die Sie eintragen. Ein vergessener Name geht hinaus.
+1. **Namen findet sie nicht selbst.** Ein Muster unterscheidet „Müller“ die Person nicht von „Müller-Thurgau“ der Rebsorte. Verdeckt werden die Namen aus Von, An, Cc und Ihrer Liste. Ein vergessener Name geht hinaus.
 2. **Was kein Muster hat, erkennt sie nicht:** Adressen, Geburtsdaten, Kennzeichen, Gesundheitsangaben, Beschreibungen, an denen man jemanden erkennt („die Filialleiterin in Kiel“). Lesen Sie „Was die KI sieht“, bevor Sie senden.
 3. **Eine Telefonnummer ohne Ländervorwahl bleibt stehen**, weil eine bloße Ziffernfolge meist eine Kennung oder ein Datum ist. Wer `030 1234567` verdecken will, schreibt `+49 30 1234567` oder trägt die Nummer unter „Weitere Namen“ ein.
 4. **Rechnungsnummern erkennt sie nur mit Feldname** oder in der Form `RE-/RG-/INV-/KD-/AN-Jahr-Nummer`. Eine Nummer wie `A17/33` im Fließtext bleibt stehen.

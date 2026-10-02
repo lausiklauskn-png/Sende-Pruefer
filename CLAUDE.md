@@ -648,3 +648,14 @@ voll) ersetzt `zeichneOrdner`, `zeichneListe` und `loeschen` der Seite.
   Cache v55. `npm test` 584 grün · 0 ROT.
 - ⚠ Nicht gemessen: Download und Dateiwahl am Tablet; wie lange 600 000 Runden dort dauern; große Postfächer
   (die ganze Sicherung liegt einmal als Text im Speicher).
+
+## 👥 Alle Empfänger und Cc verdecken (Klaus 2026-10-02)
+
+Punkt 4 der Grenzen-Liste. `mailLesen` der Seite behielt nur den ERSTEN Empfänger; weitere Empfänger und Cc
+fielen weg, und ihre Namen wurden im Text nicht verdeckt. `assets/empfaenger.js` (nachgeladen von
+`assets/ablehnung.js`, die Seite ist voll) liest An und Cc ganz (`.eml` mit RFC-2047-Namen und gepastete
+„An:/Cc:“-Zeilen; getrennt an Komma und Semikolon außerhalb von Anführungszeichen) und legt die übrigen Namen in
+`m.weitereNamen` ab; `mailNamen` nimmt sie mit, die Zeile heißt dann „Aus Von/An/Cc: …“. Ein gepasteter „An:“ mit
+mehreren Einträgen behält als `anName` nur den ersten. Die Kopfzeilen selbst gehen weiter NICHT an die KI.
+Namen unter 2 Zeichen werden nicht verdeckt. Probe `tests/empfaenger.mjs` · Gegenprobe `NUR_FALL="EMPF:"` (7 Fälle).
+Cache v57. ⚠ Am Tablet nicht gemessen; echte Verteiler-Mails nicht.

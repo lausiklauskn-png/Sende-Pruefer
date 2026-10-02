@@ -656,5 +656,20 @@ fall "SICHERUNG: fehlt im Offline-Vorrat" sw.js \
 fall "SICHERUNG: jetztSpeichern beim Zurückholen fehlt" assets/sicherung.js \
   'neu.forEach(function (m) { MAILS.push(m); try { jetztSpeichern(m); } catch (_e) {} });' 'neu.forEach(function (m) { MAILS.push(m); });' 'überlebt das Neuladen'
 
+fall "EMPF: weitere Empfänger werden nicht mehr abgelegt" assets/empfaenger.js \
+  'if (weitere.length) m.weitereNamen = weitere;' '' 'weitere Empfänger und Cc stehen'
+fall "EMPF: Cc wird nicht mehr gelesen" assets/empfaenger.js \
+  '["to", "cc"].forEach' '["to"].forEach' '\(\.eml\): weitere Empfänger'
+fall "EMPF: mailNamen nimmt die weiteren nicht mit" assets/empfaenger.js \
+  'altNamen(m).concat(w.map' 'altNamen(m).concat([].map' 'mailNamen nimmt sie mit'
+fall "EMPF: Semikolon trennt nicht mehr" assets/empfaenger.js \
+  '(c === "," || c === ";")' '(c === ",")' 'weitere Empfänger und Cc|mailNamen nimmt|keiner dieser Namen'
+fall "EMPF: ein gepasteter An-Eintrag bleibt ganz im ersten Namen" assets/empfaenger.js \
+  'if (m.anName && teile(m.anName).length > 1) {' 'if (false) {' 'gepastet): der erste Empfänger'
+fall "EMPF: die Zeile Aus Von/An/Cc fehlt" assets/empfaenger.js \
+  'e.textContent = "Aus Von/An/Cc: " + auto.join(", ");' '' 'Aus Von/An/Cc'
+fall "EMPF: fehlt im Offline-Vorrat" sw.js \
+  '"assets/empfaenger.js", ' '' 'Offline-Vorrat'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
