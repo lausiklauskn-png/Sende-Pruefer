@@ -284,11 +284,19 @@ fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
 fall "TON: eine Szene verliert ihre englische Aufnahme" handbuch.html \
   ' data-ton-en="handbuch/ton/en/01-postfach.mp3"' '' 'englische Aufnahme .data-ton-en.'
 fall "TON: Watch in English spielt die deutsche Aufnahme" handbuch.html \
-  'sprache === "en" ? s.dataset.tonEn : s.dataset.ton' 's.dataset.ton' 'Watch in English spielt die englische'
+  's.dataset["ton" + gross]' 's.dataset.ton' 'Watch in English spielt die englische'
 fall "TON: der englische Knopf fehlt" handbuch.html \
   '<button class="knopf" id="vorfuehren-en" type="button" lang="en">' '<button class="knopf" id="vorfuehren-xx" type="button" lang="en">' 'Watch in English“ steht'
 fall "TON: die englischen Schnitte haben eine Lücke" handbuch/ton/en/schnitte.json \
   '"von": 11.46,' '"von": 12.46,' 'englischen Schnitte'
+fall "TON: der russische Knopf fehlt" handbuch.html \
+  '<button class="knopf" id="vorfuehren-ru" type="button" lang="ru">' '<button class="knopf" id="vorfuehren-xx" type="button" lang="ru">' 'Смотреть по-русски“ steht'
+fall "TON: die russischen Schnitte haben eine Lücke" handbuch/ton/ru/schnitte.json \
+  '"von": 15.16,' '"von": 16.16,' 'russischen Schnitte'
+fall "TON: die russische Zuordnung gilt als eindeutig, obwohl sie es nicht ist" handbuch/ton/ru/schnitte.json \
+  '"eindeutig": true,' '"eindeutig": false,' 'russischen Schnitte'
+fall "TON: Смотреть по-русски spielt die deutsche Aufnahme" handbuch.html \
+  'if (ru) ru.addEventListener("click", function () { start("ru"); });' 'if (ru) ru.addEventListener("click", function () { start("de"); });' 'по-русски spielt die russische'
 
 # ── Anleitung als Seite (Klaus 2026-09-29) ──
 fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \

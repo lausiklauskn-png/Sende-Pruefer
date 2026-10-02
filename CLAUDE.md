@@ -578,7 +578,15 @@ Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s). Se
 - **Englisch (Klaus 2026-10-02, Stimme Andrew, Aufnahme von 13:30, 110 s, mit Klaus' verbessertem Text; größte Abweichung eines Satzendes 1,9 s in Szene 04):** `sprechText.en` je Szene, Aufnahme in
   `handbuch/ton/en/` (`node tools/handbuch-ton.mjs <aufnahme.mp3> en`), Knopf **▶ Watch in English**
   (`#vorfuehren-en`, erscheint nur, wenn jede Szene einen englischen Text trägt). Die Bilder zeigen
-  weiter die deutsche Oberfläche. Russisch, Arabisch: noch keine Sprechtexte.
+  weiter die deutsche Oberfläche. Arabisch: noch kein Sprechtext.
+- **Russisch (Klaus 2026-10-02, Stimme Svetlana, 158 s, Text von Klaus):** `sprechText.ru`, Aufnahme in
+  `handbuch/ton/ru/`, Knopf **▶ Смотреть по-русски** (`#vorfuehren-ru`), Vorlage und Bauer behandeln
+  die Sprache wie Englisch (`data-sprech-ru`, `data-ton-ru`). In Szene 06/07 liegen Satzenden bis
+  3,9 s neben der erwarteten Stelle, weil Svetlana dort langsamer spricht. Die Aufnahme hat aber
+  **genau 34 Pausen ≥ 0,3 s für 34 Satzenden**, also ist die Zuordnung nur der Reihe nach möglich.
+  `handbuch-ton.mjs` vermerkt das als `eindeutig: true`, und nur dann lässt die Probe die 2,5 s
+  hinter sich. Für jede andere Aufnahme gilt die Grenze weiter (Tafel-Evolution, benannt).
+  Cache v51 (der englische PR #60 hatte den Bump vergessen).
 - **Geschnitten wird satzweise** (seit dem Englischen): im Englischen sind Absatz- und Satzpausen
   gleich lang, die nächste lange Pause lag oft mitten in einer Szene. Jedes Satzende wird der Reihe
   nach einer Pause zugeordnet (dynamische Programmierung: Abstand zur erwarteten Stelle minus

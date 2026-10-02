@@ -202,6 +202,21 @@ ok("… die englischen Schnitte gehen lückenlos durch die ganze Aufnahme, kein 
   tonEn.sprache === "en" && tonEn.schnitte.length === SZENEN.length && tonEn.schnitte.every((t, i) => t.id === SZENEN[i].id && t.bis > t.von + 3 && t.groessteAbweichung <= tonEn.abweichungMax && (i === 0 ? t.von === 0 : t.von === tonEn.schnitte[i - 1].bis)) && Math.abs(tonEn.schnitte.at(-1).bis - tonEn.dauer) < 0.05,
   JSON.stringify(tonEn.schnitte.map((t) => [t.von, t.bis, t.groessteAbweichung])));
 ok("… der Knopf „▶ Watch in English“ steht im Handbuch", /<button class="knopf" id="vorfuehren-en" type="button" lang="en">/.test(hb));
+/* ── Russisch (Klaus 2026-10-02, Stimme Svetlana): wie Englisch. Die Aufnahme
+   hat genau so viele Pausen wie Satzenden (eindeutig) — dort darf ein Satzende
+   weiter als die Grenze neben der ERWARTETEN Stelle liegen, weil die Zuordnung
+   nur der Reihe nach möglich ist. Ohne „eindeutig“ gilt die Grenze. ── */
+const tonRuPfad = join(WURZEL, "handbuch", "ton", "ru", "schnitte.json");
+const tonRu = existsSync(tonRuPfad) ? JSON.parse(readFileSync(tonRuPfad, "utf8")) : { schnitte: [] };
+ok("jede Szene trägt einen russischen Sprechtext (sprechText.ru), und er steht als data-sprech-ru im Handbuch",
+  SZENEN.length > 0 && SZENEN.every((z) => /[а-яё]{4}/i.test(z.sprechText?.ru || "") && hb.includes('data-sprech-ru="' + escA(z.sprechText.ru) + '"')));
+ok("… jede Szene trägt ihre russische Aufnahme (data-ton-ru), und die Datei liegt da",
+  SZENEN.length > 0 && SZENEN.every((z, i) => { const d = "handbuch/ton/ru/" + String(i + 1).padStart(2, "0") + "-" + z.id + ".mp3";
+    return hb.includes('data-ton-ru="' + d + '"') && existsSync(join(WURZEL, d)) && statSync(join(WURZEL, d)).size > 5000; }));
+ok("… die russischen Schnitte gehen lückenlos durch die ganze Aufnahme; über der Grenze nur, wenn die Zuordnung eindeutig ist",
+  tonRu.sprache === "ru" && tonRu.schnitte.length === SZENEN.length && tonRu.schnitte.every((t, i) => t.id === SZENEN[i].id && t.bis > t.von + 3 && (t.groessteAbweichung <= tonRu.abweichungMax || tonRu.eindeutig === true) && (i === 0 ? t.von === 0 : t.von === tonRu.schnitte[i - 1].bis)) && Math.abs(tonRu.schnitte.at(-1).bis - tonRu.dauer) < 0.05,
+  JSON.stringify([tonRu.eindeutig, tonRu.schnitte.map((t) => [t.von, t.bis, t.groessteAbweichung])]));
+ok("… der Knopf „▶ Смотреть по-русски“ steht im Handbuch", /<button class="knopf" id="vorfuehren-ru" type="button" lang="ru">/.test(hb));
 ok("… und der Worker legt nur ganze Antworten ab (eine Teil-Antwort 206 vom Abspielen ließe cache.put scheitern)",
   /if \(r\.status === 200\) \{ const k = r\.clone\(\)/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
 /* ── Anleitung und Grenzen als Seite (Klaus 2026-09-29): gebaut aus LIESMICH.md ── */
@@ -1132,6 +1147,15 @@ try {
         await h.evaluate(() => /handbuch\/ton\/en\/01-postfach\.mp3$/.test(window.__gespielt[0]) && /handbuch\/ton\/en\/02-einfuegen\.mp3$/.test(window.__gespielt[1])
           && window.__gesprochen.length === 0 && /Recorded voice/.test(document.getElementById("stimme").textContent)
           && document.getElementById("ut").textContent === document.querySelector(".szene.aktiv").dataset.sprechEn && document.getElementById("buehne").lang === "en"),
+        await h.evaluate(() => JSON.stringify([window.__gespielt, document.getElementById("ut").textContent])));
+      await h.click("#stopp");
+      await h.evaluate(() => { window.__gespielt = []; });
+      await h.click("#vorfuehren-ru");
+      await h.waitForFunction(() => window.__gespielt.length >= 2, null, { timeout: 8000 }).catch(() => {});   /* gemeldet, nicht abgewartet */
+      ok("▶ Смотреть по-русски spielt die russische Aufnahme, Szene für Szene, mit russischem Untertitel",
+        await h.evaluate(() => /handbuch\/ton\/ru\/01-postfach\.mp3$/.test(window.__gespielt[0]) && /handbuch\/ton\/ru\/02-einfuegen\.mp3$/.test(window.__gespielt[1])
+          && window.__gesprochen.length === 0 && /Записанный голос/.test(document.getElementById("stimme").textContent)
+          && document.getElementById("ut").textContent === document.querySelector(".szene.aktiv").dataset.sprechRu && document.getElementById("buehne").lang === "ru"),
         await h.evaluate(() => JSON.stringify([window.__gespielt, document.getElementById("ut").textContent])));
       await h.click("#stopp");
       await h.evaluate(() => { window.__gespielt = []; });

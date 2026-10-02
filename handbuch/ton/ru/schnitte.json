@@ -1,0 +1,119 @@
+{
+ "hinweis": "Gebaut von tools/handbuch-ton.mjs aus einer Aufnahme aller Sprechtexte. Geschnitten in der Mitte einer Pause; gemessen ist die Lage, nicht der Wortlaut.",
+ "sprache": "ru",
+ "quelle": "d8239156-speechma_audio_Svetlana_at_1_38_50_PM_on_October_2nd_2026.mp3",
+ "dauer": 158.02,
+ "pauseMin": 0.3,
+ "abweichungMax": 2.5,
+ "eindeutig": true,
+ "schnitte": [
+  {
+   "nr": 1,
+   "id": "postfach",
+   "datei": "handbuch/ton/ru/01-postfach.mp3",
+   "von": 0,
+   "bis": 15.16,
+   "saetze": 4,
+   "groessteAbweichung": 0.53
+  },
+  {
+   "nr": 2,
+   "id": "einfuegen",
+   "datei": "handbuch/ton/ru/02-einfuegen.mp3",
+   "von": 15.16,
+   "bis": 30.71,
+   "saetze": 3,
+   "groessteAbweichung": 0.83
+  },
+  {
+   "nr": 3,
+   "id": "original",
+   "datei": "handbuch/ton/ru/03-original.mp3",
+   "von": 30.71,
+   "bis": 39.67,
+   "saetze": 1,
+   "groessteAbweichung": 0.47
+  },
+  {
+   "nr": 4,
+   "id": "ki-sicht",
+   "datei": "handbuch/ton/ru/04-ki-sicht.mp3",
+   "von": 39.67,
+   "bis": 55.29,
+   "saetze": 4,
+   "groessteAbweichung": 0.35
+  },
+  {
+   "nr": 5,
+   "id": "namen",
+   "datei": "handbuch/ton/ru/05-namen.mp3",
+   "von": 55.29,
+   "bis": 64.32,
+   "saetze": 2,
+   "groessteAbweichung": 1.21
+  },
+  {
+   "nr": 6,
+   "id": "aufgaben",
+   "datei": "handbuch/ton/ru/06-aufgaben.mp3",
+   "von": 64.32,
+   "bis": 81.53,
+   "saetze": 5,
+   "groessteAbweichung": 3.71
+  },
+  {
+   "nr": 7,
+   "id": "wege",
+   "datei": "handbuch/ton/ru/07-wege.mp3",
+   "von": 81.53,
+   "bis": 99.44,
+   "saetze": 4,
+   "groessteAbweichung": 3.89
+  },
+  {
+   "nr": 8,
+   "id": "antwort",
+   "datei": "handbuch/ton/ru/08-antwort.mp3",
+   "von": 99.44,
+   "bis": 112.46,
+   "saetze": 3,
+   "groessteAbweichung": 1.86
+  },
+  {
+   "nr": 9,
+   "id": "abschirmen",
+   "datei": "handbuch/ton/ru/09-abschirmen.mp3",
+   "von": 112.46,
+   "bis": 124.61,
+   "saetze": 2,
+   "groessteAbweichung": 1.04
+  },
+  {
+   "nr": 10,
+   "id": "knoten",
+   "datei": "handbuch/ton/ru/10-knoten.mp3",
+   "von": 124.61,
+   "bis": 137.04,
+   "saetze": 2,
+   "groessteAbweichung": 0.86
+  },
+  {
+   "nr": 11,
+   "id": "handy",
+   "datei": "handbuch/ton/ru/11-handy.mp3",
+   "von": 137.04,
+   "bis": 148.33,
+   "saetze": 3,
+   "groessteAbweichung": 0.7
+  },
+  {
+   "nr": 12,
+   "id": "selbsttest",
+   "datei": "handbuch/ton/ru/12-selbsttest.mp3",
+   "von": 148.33,
+   "bis": 158.02,
+   "saetze": 2,
+   "groessteAbweichung": 0.06
+  }
+ ]
+}

@@ -123,6 +123,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <div class="knoepfe">
   <button class="knopf haupt" id="vorfuehren" type="button">▶ Vorführen</button>
   <!--ENGLISCH-->
+  <!--RUSSISCH-->
   <a class="knopf" href="sende-pruefer.html">Zur App</a>
   <a class="knopf" href="anleitung.html">Anleitung und Grenzen</a>
   <a class="knopf" href="start.html">Überblick: was die App kann</a>
@@ -178,15 +179,17 @@ html.bewegt .szene.da{opacity:1;transform:none}
      Audio-Element je Szene stünde nach der ersten stumm da. */
   /* Englisch (Klaus 2026-10-02): dieselbe Vorführung mit data-sprech-en und
      data-ton-en. Die Bilder bleiben die der deutschen Oberfläche — der
-     Sende-Prüfer hat noch keine englische. */
+     Sende-Prüfer hat noch keine englische. Russisch genauso
+     (data-sprech-ru, data-ton-ru, Knopf „▶ Смотреть по-русски“). */
   var laeuft = false, uhr = null, i = 0, ton = null, lauf = 0, sprache = "de";
   var TXT = {
     de: { ton: "Aufgenommene Stimme, abgespielt von dieser Seite.", geraet: function (n) { return "Vorgelesen von „" + n + "“ auf diesem Gerät."; }, keine: "Keine Stimme auf diesem Gerät — nur Untertitel." },
-    en: { ton: "Recorded voice, played from this page.", geraet: function (n) { return "Read by “" + n + "” on this device."; }, keine: "No voice on this device — subtitles only." }
+    en: { ton: "Recorded voice, played from this page.", geraet: function (n) { return "Read by “" + n + "” on this device."; }, keine: "No voice on this device — subtitles only." },
+    ru: { ton: "Записанный голос, воспроизводится с этой страницы.", geraet: function (n) { return "Читает «" + n + "» на этом устройстве."; }, keine: "На этом устройстве нет голоса — только субтитры." }
   };
   function stimme() {
     var s = window.speechSynthesis; if (!s) return null;
-    var re = sprache === "en" ? /^en/i : /^de/i;
+    var re = new RegExp("^" + sprache, "i");
     var alle = s.getVoices().filter(function (v) { return v.localService && re.test(v.lang); });
     return alle[0] || null;
   }
@@ -200,8 +203,8 @@ html.bewegt .szene.da{opacity:1;transform:none}
   function zeige() {
     if (!laeuft) return;
     if (i >= szenen.length) { stopp(); return; }
-    var s = szenen[i], text = sprache === "en" ? (s.dataset.sprechEn || "") : s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim();
-    var tonQuelle = sprache === "en" ? s.dataset.tonEn : s.dataset.ton;
+    var s = szenen[i], gross = sprache.charAt(0).toUpperCase() + sprache.slice(1), text = sprache === "de" ? s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim() : (s.dataset["sprech" + gross] || "");
+    var tonQuelle = sprache === "de" ? s.dataset.ton : s.dataset["ton" + gross];
     szenen.forEach(function (x) { x.classList.toggle("aktiv", x === s); });
     s.classList.add("da");
     s.scrollIntoView({ behavior: ruhig ? "auto" : "smooth", block: "start" });
@@ -243,6 +246,8 @@ html.bewegt .szene.da{opacity:1;transform:none}
   document.getElementById("vorfuehren").addEventListener("click", function () { start("de"); });
   var en = document.getElementById("vorfuehren-en");
   if (en) en.addEventListener("click", function () { start("en"); });
+  var ru = document.getElementById("vorfuehren-ru");
+  if (ru) ru.addEventListener("click", function () { start("ru"); });
   document.getElementById("stopp").addEventListener("click", stopp);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && laeuft) stopp(); });
   window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, szene: function () { return i; }, sprache: function () { return sprache; } };
