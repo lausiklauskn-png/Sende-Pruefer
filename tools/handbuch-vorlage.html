@@ -122,6 +122,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  </div>
  <div class="knoepfe">
   <button class="knopf haupt" id="vorfuehren" type="button">▶ Vorführen</button>
+  <!--ENGLISCH-->
   <a class="knopf" href="sende-pruefer.html">Zur App</a>
   <a class="knopf" href="anleitung.html">Anleitung und Grenzen</a>
   <a class="knopf" href="start.html">Überblick: was die App kann</a>
@@ -136,7 +137,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
 </div>
 
 <footer class="grenzen">
- <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="anleitung.html">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz. „▶ Vorführen“ spielt eine aufgenommene Stimme ab, die mit dieser Seite kommt; fehlt sie, liest nur eine Stimme vor, die auf diesem Gerät liegt.</p>
+ <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="anleitung.html">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz. „▶ Vorführen“ spielt eine aufgenommene Stimme ab, die mit dieser Seite kommt; fehlt sie, liest nur eine Stimme vor, die auf diesem Gerät liegt. „▶ Watch in English“ tut dasselbe auf Englisch — die Bilder zeigen weiter die deutsche Oberfläche.</p>
 </footer>
 
 <div class="buehne" id="buehne" hidden role="status" aria-live="polite">
@@ -175,10 +176,18 @@ html.bewegt .szene.da{opacity:1;transform:none}
   /* EIN Spieler für alle Szenen, angelegt beim Tipp auf „▶ Vorführen“:
      Handys erlauben Ton nur aus einer Berührung heraus — ein neues
      Audio-Element je Szene stünde nach der ersten stumm da. */
-  var laeuft = false, uhr = null, i = 0, ton = null, lauf = 0;
+  /* Englisch (Klaus 2026-10-02): dieselbe Vorführung mit data-sprech-en und
+     data-ton-en. Die Bilder bleiben die der deutschen Oberfläche — der
+     Sende-Prüfer hat noch keine englische. */
+  var laeuft = false, uhr = null, i = 0, ton = null, lauf = 0, sprache = "de";
+  var TXT = {
+    de: { ton: "Aufgenommene Stimme, abgespielt von dieser Seite.", geraet: function (n) { return "Vorgelesen von „" + n + "“ auf diesem Gerät."; }, keine: "Keine Stimme auf diesem Gerät — nur Untertitel." },
+    en: { ton: "Recorded voice, played from this page.", geraet: function (n) { return "Read by “" + n + "” on this device."; }, keine: "No voice on this device — subtitles only." }
+  };
   function stimme() {
     var s = window.speechSynthesis; if (!s) return null;
-    var alle = s.getVoices().filter(function (v) { return v.localService && /^de/i.test(v.lang); });
+    var re = sprache === "en" ? /^en/i : /^de/i;
+    var alle = s.getVoices().filter(function (v) { return v.localService && re.test(v.lang); });
     return alle[0] || null;
   }
   window.__handbuchStimme = stimme;
@@ -191,14 +200,15 @@ html.bewegt .szene.da{opacity:1;transform:none}
   function zeige() {
     if (!laeuft) return;
     if (i >= szenen.length) { stopp(); return; }
-    var s = szenen[i], text = s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim();
+    var s = szenen[i], text = sprache === "en" ? (s.dataset.sprechEn || "") : s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim();
+    var tonQuelle = sprache === "en" ? s.dataset.tonEn : s.dataset.ton;
     szenen.forEach(function (x) { x.classList.toggle("aktiv", x === s); });
     s.classList.add("da");
     s.scrollIntoView({ behavior: ruhig ? "auto" : "smooth", block: "start" });
     ut.textContent = text;
     balken.style.width = Math.round(((i + 1) / szenen.length) * 100) + "%";
     var weiter = function () { if (!laeuft) return; i++; uhr = setTimeout(zeige, 700); };
-    if (s.dataset.ton) {
+    if (tonQuelle) {
       var a = ton || (ton = new Audio()), mein = ++lauf, fertig = false;
       var aus = function (geklappt) {
         if (fertig || mein !== lauf || !laeuft) return; fertig = true; clearTimeout(uhr);
@@ -206,8 +216,8 @@ html.bewegt .szene.da{opacity:1;transform:none}
       };
       a.onended = function () { aus(true); };
       a.onerror = function () { aus(false); };
-      a.src = s.dataset.ton;
-      stimmeZeile.textContent = "Aufgenommene Stimme, abgespielt von dieser Seite.";
+      a.src = tonQuelle;
+      stimmeZeile.textContent = TXT[sprache].ton;
       uhr = setTimeout(function () { aus(true); }, 6000 + text.length * 120);
       var p = a.play(); if (p && p.catch) p.catch(function () { aus(false); });
       return;
@@ -216,7 +226,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
   }
   function sprechen(s, text, weiter) {
     var v = stimme();
-    stimmeZeile.textContent = v ? "Vorgelesen von „" + v.name + "“ auf diesem Gerät." : "Keine Stimme auf diesem Gerät — nur Untertitel.";
+    stimmeZeile.textContent = v ? TXT[sprache].geraet(v.name) : TXT[sprache].keine;
     if (v) {
       var u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang; u.rate = 1;
       var fertig = false; var ende = function () { if (fertig) return; fertig = true; weiter(); };
@@ -225,13 +235,17 @@ html.bewegt .szene.da{opacity:1;transform:none}
       window.speechSynthesis.speak(u);
     } else uhr = setTimeout(weiter, Math.max(5000, text.length * 65));
   }
-  document.getElementById("vorfuehren").addEventListener("click", function () {
+  function start(spr) {
     stopp(); if (!ton && window.Audio) ton = new Audio();
+    sprache = spr; buehne.lang = spr;
     laeuft = true; i = 0; buehne.hidden = false; zeige();
-  });
+  }
+  document.getElementById("vorfuehren").addEventListener("click", function () { start("de"); });
+  var en = document.getElementById("vorfuehren-en");
+  if (en) en.addEventListener("click", function () { start("en"); });
   document.getElementById("stopp").addEventListener("click", stopp);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && laeuft) stopp(); });
-  window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, szene: function () { return i; } };
+  window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, szene: function () { return i; }, sprache: function () { return sprache; } };
 })();
 </script>
 </body>

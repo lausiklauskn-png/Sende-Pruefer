@@ -571,7 +571,15 @@ Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s).
   hält eine hängende Datei auf.
 - Nicht im Installations-Vorrat (750 KB); `sw.js` legt nur noch Antworten mit Status 200 ab —
   beim Abspielen kommen Teil-Antworten (206), und `cache.put` scheitert daran.
-- Englisch, Russisch, Arabisch: es gibt noch keine Sprechtexte in diesen Sprachen.
+- **Englisch (Klaus 2026-10-02, Stimme Andrew):** `sprechText.en` je Szene, Aufnahme in
+  `handbuch/ton/en/` (`node tools/handbuch-ton.mjs <aufnahme.mp3> en`), Knopf **▶ Watch in English**
+  (`#vorfuehren-en`, erscheint nur, wenn jede Szene einen englischen Text trägt). Die Bilder zeigen
+  weiter die deutsche Oberfläche. Russisch, Arabisch: noch keine Sprechtexte.
+- **Geschnitten wird satzweise** (seit dem Englischen): im Englischen sind Absatz- und Satzpausen
+  gleich lang, die nächste lange Pause lag oft mitten in einer Szene. Jedes Satzende wird der Reihe
+  nach einer Pause zugeordnet (dynamische Programmierung: Abstand zur erwarteten Stelle minus
+  4 × Pausenlänge); Szenengrenze = Satzende vor einer neuen Szene. Warnung ab 2,5 s Abweichung.
+  Die deutsche Aufnahme ergibt damit dieselben Schnitte wie vorher. Gemessen: EN höchstens 1,5 s.
 - ⚠ Nicht gemessen: Klang und Schnitte am Tablet; ob speechmas Bedingungen das Veröffentlichen
   der Stimme erlauben.
 - Proben: `smoke.mjs` (Dateien, Schnitte lückenlos, Abspielen gestellt) · Gegenprobe `TON:` (6 Fälle).

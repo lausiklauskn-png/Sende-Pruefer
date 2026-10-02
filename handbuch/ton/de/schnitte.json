@@ -3,7 +3,8 @@
  "sprache": "de",
  "quelle": "b461abed-speechma_audio_Emma_German_at_8_00_12_AM_on_October_2nd_2026.mp3",
  "dauer": 120.22,
- "pauseMin": 0.45,
+ "pauseMin": 0.3,
+ "abweichungMax": 2.5,
  "schnitte": [
   {
    "nr": 1,
@@ -12,7 +13,7 @@
    "von": 0,
    "bis": 12.75,
    "saetze": 4,
-   "pausenInnen": 3
+   "groessteAbweichung": 0.54
   },
   {
    "nr": 2,
@@ -21,7 +22,7 @@
    "von": 12.75,
    "bis": 23.16,
    "saetze": 2,
-   "pausenInnen": 2
+   "groessteAbweichung": 0.29
   },
   {
    "nr": 3,
@@ -30,7 +31,7 @@
    "von": 23.16,
    "bis": 31.35,
    "saetze": 1,
-   "pausenInnen": 0
+   "groessteAbweichung": 0.36
   },
   {
    "nr": 4,
@@ -39,7 +40,7 @@
    "von": 31.35,
    "bis": 41.04,
    "saetze": 3,
-   "pausenInnen": 2
+   "groessteAbweichung": 0.59
   },
   {
    "nr": 5,
@@ -48,7 +49,7 @@
    "von": 41.04,
    "bis": 48.63,
    "saetze": 2,
-   "pausenInnen": 1
+   "groessteAbweichung": 0.87
   },
   {
    "nr": 6,
@@ -57,7 +58,7 @@
    "von": 48.63,
    "bis": 61.43,
    "saetze": 4,
-   "pausenInnen": 3
+   "groessteAbweichung": 0.91
   },
   {
    "nr": 7,
@@ -66,7 +67,7 @@
    "von": 61.43,
    "bis": 73.13,
    "saetze": 2,
-   "pausenInnen": 1
+   "groessteAbweichung": 1
   },
   {
    "nr": 8,
@@ -75,7 +76,7 @@
    "von": 73.13,
    "bis": 83.25,
    "saetze": 2,
-   "pausenInnen": 2
+   "groessteAbweichung": 0.79
   },
   {
    "nr": 9,
@@ -84,7 +85,7 @@
    "von": 83.25,
    "bis": 92.38,
    "saetze": 2,
-   "pausenInnen": 1
+   "groessteAbweichung": 0.66
   },
   {
    "nr": 10,
@@ -93,7 +94,7 @@
    "von": 92.38,
    "bis": 104.71,
    "saetze": 3,
-   "pausenInnen": 2
+   "groessteAbweichung": 0.38
   },
   {
    "nr": 11,
@@ -102,7 +103,7 @@
    "von": 104.71,
    "bis": 112.38,
    "saetze": 3,
-   "pausenInnen": 2
+   "groessteAbweichung": 0.43
   },
   {
    "nr": 12,
@@ -111,7 +112,7 @@
    "von": 112.38,
    "bis": 120.22,
    "saetze": 2,
-   "pausenInnen": 1
+   "groessteAbweichung": 0.24
   }
  ]
 }

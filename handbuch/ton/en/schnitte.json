@@ -1,0 +1,118 @@
+{
+ "hinweis": "Gebaut von tools/handbuch-ton.mjs aus einer Aufnahme aller Sprechtexte. Geschnitten in der Mitte einer Pause; gemessen ist die Lage, nicht der Wortlaut.",
+ "sprache": "en",
+ "quelle": "80031d07-speechma_audio_Andrew_at_8_38_40_AM_on_October_2nd_2026.mp3",
+ "dauer": 106.75,
+ "pauseMin": 0.3,
+ "abweichungMax": 2.5,
+ "schnitte": [
+  {
+   "nr": 1,
+   "id": "postfach",
+   "datei": "handbuch/ton/en/01-postfach.mp3",
+   "von": 0,
+   "bis": 12.06,
+   "saetze": 4,
+   "groessteAbweichung": 0.68
+  },
+  {
+   "nr": 2,
+   "id": "einfuegen",
+   "datei": "handbuch/ton/en/02-einfuegen.mp3",
+   "von": 12.06,
+   "bis": 19.88,
+   "saetze": 2,
+   "groessteAbweichung": 0.46
+  },
+  {
+   "nr": 3,
+   "id": "original",
+   "datei": "handbuch/ton/en/03-original.mp3",
+   "von": 19.88,
+   "bis": 28.6,
+   "saetze": 1,
+   "groessteAbweichung": 0.58
+  },
+  {
+   "nr": 4,
+   "id": "ki-sicht",
+   "datei": "handbuch/ton/en/04-ki-sicht.mp3",
+   "von": 28.6,
+   "bis": 37.06,
+   "saetze": 3,
+   "groessteAbweichung": 0.76
+  },
+  {
+   "nr": 5,
+   "id": "namen",
+   "datei": "handbuch/ton/en/05-namen.mp3",
+   "von": 37.06,
+   "bis": 42.74,
+   "saetze": 2,
+   "groessteAbweichung": 0.92
+  },
+  {
+   "nr": 6,
+   "id": "aufgaben",
+   "datei": "handbuch/ton/en/06-aufgaben.mp3",
+   "von": 42.74,
+   "bis": 54.79,
+   "saetze": 4,
+   "groessteAbweichung": 1.14
+  },
+  {
+   "nr": 7,
+   "id": "wege",
+   "datei": "handbuch/ton/en/07-wege.mp3",
+   "von": 54.79,
+   "bis": 63.27,
+   "saetze": 2,
+   "groessteAbweichung": 0.54
+  },
+  {
+   "nr": 8,
+   "id": "antwort",
+   "datei": "handbuch/ton/en/08-antwort.mp3",
+   "von": 63.27,
+   "bis": 72.74,
+   "saetze": 2,
+   "groessteAbweichung": 1.37
+  },
+  {
+   "nr": 9,
+   "id": "abschirmen",
+   "datei": "handbuch/ton/en/09-abschirmen.mp3",
+   "von": 72.74,
+   "bis": 81.59,
+   "saetze": 2,
+   "groessteAbweichung": 1.22
+  },
+  {
+   "nr": 10,
+   "id": "knoten",
+   "datei": "handbuch/ton/en/10-knoten.mp3",
+   "von": 81.59,
+   "bis": 92.55,
+   "saetze": 3,
+   "groessteAbweichung": 1.53
+  },
+  {
+   "nr": 11,
+   "id": "handy",
+   "datei": "handbuch/ton/en/11-handy.mp3",
+   "von": 92.55,
+   "bis": 100.13,
+   "saetze": 3,
+   "groessteAbweichung": 1.27
+  },
+  {
+   "nr": 12,
+   "id": "selbsttest",
+   "datei": "handbuch/ton/en/12-selbsttest.mp3",
+   "von": 100.13,
+   "bis": 106.75,
+   "saetze": 2,
+   "groessteAbweichung": 0.63
+  }
+ ]
+}

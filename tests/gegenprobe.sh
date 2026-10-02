@@ -223,7 +223,7 @@ fall "HB: eine Szene ändert sich, das Handbuch wird nicht neu gebaut" $T \
 fall "HB: ein Bild des Handbuchs fehlt" $HB \
   'src="handbuch/01-postfach.jpg"' 'src="handbuch/01-weg.jpg"' 'Bild liegt da|Bild des Handbuchs lädt'
 fall "HB: Vorführen nimmt auch eine Netz-Stimme" $HB \
-  'return v.localService && /^de/i.test(v.lang);' 'return /^de/i.test(v.lang);' 'localService|Netz-Stimme'
+  'return v.localService && re.test(v.lang);' 'return re.test(v.lang);' 'localService|Netz-Stimme'
 fall "HB: ohne Skript bleiben die Szenen blass" $HB \
   'html.bewegt .szene{opacity:.25;' '.szene{opacity:.25;' 'OHNE Skript|ohne Skript'
 fall "HB: Stopp hält die Vorführung nicht an" $HB \
@@ -272,7 +272,7 @@ fall "HB: am kleinen Handy steht der Thema-Knopf wieder in der Kopfleiste" $H \
 fall "TON: eine Szene verliert ihre Aufnahme" handbuch.html \
   ' data-ton="handbuch/ton/de/01-postfach.mp3"' '' 'trägt ihre Aufnahme'
 fall "TON: Vorführen nimmt wieder die Browser-Stimme" handbuch.html \
-  'if (s.dataset.ton) {' 'if (false) {' 'spielt die Aufnahme der Szene'
+  'if (tonQuelle) {' 'if (false) {' 'spielt die Aufnahme der Szene'
 fall "TON: ohne Aufnahme gibt es keinen Rückweg zur Stimme" handbuch.html \
   'if (geklappt) weiter(); else sprechen(s, text, weiter);' 'weiter();' 'spielt die Aufnahme nicht'
 fall "TON: die Schnitte haben eine Lücke" handbuch/ton/de/schnitte.json \
@@ -281,6 +281,14 @@ fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
   'if (r.status === 200) {' 'if (r.ok) {' 'ganze Antworten'
 fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
   '"handbuch.html", ' '"handbuch.html", "handbuch/ton/de/01-postfach.mp3", ' 'NICHT im Installations-Vorrat'
+fall "TON: eine Szene verliert ihre englische Aufnahme" handbuch.html \
+  ' data-ton-en="handbuch/ton/en/01-postfach.mp3"' '' 'englische Aufnahme (data-ton-en)'
+fall "TON: Watch in English spielt die deutsche Aufnahme" handbuch.html \
+  'sprache === "en" ? s.dataset.tonEn : s.dataset.ton' 's.dataset.ton' 'Watch in English spielt die englische'
+fall "TON: der englische Knopf fehlt" handbuch.html \
+  '<button class="knopf" id="vorfuehren-en" type="button" lang="en">' '<button class="knopf" id="vorfuehren-xx" type="button" lang="en">' 'Watch in English“ steht'
+fall "TON: die englischen Schnitte haben eine Lücke" handbuch/ton/en/schnitte.json \
+  '"von": 12.06' '"von": 13.06' 'englischen Schnitte'
 
 # ── Anleitung als Seite (Klaus 2026-09-29) ──
 fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \

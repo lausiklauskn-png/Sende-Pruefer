@@ -9,7 +9,9 @@
  *   handbuch/szenen.json      dieselbe Liste für ein späteres Video
  * Liegt unter handbuch/ton/de/NN-<id>.mp3 eine Aufnahme (tools/handbuch-ton.mjs),
  * trägt die Szene sie als data-ton; „▶ Vorführen" spielt dann sie statt einer
- * Browser-Stimme.
+ * Browser-Stimme. Englisch (Klaus 2026-10-02): `sprechText.en` wird zu
+ * data-sprech-en, handbuch/ton/en/NN-<id>.mp3 zu data-ton-en; „▶ Watch in
+ * English" erscheint nur, wenn JEDE Szene einen englischen Text trägt.
  *
  * Kein Netz: jeder Aufruf nach draußen wird abgewiesen.
  * Aufruf:  node tools/handbuch-bauen.mjs   (braucht playwright-core)
@@ -63,7 +65,10 @@ for (const [i, s] of SZENEN.entries()) {
   if (fehler.length) throw new Error(`Szene ${s.id}: ${fehler.join(" | ")}`);
   const tonDatei = `handbuch/ton/de/${zwei(i + 1)}-${s.id}.mp3`;
   const ton = fs.existsSync(path.join(W, tonDatei)) ? tonDatei : null;
-  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, ton, breite: vw, hoehe: vh, handy: vw < 600, ring });
+  const tonEnDatei = `handbuch/ton/en/${zwei(i + 1)}-${s.id}.mp3`;
+  const sprechEn = s.sprechText?.en || null;
+  const tonEn = sprechEn && fs.existsSync(path.join(W, tonEnDatei)) ? tonEnDatei : null;
+  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, ton, sprechEn, tonEn, breite: vw, hoehe: vh, handy: vw < 600, ring });
   await ctx.close();
   console.log(`  ✓ ${zwei(i + 1)} ${s.titel}`);
 }
@@ -75,7 +80,7 @@ fs.writeFileSync(path.join(ZIEL, "szenen.json"), JSON.stringify({
 }, null, 1) + "\n");
 
 const szenenHtml = liste.map((s) => `
-<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}"${s.ton ? ` data-ton="${s.ton}"` : ""}>
+<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}"${s.ton ? ` data-ton="${s.ton}"` : ""}${s.sprechEn ? ` data-sprech-en="${esc(s.sprechEn)}"` : ""}${s.tonEn ? ` data-ton-en="${s.tonEn}"` : ""}>
  <div class="kopfzeile"><span class="nr">${zwei(s.nr)}</span><h2>${esc(s.titel)}</h2></div>
  <figure class="bild">
   <img src="${s.bild}" width="${s.breite}" height="${s.hoehe}" alt="${esc(s.titel)} — Bildschirmfoto der App" loading="${s.nr > 2 ? "lazy" : "eager"}" decoding="async">
@@ -90,6 +95,7 @@ const navHtml = liste.map((s) => `<a href="#szene-${s.id}" data-zu="${s.id}"><sp
 const html = fs.readFileSync(path.join(W, "tools", "handbuch-vorlage.html"), "utf8")
   .replace("<!--SZENEN-->", szenenHtml)
   .replace("<!--NAV-->", navHtml)
-  .replace(/<!--ANZAHL-->/g, String(liste.length));
+  .replace(/<!--ANZAHL-->/g, String(liste.length))
+  .replace("<!--ENGLISCH-->", liste.every((s) => s.sprechEn) ? `<button class="knopf" id="vorfuehren-en" type="button" lang="en">▶ Watch in English</button>` : "");
 fs.writeFileSync(path.join(W, "handbuch.html"), html);
 console.log(`handbuch.html · ${liste.length} Szenen · handbuch/szenen.json`);
