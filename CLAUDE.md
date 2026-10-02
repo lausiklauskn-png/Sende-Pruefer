@@ -559,7 +559,7 @@ Cache v45. `npm test` 463 grün · 0 ROT. ⚠ Tablet nicht gemessen.
 
 Klaus: *„eine professionelle Stimme … nicht die Browserstimme, die so abgehackt klingt"* ·
 *„Kannst du diese selber teilen an den entsprechenden Stellen?"* Er hat alle zwölf
-Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s). Seit dem Nachmittag desselben Tages spricht auch Deutsch die Stimme Andrew (118 s, eine Aufnahme, satzweise geschnitten; in Szene 10 liegt ein Satzende 2,6 s neben der erwarteten Stelle).
+Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s). Seit dem Nachmittag desselben Tages spricht Deutsch die Stimme Amala (140 s, eine Aufnahme von 13:53, mit Klaus' gekürztem Text: 30 Satzenden; größte Abweichung 2,5 s in Szene 10). Klaus schickte dazu eine längere Fassung von Szene 3–12 (35 Satzenden); die Aufnahme hat nur 33 Pausen ≥ 0,3 s, also passt nur die kurze.
 
 - **`node tools/handbuch-ton.mjs <aufnahme.mp3> [de]`** schneidet die Aufnahme in
   `handbuch/ton/<sprache>/NN-<id>.mp3` (ohne Neukodieren) und schreibt `schnitte.json`.
