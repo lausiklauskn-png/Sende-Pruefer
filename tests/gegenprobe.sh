@@ -276,7 +276,7 @@ fall "TON: Vorführen nimmt wieder die Browser-Stimme" handbuch.html \
 fall "TON: ohne Aufnahme gibt es keinen Rückweg zur Stimme" handbuch.html \
   'if (geklappt) weiter(); else sprechen(s, text, weiter);' 'weiter();' 'spielt die Aufnahme nicht'
 fall "TON: die Schnitte haben eine Lücke" handbuch/ton/de/schnitte.json \
-  '"von": 12.2,' '"von": 13.2,' 'lückenlos'
+  '"von": 15.49,' '"von": 16.49,' 'lückenlos'
 fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
   'if (r.status === 200) {' 'if (r.ok) {' 'ganze Antworten'
 fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \

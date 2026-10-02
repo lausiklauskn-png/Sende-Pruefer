@@ -1,118 +1,119 @@
 {
  "hinweis": "Gebaut von tools/handbuch-ton.mjs aus einer Aufnahme aller Sprechtexte. Geschnitten in der Mitte einer Pause; gemessen ist die Lage, nicht der Wortlaut.",
  "sprache": "de",
- "quelle": "073a562f-speechma_audio_Andrew_German_at_12_31_02_PM_on_October_2nd_2026.mp3",
- "dauer": 118.1,
+ "quelle": "1e2ce09a-speechma_audio_Amala_at_1_53_29_PM_on_October_2nd_2026.mp3",
+ "dauer": 140.3,
  "pauseMin": 0.3,
  "abweichungMax": 2.5,
+ "eindeutig": false,
  "schnitte": [
   {
    "nr": 1,
    "id": "postfach",
    "datei": "handbuch/ton/de/01-postfach.mp3",
    "von": 0,
-   "bis": 12.2,
+   "bis": 15.49,
    "saetze": 4,
-   "groessteAbweichung": 0.29
+   "groessteAbweichung": 0.83
   },
   {
    "nr": 2,
    "id": "einfuegen",
    "datei": "handbuch/ton/de/02-einfuegen.mp3",
-   "von": 12.2,
-   "bis": 22.78,
+   "von": 15.49,
+   "bis": 27.44,
    "saetze": 2,
-   "groessteAbweichung": 0.32
+   "groessteAbweichung": 0.59
   },
   {
    "nr": 3,
    "id": "original",
    "datei": "handbuch/ton/de/03-original.mp3",
-   "von": 22.78,
-   "bis": 30.34,
+   "von": 27.44,
+   "bis": 36.88,
    "saetze": 1,
-   "groessteAbweichung": 0.11
+   "groessteAbweichung": 0.09
   },
   {
    "nr": 4,
    "id": "ki-sicht",
    "datei": "handbuch/ton/de/04-ki-sicht.mp3",
-   "von": 30.34,
-   "bis": 39.75,
+   "von": 36.88,
+   "bis": 50.64,
    "saetze": 3,
-   "groessteAbweichung": 0.6
+   "groessteAbweichung": 0.12
   },
   {
    "nr": 5,
    "id": "namen",
    "datei": "handbuch/ton/de/05-namen.mp3",
-   "von": 39.75,
-   "bis": 47.17,
+   "von": 50.64,
+   "bis": 58.21,
    "saetze": 2,
-   "groessteAbweichung": 1.77
+   "groessteAbweichung": 0.21
   },
   {
    "nr": 6,
    "id": "aufgaben",
    "datei": "handbuch/ton/de/06-aufgaben.mp3",
-   "von": 47.17,
-   "bis": 60.04,
+   "von": 58.21,
+   "bis": 74.15,
    "saetze": 4,
-   "groessteAbweichung": 0.99
+   "groessteAbweichung": 0.85
   },
   {
    "nr": 7,
    "id": "wege",
    "datei": "handbuch/ton/de/07-wege.mp3",
-   "von": 60.04,
-   "bis": 70.19,
+   "von": 74.15,
+   "bis": 88.32,
    "saetze": 2,
-   "groessteAbweichung": 1.27
+   "groessteAbweichung": 0.59
   },
   {
    "nr": 8,
    "id": "antwort",
    "datei": "handbuch/ton/de/08-antwort.mp3",
-   "von": 70.19,
-   "bis": 81.37,
-   "saetze": 2,
-   "groessteAbweichung": 0.33
+   "von": 88.32,
+   "bis": 101.37,
+   "saetze": 3,
+   "groessteAbweichung": 0.91
   },
   {
    "nr": 9,
    "id": "abschirmen",
    "datei": "handbuch/ton/de/09-abschirmen.mp3",
-   "von": 81.37,
-   "bis": 91.45,
+   "von": 101.37,
+   "bis": 110.27,
    "saetze": 2,
-   "groessteAbweichung": 1.27
+   "groessteAbweichung": 1.35
   },
   {
    "nr": 10,
    "id": "knoten",
    "datei": "handbuch/ton/de/10-knoten.mp3",
-   "von": 91.45,
-   "bis": 103.22,
-   "saetze": 3,
-   "groessteAbweichung": 2.55
+   "von": 110.27,
+   "bis": 121.41,
+   "saetze": 2,
+   "groessteAbweichung": 2.48
   },
   {
    "nr": 11,
    "id": "handy",
    "datei": "handbuch/ton/de/11-handy.mp3",
-   "von": 103.22,
-   "bis": 110.47,
+   "von": 121.41,
+   "bis": 131.3,
    "saetze": 3,
-   "groessteAbweichung": 0.3
+   "groessteAbweichung": 1.82
   },
   {
    "nr": 12,
    "id": "selbsttest",
    "datei": "handbuch/ton/de/12-selbsttest.mp3",
-   "von": 110.47,
-   "bis": 118.1,
+   "von": 131.3,
+   "bis": 140.3,
    "saetze": 2,
-   "groessteAbweichung": 0.36
+   "groessteAbweichung": 0.74
   }
  ]
 }
