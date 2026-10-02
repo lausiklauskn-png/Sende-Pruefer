@@ -572,5 +572,10 @@ fall "NEULADEN: unter 360 px bleibt der Knopf stehen" assets/neuladen.js \
 fall "NEULADEN: der Knopf fehlt im Offline-Vorrat" sw.js \
   '"assets/neuladen.js?v=1", ' '' 'Neu-laden-Knopf steht im Offline'
 
+fall "APPWEG: als App steht wieder der Knopf da" assets/installieren.js \
+  'k.hidden = app; k.style.display = app ? "none" : "";' 'k.hidden = false;' 'der Installieren-Knopf ist nicht zu sehen'
+fall "APPWEG: als App kommt wieder die Meldung" assets/installieren.js \
+  'if (alsApp()) return;' 'if (alsApp()) { melde("App"); return; }' 'keine Meldung'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

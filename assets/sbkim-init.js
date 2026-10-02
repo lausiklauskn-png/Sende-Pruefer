@@ -26,7 +26,7 @@
  * ========================================================================== */
 /* Installieren-Knopf (Klaus 2026-09-30): eigene Datei, hier nur nachgeladen —
    in der Seite ist kein Platz mehr (96-KB-Grenze). Fehlt sie, fehlt nur der Knopf. */
-(function () { try { var s = document.createElement("script"); s.src = "assets/installieren.js?v=1"; document.head.appendChild(s); } catch (_e) {} })();
+(function () { try { var s = document.createElement("script"); s.src = "assets/installieren.js?v=2"; document.head.appendChild(s); } catch (_e) {} })();
 /* ⟳ Neu laden (Klaus 2026-10-02), aus demselben Grund eigene Datei. */
 (function () { try { var s = document.createElement("script"); s.src = "assets/neuladen.js?v=1"; document.head.appendChild(s); } catch (_e) {} })();
 (function () {

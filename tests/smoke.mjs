@@ -1236,6 +1236,21 @@ try {
     const kopf = await ip.evaluate(() => { const k = document.querySelector("header.kopf"); return k.scrollWidth - k.clientWidth; });
     ok("… und die Kopfleiste läuft nicht über", kopf === 0, kopf);
     await iCtx.close(); }
+  /* ── Als installierte App: kein Knopf, keine Meldung (Klaus 2026-10-02: „diesen Button und diese Anmerkung bitte wegnehmen“) ── */
+  { const aCtx = await browser.newContext({ viewport: { width: 1300, height: 900 } });
+    await aCtx.addInitScript(() => { const echt = window.matchMedia.bind(window);
+      window.matchMedia = (q) => /display-mode:\s*standalone/.test(q) ? echt("(min-width:0px)") : echt(q); });
+    const ap = await aCtx.newPage();
+    await ap.goto(BASIS + "sende-pruefer.html"); await ap.waitForSelector("#installieren", { state: "attached", timeout: 15000 }).catch(() => {});
+    const a = await ap.evaluate(() => { const b = document.getElementById("installieren"); if (!b) return null;
+      const lage = b.dataset.lage, sicht = b.checkVisibility(); b.click();
+      const m = document.getElementById("install-meldung"); return { lage, sicht, meldung: !!m && !m.hidden, appWirklich: window.SP_INSTALL.alsApp() }; });
+    ok("als App gestellt: die Seite hält sich wirklich für eine App (sonst misst der Rest nichts)", !!a && a.appWirklich, JSON.stringify(a));
+    ok("… der Installieren-Knopf ist nicht zu sehen (kein „✓ App“)", !!a && a.lage === "app" && !a.sicht, JSON.stringify(a));
+    ok("… und es erscheint keine Meldung „nichts mehr zu tun“", !!a && !a.meldung, JSON.stringify(a));
+    const quelle = readFileSync(join(WURZEL, "assets/installieren.js"), "utf8");
+    ok("… der Satz „es ist nichts mehr zu tun“ steht nirgends mehr im Knopf", !/nichts mehr zu tun\./.test(quelle));
+    await aCtx.close(); }
   /* ── ⟳ Neu laden (Klaus 2026-10-02: runder Knopf ohne Text, neue Version / Hard-Reload) ── */
   for (const [breite, da] of [[1300, true], [1280, true], [380, true], [320, false]]) {
     const nCtx = await browser.newContext({ viewport: { width: breite, height: 900 } }); const np = await nCtx.newPage();

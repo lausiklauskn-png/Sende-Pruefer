@@ -4,7 +4,8 @@
  * offen war. Die Meldung kommt NICHT von der Seite (sie trägt den Satz nirgends),
  * sondern von Android/Chrome. Der Knopf zeigt, was der Browser über die
  * Installation weiß:
- *   · läuft die Seite schon als installierte App  → „✓ App“, ein Tipp sagt das
+ *   · läuft die Seite schon als installierte App  → kein Knopf, keine Meldung
+ *                                                   (Klaus 2026-10-02: „Es ist nichts mehr zu tun“)
  *   · der Browser bietet die Installation an      → Tipp öffnet seinen Dialog
  *   · er bietet sie nicht an                      → Tipp nennt die Gründe und den
  *                                                   Weg über das Chrome-Menü
@@ -48,6 +49,7 @@
     var k = document.getElementById("installieren");
     if (!k) return;
     var app = alsApp();
+    k.hidden = app; k.style.display = app ? "none" : "";   /* als App: weg, nicht „✓ App“ */
     k.dataset.lage = app ? "app" : (ereignis ? "angeboten" : "nicht-angeboten");
     k.querySelector("[data-z]").textContent = app ? "✓" : "⬇";
     k.querySelector(".t").textContent = app ? " App" : " Installieren";
@@ -56,10 +58,7 @@
   }
 
   function klick() {
-    if (alsApp()) {
-      melde("Der Sende-Prüfer läuft gerade als installierte App — es ist nichts mehr zu tun.");
-      return;
-    }
+    if (alsApp()) return;   /* als App gibt es keinen Knopf (Klaus 2026-10-02) */
     if (ereignis) {
       var e = ereignis; ereignis = null;
       e.prompt();
