@@ -652,3 +652,37 @@ eigene Schlüssel, nicht `toolpoint_lang` (Klaus: Sprachwahl je App getrennt). O
 - Löschen aus dem Papierkorb fragt („Diese Mail endgültig löschen?"); `prompt()` (Ordnernamen) wird wie
   confirm/alert zeilenweise übersetzt.
 - ⚠ Am Tablet nicht gemessen.
+- Mit Sicherung (#66) und Empfänger (#68) zusammengeführt: Cache **v58**.
+
+## 🔐 Postfach sichern und zurückholen (Klaus 2026-10-02)
+
+„Sicherungsdatei mit einem eigenen Passwort verschlüsselt? Ich empfehle ja." `assets/sicherung.js` (nachgeladen von
+`assets/ablehnung.js`, die Seite ist voll) hängt im Menü den Kasten **🔐 Postfach sichern** vor die Abschirmung.
+
+- **Sicherung erstellen:** Passwort (mindestens 8 Zeichen) zweimal → alle Mails samt Anhängen (Blob → base64), eigene
+  Ordner (`sendepruefer_ablagen`) und eigene Aufgaben (`sendepruefer_aufgaben`) als JSON, verschlüsselt mit dem Schloss
+  aus `assets/schluesseltresor.js` (AES-256-GCM, PBKDF2 600 000, byte-1:1, nicht abgewandelt). Download
+  `Sende-Pruefer-Sicherung-JJJJ-MM-TT.json` = `{art:"sendepruefer-sicherung", fassung:1, erstellt, paket}` — **kein
+  Klartext darin**. Die KI-Schlüssel kommen NICHT mit (eigener Tresor). Das Passwort wird nirgends abgelegt.
+- **Zurückholen:** Datei wählen + Passwort. **Fügt hinzu, überschreibt nie** (gleiche Kennung bleibt unverändert); die
+  Meldung nennt „N dazu, M schon da". Falsches Passwort und fremde Fassung haben je eine eigene Meldung.
+- **Erinnerung** über der Liste (`[data-sicherung-erinnerung]`), sobald eigene (nicht Beispiel-)Mails da sind und die
+  letzte Sicherung (`sendepruefer_sicherung_zuletzt`) fehlt oder älter als 14 Tage ist. „Später" gilt für diesen Besuch.
+- **Dauerhafter Speicher:** `navigator.storage.persisted()` wird genannt; `persist()` wird beim Sichern und auf Knopf erbeten.
+- Probe `tests/sicherung.mjs` (Rundlauf: sichern → Postfach leeren → falsches Passwort → zurückholen samt Anhang →
+  zweites Zurückholen überschreibt nichts → Neuladen) · Gegenprobe `NUR_FALL="SICHERUNG:"` (10 Fälle). Erster Lauf
+  **9 gefangen · 1 aus falschem Grund** (die Probe wartete auf den Wortlaut „0 Mail(s) dazu" und stolperte); danach 10.
+  Cache v55. `npm test` 584 grün · 0 ROT.
+- ⚠ Nicht gemessen: Download und Dateiwahl am Tablet; wie lange 600 000 Runden dort dauern; große Postfächer
+  (die ganze Sicherung liegt einmal als Text im Speicher).
+
+## 👥 Alle Empfänger und Cc verdecken (Klaus 2026-10-02)
+
+Punkt 4 der Grenzen-Liste. `mailLesen` der Seite behielt nur den ERSTEN Empfänger; weitere Empfänger und Cc
+fielen weg, und ihre Namen wurden im Text nicht verdeckt. `assets/empfaenger.js` (nachgeladen von
+`assets/ablehnung.js`, die Seite ist voll) liest An und Cc ganz (`.eml` mit RFC-2047-Namen und gepastete
+„An:/Cc:“-Zeilen; getrennt an Komma und Semikolon außerhalb von Anführungszeichen) und legt die übrigen Namen in
+`m.weitereNamen` ab; `mailNamen` nimmt sie mit, die Zeile heißt dann „Aus Von/An/Cc: …“. Ein gepasteter „An:“ mit
+mehreren Einträgen behält als `anName` nur den ersten. Die Kopfzeilen selbst gehen weiter NICHT an die KI.
+Namen unter 2 Zeichen werden nicht verdeckt. Probe `tests/empfaenger.mjs` · Gegenprobe `NUR_FALL="EMPF:"` (7 Fälle).
+Cache v57. ⚠ Am Tablet nicht gemessen; echte Verteiler-Mails nicht.

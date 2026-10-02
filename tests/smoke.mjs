@@ -18,6 +18,8 @@ import { findeChromium } from "./chromium-finden.mjs";
 import * as Anhang from "./anhaenge.mjs";
 import * as Sprache from "./sprache.mjs";
 import * as Postfach from "./postfach.mjs";
+import * as Sicherung from "./sicherung.mjs";
+import * as Empfaenger from "./empfaenger.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -318,6 +320,8 @@ const BASIS = `http://127.0.0.1:${server.address().port}/`;
 /* ── Anhänge ohne Browser (tests/anhaenge.mjs) ── */
 await Anhang.ohneBrowser(ok, WURZEL).catch((e) => ok("Anhänge ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Postfach.ohneBrowser(ok, WURZEL).catch((e) => ok("Postfach ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Sicherung.ohneBrowser(ok, WURZEL).catch((e) => ok("Sicherung ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Empfaenger.ohneBrowser(ok, WURZEL).catch((e) => ok("Empfänger ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Anhang.seitentext(ok, WURZEL).catch((e) => ok("PDF-Seitentext ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
@@ -1391,6 +1395,8 @@ try {
   /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
   await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
   await Postfach.imBrowser(ok, browser, BASIS).catch((e) => ok("Postfach im Browser: unterwegs gestolpert", false, e && e.stack || e));
+  await Sicherung.imBrowser(ok, browser, BASIS).catch((e) => ok("Sicherung im Browser: unterwegs gestolpert", false, e && e.stack || e));
+  await Empfaenger.imBrowser(ok, browser, BASIS).catch((e) => ok("Empfänger im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {

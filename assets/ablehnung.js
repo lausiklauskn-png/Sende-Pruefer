@@ -34,5 +34,7 @@
   if (typeof document !== "undefined") {
     var s = document.createElement("script"); s.src = "assets/aussen.js"; document.head.append(s);
     var p = document.createElement("script"); p.src = "assets/postfach.js"; document.head.append(p);
+    var g = document.createElement("script"); g.src = "assets/sicherung.js"; document.head.append(g);
+    var r = document.createElement("script"); r.src = "assets/empfaenger.js"; document.head.append(r);
   }
 })();

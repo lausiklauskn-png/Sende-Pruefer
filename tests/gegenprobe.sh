@@ -651,6 +651,41 @@ fall "SPRACHE: der Betreff einer Mail wird mitübersetzt" assets/sprache.js \
   '#test-ergebnis,.wer,.betr,' '#test-ergebnis,.wer,' 'Betreff einer Mail|kein deutscher Satz ohne Eintrag'
 fall "SPRACHE: das Wörterbuch fehlt im Offline-Vorrat" sw.js \
   '"assets/sprache-texte.js?v=1", ' '' 'Offline-Vorrat'
+fall "SICHERUNG: Klartext statt verschlüsselt" assets/sicherung.js \
+  'return T().zu(pw, JSON.stringify(inhalt)).then(function (paket) {' 'return Promise.resolve({v:1,salt:"x",iv:"x",ct:JSON.stringify(inhalt)}).then(function (paket) {' 'KEIN Klartext'
+fall "SICHERUNG: Zurückholen überschreibt vorhandene Mails" assets/sicherung.js \
+  'if (m && m.id && !da.has(m.id)) { da.add(m.id); neu.push(m); }' 'if (m && m.id) { var i = MAILS.findIndex(function (x) { return x.id === m.id; }); if (i >= 0) MAILS.splice(i, 1); neu.push(m); }' 'überschreibt nichts'
+fall "SICHERUNG: Anhänge kommen als Text zurück" assets/sicherung.js \
+  'x.blob = b64ZuBlob(a.b64, a.typ); delete x.b64;' 'x.blob = a.b64; delete x.b64;' 'samt Anhang'
+fall "SICHERUNG: zwei verschiedene Passwörter gehen durch" assets/sicherung.js \
+  'if (pw.value !== pw2.value) return melde(' 'if (0) return melde(' 'verschiedene Passw'
+fall "SICHERUNG: zu kurzes Passwort geht durch" assets/sicherung.js \
+  'if (pw.value.length < MIN_PW) return melde(' 'if (0) return melde(' 'zu kurzes Passwort'
+fall "SICHERUNG: die letzte Sicherung wird nicht gemerkt" assets/sicherung.js \
+  '        schreib(ZULETZT, d.erstellt);' '' 'Erinnerung ist weg'
+fall "SICHERUNG: das Passwort bleibt im Feld stehen" assets/sicherung.js \
+  '        pw.value = pw2.value = "";' '' 'Felder sind nach dem Sichern geleert'
+fall "SICHERUNG: die Erinnerung kommt nie" assets/sicherung.js \
+  'return eigene() > 0 && tageSeit() >= ERINNERN_TAGE && !spaeter;' 'return false;' 'Erinnerung'
+fall "SICHERUNG: fehlt im Offline-Vorrat" sw.js \
+  '"assets/sicherung.js", ' '' 'Offline-Vorrat'
+fall "SICHERUNG: jetztSpeichern beim Zurückholen fehlt" assets/sicherung.js \
+  'neu.forEach(function (m) { MAILS.push(m); try { jetztSpeichern(m); } catch (_e) {} });' 'neu.forEach(function (m) { MAILS.push(m); });' 'überlebt das Neuladen'
+
+fall "EMPF: weitere Empfänger werden nicht mehr abgelegt" assets/empfaenger.js \
+  'if (weitere.length) m.weitereNamen = weitere;' '' 'weitere Empfänger und Cc stehen'
+fall "EMPF: Cc wird nicht mehr gelesen" assets/empfaenger.js \
+  '["to", "cc"].forEach' '["to"].forEach' '\(\.eml\): weitere Empfänger'
+fall "EMPF: mailNamen nimmt die weiteren nicht mit" assets/empfaenger.js \
+  'altNamen(m).concat(w.map' 'altNamen(m).concat([].map' 'mailNamen nimmt sie mit'
+fall "EMPF: Semikolon trennt nicht mehr" assets/empfaenger.js \
+  '(c === "," || c === ";")' '(c === ",")' 'weitere Empfänger und Cc|mailNamen nimmt|keiner dieser Namen'
+fall "EMPF: ein gepasteter An-Eintrag bleibt ganz im ersten Namen" assets/empfaenger.js \
+  'if (m.anName && teile(m.anName).length > 1) {' 'if (false) {' 'gepastet): der erste Empfänger'
+fall "EMPF: die Zeile Aus Von/An/Cc fehlt" assets/empfaenger.js \
+  'e.textContent = "Aus Von/An/Cc: " + auto.join(", ");' '' 'Aus Von/An/Cc'
+fall "EMPF: fehlt im Offline-Vorrat" sw.js \
+  '"assets/empfaenger.js", ' '' 'Offline-Vorrat'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
