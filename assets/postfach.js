@@ -76,7 +76,7 @@
       ".ziel-liste{display:flex;flex-direction:column;gap:4px;margin:8px 0}" +
       ".ziel-liste button{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--linie);background:var(--fl2);color:var(--schrift);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit}" +
       ".ziel-liste button[aria-current=\"true\"]{border-color:var(--akzent);color:var(--akzent);font-weight:700}" +
-      "@media (max-width:720px){.bottomnav{grid-template-columns:repeat(5,minmax(0,1fr))!important}}";
+      "@media (max-width:720px){.bottomnav{grid-template-columns:repeat(5,minmax(0,1fr))!important}html[lang=\"ru\"] .bottomnav button{font-size:.66rem}}";
     document.head.append(s);
   }
 

@@ -635,6 +635,22 @@ fall "APPWEG: als App steht wieder der Knopf da" assets/installieren.js \
 fall "APPWEG: als App kommt wieder die Meldung" assets/installieren.js \
   'if (alsApp()) return;' 'if (alsApp()) { melde("App"); return; }' 'keine Meldung'
 
+fall "SPRACHE: ein russischer Eintrag ist nur der deutsche Satz" assets/sprache-texte.js \
+  '["Der Papierkorb ist leer.", "The trash is empty.", "Корзина пуста."],' '["Der Papierkorb ist leer.", "The trash is empty.", "Der Papierkorb ist leer."],' 'einfach der deutsche Satz'
+fall "SPRACHE: die Frage vor dem Löschen fehlt im Wörterbuch" assets/sprache-texte.js \
+  '["Diese Mail endgültig löschen?", "Delete this mail for good?", "Удалить это письмо навсегда?"],' '' 'endgültigen Löschen'
+fall "SPRACHE: confirm wird nicht mehr übersetzt" assets/sprache.js \
+  'window.confirm = (s) => altConfirm(zeilen(s));' 'window.confirm = (s) => altConfirm(s);' 'endgültigen Löschen'
+fall "SPRACHE: der Speicher-Schlüssel ist wieder ein fremder" assets/sprache.js \
+  'const KEY = "sendepruefer_lang", KEY_WAHL' 'const KEY = "toolpoint_lang", KEY_WAHL' 'eigener Speicher-Schl'
+fall "SPRACHE: der Knopf kennt kein Russisch mehr" assets/sprache.js \
+  '    { code: "ru", name: "Русский", kurz: "RU" }' '    { code: "xx", name: "Русский", kurz: "RU" }' 'kennt DE, EN und RU|in der gewählten Sprache'
+fall "SPRACHE: die russische Ordner-Leiste läuft am Handy wieder quer" assets/sprache-texte.js \
+  '"<span>📥</span>Вставлено"]' '"<span>📥</span>Вставленные"]' 'nichts läuft quer'
+fall "SPRACHE: der Betreff einer Mail wird mitübersetzt" assets/sprache.js \
+  '#test-ergebnis,.wer,.betr,' '#test-ergebnis,.wer,' 'Betreff einer Mail|kein deutscher Satz ohne Eintrag'
+fall "SPRACHE: das Wörterbuch fehlt im Offline-Vorrat" sw.js \
+  '"assets/sprache-texte.js?v=1", ' '' 'Offline-Vorrat'
 fall "SICHERUNG: Klartext statt verschlüsselt" assets/sicherung.js \
   'return T().zu(pw, JSON.stringify(inhalt)).then(function (paket) {' 'return Promise.resolve({v:1,salt:"x",iv:"x",ct:JSON.stringify(inhalt)}).then(function (paket) {' 'KEIN Klartext'
 fall "SICHERUNG: Zurückholen überschreibt vorhandene Mails" assets/sicherung.js \

@@ -627,6 +627,33 @@ voll) ersetzt `zeichneOrdner`, `zeichneListe` und `loeschen` der Seite.
 - Probe `tests/postfach.mjs` (in `npm test`) · Gegenprobe `NUR_FALL="POSTFACH:"` (12 Fälle). Cache v54.
 - ⚠ Am Tablet nicht gemessen (langer Druck mit dem Finger). Noch nicht gebaut: Sicherung des Postfachs (Punkt 2).
 
+## 🌐 Drei Sprachen: Deutsch · English · Русский (Klaus 2026-10-02)
+
+Brief `docs/BRIEF_2026-10-02_drei-sprachen.md`, Schritt 3. Die Seite schreibt weiter Deutsch;
+`assets/sprache.js` (eine Zeile im `<head>`, die vier Dateien bleiben unter 96 KB) übersetzt **auf der
+Seite** per MutationObserver aus `assets/sprache-texte.js` (Dreiergruppen `[de, en, ru]`). Knopf
+`#sprache` in der Kopfleiste (DE → EN → RU), am Handy (≤ 700 px) als Zeile im Menü. `confirm`/`alert`
+werden Zeile für Zeile übersetzt. Speicher: **`sendepruefer_lang`** und `sendepruefer_lang_wahl` —
+eigene Schlüssel, nicht `toolpoint_lang` (Klaus: Sprachwahl je App getrennt). Ohne Wahl: Deutsch.
+
+- **Nie übersetzt** (GESCHUETZT): Mails, Betreffe, Absender, Platzhalter, Eingaben — das ist Inhalt.
+- ⚠ **Benannte Grenzen:** die Selbsttest-Zeilen bleiben Deutsch · die SBKIM-Fenster (Kanon) sprechen
+  DE/EN, Russisch fällt dort auf Deutsch zurück · Impressum/Datenschutz werden nicht übersetzt ·
+  die Handbuch-Bilder zeigen die deutsche Oberfläche · die Anweisung an die KI bleibt Deutsch.
+- Russische Ordnernamen in der unteren Leiste sind gekürzt („Вставлено", „Экспорт"), sonst lief sie
+  bei 320–380 px um 11–18 px quer.
+- Proben: `tests/sprache.mjs` (aus `smoke.mjs`; ohne Browser: Einträge vollständig, nichts leer, kein
+  russischer Eintrag gleich dem Deutschen; im Browser EN und RU: Ernte leer, Betreff bleibt, confirm
+  übersetzt, kein Querlaufen bei 380/360/320, Wahl übersteht Neuladen) · Gegenprobe
+  `NUR_FALL="SPRACHE:"` (8 Fälle). Cache v55 (Postfach hatte am selben Tag ebenfalls v54 vergeben).
+- ⚠ Russisch braucht in der Leiste unten (5 Spalten, ≤ 720 px) **.66rem statt .72rem** — gemessen bei 320 px:
+  „📥 Вставлено" 67 px in 64 px Spalte; mit .66rem passen alle fünf (64/64). Regel in `assets/postfach.js`
+  (`html[lang="ru"] .bottomnav button`). Der Wächter „nichts läuft quer" misst auch `#bottomnav button`.
+- Löschen aus dem Papierkorb fragt („Diese Mail endgültig löschen?"); `prompt()` (Ordnernamen) wird wie
+  confirm/alert zeilenweise übersetzt.
+- ⚠ Am Tablet nicht gemessen.
+- Mit Sicherung (#66) und Empfänger (#68) zusammengeführt: Cache **v58**; mit #69 (ebenfalls v58, anderer Inhalt) zusammengeführt: **v59**.
+
 ## 🔐 Postfach sichern und zurückholen (Klaus 2026-10-02)
 
 „Sicherungsdatei mit einem eigenen Passwort verschlüsselt? Ich empfehle ja." `assets/sicherung.js` (nachgeladen von
