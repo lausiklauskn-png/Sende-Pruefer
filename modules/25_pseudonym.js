@@ -37,8 +37,15 @@
  *     (Lookbehind fehlt in alten Browsern), fällt einzeln aus und steht in
  *     `_meta.ausgefallen` — statt das ganze Modul beim Laden umzuwerfen.
  *
+ * DATUM (2026-10-02, Klaus' Grenzen-Liste Punkt 4): Daten sind standardmäßig
+ * an, weil ein Geburtsdatum eine Person kenntlich macht. Eine Frist geht dabei
+ * nicht verloren — die KI schreibt „bis ⟦DATUM-1⟧", `rehydrate` setzt sie
+ * wieder ein. Rechnen kann die KI mit einem verdeckten Datum nicht („zwei
+ * Wochen danach"); wer das braucht, lässt DATUM in `options.types` weg.
+ *
  * Ehrliche Grenzen: Pseudonymisierung ≠ Verschlüsselung. Was kein Muster hat
- * (Adressen, Geburtsdaten, „die Filialleiterin in Kiel"), erkennt es nicht.
+ * (Adressen, „die Filialleiterin in Kiel"), erkennt es nicht. Ein Datum ohne
+ * Tag („März 2026") und englische Schreibweisen („March 12") auch nicht.
  * Namen erkennt es nur aus der mitgegebenen Liste. Nur Text — Bilder nicht.
  *
  * Die Muster stehen ein zweites Mal im Auslieferungsprüfer
@@ -115,6 +122,16 @@
     "(?<![A-Za-z])" + WAEHRUNG + "\\s?" + ZAHL + "(?![\\d.,]*\\d)", "g");
   var BELEG_FELD = /["']?(?:rechnung(?:s?nummer|s?nr)?|kundennummer|kundennr|kunden_?nr|invoice(?:_id|_number)?|beleg(?:nummer)?|receipt(?:_number)?|customer_id)["']?\s*[:=]\s*["']?([A-Za-z0-9][A-Za-z0-9\-\/]{2,})/gi;
   var BELEG_FREI = /\b(?:RE|RG|INV|KD|KDNR|AN)-\d{2,4}-\d{3,}\b/g;
+  // Datum (Klaus 2026-10-02, Grenze 2: Geburtsdaten). Tag und Monat müssen
+  // gültig sein, sonst wäre jede Versionsnummer und jede IP ein Datum.
+  // 12.03.2026 · 1.3.85 · 2026-03-12 · 12/03/2026 · 12. März 2026 · 3. Jan.
+  var TAG = "(?:0?[1-9]|[12]\\d|3[01])", MONAT = "(?:0?[1-9]|1[0-2])";
+  var MONATSNAME = "(?:Januar|Jänner|Februar|März|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|" +
+    "Jan|Feb|Mär|Mrz|Apr|Jun|Jul|Aug|Sept?|Okt|Nov|Dez)";
+  var DATUM_ZAHL = rx("DATUM", "(?<![\\d.,/])" + TAG + "\\." + MONAT + "\\.(?:\\d{4}|\\d{2})(?![\\d]|[.,/]\\d)", "g");
+  var DATUM_STRICH = rx("DATUM", "(?<![\\d/])" + TAG + "/" + MONAT + "/\\d{4}(?![\\d]|/\\d)", "g");
+  var DATUM_ISO = /\b(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b/g;
+  var DATUM_WORT = rx("DATUM", "(?<![\\d.])" + TAG + "\\.\\s?" + MONATSNAME + "(?:\\.|(?![\\p{L}]))(?:\\s?\\d{4}(?!\\d))?", "gu");
 
   function isIban(roh) {
     var s = String(roh).replace(/[\s\-]/g, "").toUpperCase();
@@ -140,8 +157,10 @@
       rules: BETRAG ? [[BETRAG, 0, null]] : [] },
     RECHNUNG: { description: "Rechnungs-/Kundennummer im Feld oder als RE-2026-04871.",
       rules: [[BELEG_FELD, 1, function (w) { return /\d/.test(w); }], [BELEG_FREI, 0, null]] },
+    DATUM: { description: "Datum: 12.03.2026, 1.3.85, 2026-03-12, 12/03/2026, 12. März 2026.",
+      rules: [DATUM_ZAHL, DATUM_STRICH, DATUM_ISO, DATUM_WORT].filter(Boolean).map(function (r) { return [r, 0, null]; }) },
   };
-  var ORDER = ["SCHLUESSEL", "MAIL", "IBAN", "BETRAG", "RECHNUNG", "TELEFON"];
+  var ORDER = ["SCHLUESSEL", "MAIL", "IBAN", "BETRAG", "RECHNUNG", "TELEFON", "DATUM"];
   var ALIAS = { EMAIL: "MAIL", TEL: "TELEFON" };
   var DEFAULT_TYPES = ORDER.slice();
 
@@ -374,7 +393,7 @@
     InvalidPseudonymArgError: InvalidPseudonymArgError,
     _meta: {
       generation: 2,
-      stand: "2026-09-28",
+      stand: "2026-10-02",
       grade: "B",
       buildFree: true,
       protocolVersion: "0.1",

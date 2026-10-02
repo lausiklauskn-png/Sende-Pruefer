@@ -36,12 +36,13 @@ Das Postfach füllt immer das ganze Fenster. Als installierte App öffnet es sic
 | IBAN | nur mit stimmender Prüfziffer |
 | BETRAG | `89,90 €`, `1.248,50 EUR`, `EUR 1.234.567,89` — auch mit Tausenderpunkt ganz |
 | RECHNUNG | `Rechnungsnummer: …`, `Kundennummer: …`, freistehend `RE-2026-04871` |
+| DATUM | `12.03.1985`, `3. Mai 2026` (rechnen kann die KI damit nicht mehr) |
 | NAME | die Namen aus Von, An, Cc und Ihrer Liste |
 
 ## Grenzen — was die Seite nicht kann
 
 1. **Namen findet sie nicht selbst.** Ein Muster unterscheidet „Müller“ die Person nicht von „Müller-Thurgau“ der Rebsorte. Verdeckt werden die Namen aus Von, An, Cc und Ihrer Liste. Ein vergessener Name geht hinaus.
-2. **Was kein Muster hat, erkennt sie nicht:** Adressen, Geburtsdaten, Kennzeichen, Gesundheitsangaben, Beschreibungen, an denen man jemanden erkennt („die Filialleiterin in Kiel“). Lesen Sie „Was die KI sieht“, bevor Sie senden.
+2. **Was kein Muster hat, erkennt sie nicht:** Adressen, Kennzeichen, Gesundheitsangaben, Beschreibungen, an denen man jemanden erkennt („die Filialleiterin in Kiel“). Lesen Sie „Was die KI sieht“, bevor Sie senden.
 3. **Eine Telefonnummer ohne Ländervorwahl bleibt stehen**, weil eine bloße Ziffernfolge meist eine Kennung oder ein Datum ist. Wer `030 1234567` verdecken will, schreibt `+49 30 1234567` oder trägt die Nummer unter „Weitere Namen“ ein.
 4. **Rechnungsnummern erkennt sie nur mit Feldname** oder in der Form `RE-/RG-/INV-/KD-/AN-Jahr-Nummer`. Eine Nummer wie `A17/33` im Fließtext bleibt stehen.
 5. **Die KI kann aus dem Zusammenhang raten.** Platzhalter verbergen den Wert, nicht die Lage: „die einzige Bäckerei am Marktplatz“ ist auch ohne Namen erkennbar.

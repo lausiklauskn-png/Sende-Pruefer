@@ -91,7 +91,7 @@ ok("LIESMICH nennt vor der Bedienung zwei Fälle, in denen man zur Seite greift"
    Wer das Modul in Sage ändert, kopiert es neu und zieht MODUL25_SHA nach.
    Eine Abwandlung HIER wäre eine zweite Fassung, die niemand prüft. */
 const MODUL25 = "modules/25_pseudonym.js";
-const MODUL25_SHA = "7a70fb022130d1f8275e6467b82b9a60370d1f7ce2fe9fc8e0370a735ce1eba2";
+const MODUL25_SHA = "ad1316bfd42ae96a19ef5667fdd8cc2c4d48cbf3ac08b387f92ce00844977b61";
 const modulBytes = (() => { try { return readFileSync(join(WURZEL, MODUL25)); } catch { return null; } })();
 ok("Modul 25 liegt bei (" + MODUL25 + ")", !!modulBytes);
 ok("Modul 25 ist unverändert (SHA-256 gepinnt)",
@@ -231,7 +231,7 @@ ok("anleitung.html ist genau das, was aus LIESMICH.md gebaut wird (sonst: node t
 const anlGrenzen = ((anl.split('<ol class="grenzen">')[1] || "").split("</ol>")[0].match(/<li>/g) || []).length;
 ok(`… trägt jede Grenze aus LIESMICH.md (${anlGrenzen} von ${grenzen})`, grenzen >= 5 && anlGrenzen === grenzen);
 ok("… jede Sorte der Tabelle steht als Zeile da",
-  ["SCHLUESSEL", "MAIL", "TELEFON", "IBAN", "BETRAG", "RECHNUNG", "NAME"].every((x) => anl.includes('<span class="sorte">' + x + "</span>")));
+  ["SCHLUESSEL", "MAIL", "TELEFON", "IBAN", "BETRAG", "RECHNUNG", "DATUM", "NAME"].every((x) => anl.includes('<span class="sorte">' + x + "</span>")));
 ok("… Text wird maskiert, nicht als HTML gelesen",
   !/<b>x<\/b>|<script/.test(anlBau.bauen("# T\n\n## A\n\nein <b>x</b> <script>y</script>")) && /&lt;b&gt;x/.test(anlBau.bauen("# T\n\n## A\n\nein <b>x</b>")));
 ok("… holt nichts aus dem Netz", anl.length > 0 && !/(?:src|href)="https?:/i.test(anl));
