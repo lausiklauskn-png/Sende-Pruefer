@@ -161,6 +161,7 @@ ok("installiert öffnet es als eigenes Fenster mit Minimieren · Verkleinern · 
 ok("die Erklärseite des Siegels (sicherheit.html) liegt da und steht im Offline-Vorrat",
   existsSync(join(WURZEL, "sicherheit.html")) && readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"sicherheit.html"') && /iframe\.src = "sicherheit\.html"/.test(readFileSync(join(WURZEL, "modules/16b_andock_wizard.js"), "utf8")));
 ok("die Anbieter-Liste steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"assets/anbieter.js"'));
+ok("der Neu-laden-Knopf steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"assets/neuladen.js?v=1"'));
 ok("Modul 25 steht im Offline-Vorrat", readFileSync(join(WURZEL, "sw.js"), "utf8").includes('"' + MODUL25 + '"'));
 
 /* ── Handbuch (Klaus 2026-09-29): gebaut aus der echten App, Szene für Szene ── */
@@ -1221,8 +1222,8 @@ try {
   /* ── Installieren-Knopf (Klaus 2026-09-30) ── */
   { const iCtx = await browser.newContext({ viewport: { width: 1300, height: 900 } }); const ip = await iCtx.newPage();
     await ip.goto(BASIS + "sende-pruefer.html"); await ip.waitForSelector("#installieren", { timeout: 15000 }).catch(() => {});
-    const k = await ip.evaluate(() => { const b = document.getElementById("installieren"); return b && { lage: b.dataset.lage, vorHilfe: b.nextElementSibling && b.nextElementSibling.id === "hilfe", sicht: b.checkVisibility() }; });
-    ok("der Installieren-Knopf steht sichtbar vor dem ?", !!k && k.vorHilfe && k.sicht, JSON.stringify(k));
+    const k = await ip.evaluate(() => { const b = document.getElementById("installieren"); return b && { lage: b.dataset.lage, vorHilfe: !!b.nextElementSibling && /^(hilfe|neuladen)$/.test(b.nextElementSibling.id), sicht: b.checkVisibility() }; });
+    ok("der Installieren-Knopf steht sichtbar vor ⟳ und ?", !!k && k.vorHilfe && k.sicht, JSON.stringify(k));
     ok("… ohne Angebot des Browsers heißt die Lage nicht-angeboten", !!k && k.lage === "nicht-angeboten", k && k.lage);
     await ip.click("#installieren").catch(() => {});
     const t = await ip.evaluate(() => { const m = document.getElementById("install-meldung-text"); return m ? m.textContent : ""; });
@@ -1235,6 +1236,50 @@ try {
     const kopf = await ip.evaluate(() => { const k = document.querySelector("header.kopf"); return k.scrollWidth - k.clientWidth; });
     ok("… und die Kopfleiste läuft nicht über", kopf === 0, kopf);
     await iCtx.close(); }
+  /* ── Als installierte App: kein Knopf, keine Meldung (Klaus 2026-10-02: „diesen Button und diese Anmerkung bitte wegnehmen“) ── */
+  { const aCtx = await browser.newContext({ viewport: { width: 1300, height: 900 } });
+    await aCtx.addInitScript(() => { const echt = window.matchMedia.bind(window);
+      window.matchMedia = (q) => /display-mode:\s*standalone/.test(q) ? echt("(min-width:0px)") : echt(q); });
+    const ap = await aCtx.newPage();
+    await ap.goto(BASIS + "sende-pruefer.html"); await ap.waitForSelector("#installieren", { state: "attached", timeout: 15000 }).catch(() => {});
+    const a = await ap.evaluate(() => { const b = document.getElementById("installieren"); if (!b) return null;
+      const lage = b.dataset.lage, sicht = b.checkVisibility(); b.click();
+      const m = document.getElementById("install-meldung"); return { lage, sicht, meldung: !!m && !m.hidden, appWirklich: window.SP_INSTALL.alsApp() }; });
+    ok("als App gestellt: die Seite hält sich wirklich für eine App (sonst misst der Rest nichts)", !!a && a.appWirklich, JSON.stringify(a));
+    ok("… der Installieren-Knopf ist nicht zu sehen (kein „✓ App“)", !!a && a.lage === "app" && !a.sicht, JSON.stringify(a));
+    ok("… und es erscheint keine Meldung „nichts mehr zu tun“", !!a && !a.meldung, JSON.stringify(a));
+    const quelle = readFileSync(join(WURZEL, "assets/installieren.js"), "utf8");
+    ok("… der Satz „es ist nichts mehr zu tun“ steht nirgends mehr im Knopf", !/nichts mehr zu tun\./.test(quelle));
+    await aCtx.close(); }
+  /* ── ⟳ Neu laden (Klaus 2026-10-02: runder Knopf ohne Text, neue Version / Hard-Reload) ── */
+  for (const [breite, da] of [[1300, true], [1280, true], [380, true], [320, false]]) {
+    const nCtx = await browser.newContext({ viewport: { width: breite, height: 900 } }); const np = await nCtx.newPage();
+    await np.goto(BASIS + "sende-pruefer.html"); await np.waitForSelector("#neuladen", { state: "attached", timeout: 15000 }).catch(() => {});
+    await np.waitForTimeout(400);
+    const k = await np.evaluate(() => { const b = document.getElementById("neuladen"), kopf = document.querySelector("header.kopf");
+      return b && { sicht: b.checkVisibility(), vorHilfe: !!b.nextElementSibling && b.nextElementSibling.id === "hilfe", text: b.textContent.trim(),
+        label: b.getAttribute("aria-label") || "", ueber: kopf.scrollWidth - kopf.clientWidth, suche: Math.round(document.querySelector(".suche").getBoundingClientRect().width) }; });
+    if (da) {
+      ok(breite + " px: ⟳ steht sichtbar direkt vor dem ?", !!k && k.sicht && k.vorHilfe, JSON.stringify(k));
+      ok(breite + " px: … nur das Zeichen, kein Text (Klaus: ohne den Text)", !!k && k.text === "⟳" && /neue Version/i.test(k.label), JSON.stringify(k));
+    } else {
+      ok(breite + " px: unter 360 px fehlt ⟳ (sonst bleibt dem Suchfeld kein Platz)", !!k && !k.sicht, JSON.stringify(k));
+    }
+    ok(breite + " px: … die Kopfleiste läuft nicht über, das Suchfeld behält 60 px", !!k && k.ueber === 0 && k.suche >= 60, JSON.stringify(k));
+    if (breite === 1300) {
+      await np.evaluate(async () => { await (await caches.open("sende-pruefer-probe")).put("probe", new Response("x"));
+        await (await caches.open("fremde-app-probe")).put("probe", new Response("y")); window.__vorher = 1; });
+      await Promise.all([np.waitForNavigation({ timeout: 15000 }).catch(() => {}), np.click("#neuladen")]);
+      await np.waitForFunction(() => !/frisch=/.test(location.search) && document.readyState === "complete", null, { timeout: 15000 }).catch(() => {});
+      const n = await np.evaluate(async () => { const namen = await caches.keys();
+        return { neu: window.__vorher === undefined, adresse: location.search, eigen: namen.includes("sende-pruefer-probe"), fremd: namen.includes("fremde-app-probe") }; });
+      ok("ein Tipp auf ⟳ lädt die Seite wirklich neu", n.neu, JSON.stringify(n));
+      ok("… wirft den eigenen Vorrat weg", !n.eigen, JSON.stringify(n));
+      ok("… lässt fremde Vorräte auf github.io stehen", n.fremd, JSON.stringify(n));
+      ok("… und putzt ?frisch= wieder aus der Adresszeile", n.adresse === "", JSON.stringify(n));
+    }
+    await nCtx.close();
+  }
   /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
   await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
