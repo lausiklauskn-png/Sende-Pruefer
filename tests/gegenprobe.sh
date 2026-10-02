@@ -310,7 +310,7 @@ fall "REGLER: ziehen bewegt das Bild nicht mit" handbuch.html \
 fall "REGLER: loslassen spielt in der Pause los" handbuch.html \
   'weiter = ziehen ? warSpielend : !pausiert;' 'weiter = true;' 'bleibt angehalten, an genau'
 fall "REGLER: weiterspielen beginnt die Szene von vorn" handbuch.html \
-  'try { a.currentTime = pos; } catch (_e) {}' '' 'spielt dort weiter|genau der Stelle'
+  'try { a.currentTime = pos; } catch (_e) {}' '' 'nicht von vorn'
 fall "REGLER: die Länge kommt nicht aus den Schnitten" handbuch.html \
   'return d > 0 ? d : Math.max(5,' 'return 0 > 1 ? d : Math.max(5,' 'Summe der Szenenlängen'
 fall "REGLER: keine Marken an den Szenenwechseln" handbuch.html \

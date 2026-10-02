@@ -1111,7 +1111,7 @@ try {
       /* Abspielen gestellt: die Probe misst, WELCHE Datei wann läuft, nicht den Lautsprecher. */
       window.__gespielt = []; window.__tonFehlt = false;
       HTMLMediaElement.prototype.play = function () {
-        window.__gespielt.push(this.src);
+        window.__gespielt.push(this.src); (window.__ab = window.__ab || []).push(this.currentTime);
         if (window.__tonFehlt) return Promise.reject(new Error("gestellt: kein Ton"));
         const el = this; setTimeout(() => el.onended && el.onended(), 40); return Promise.resolve();
       };
@@ -1219,11 +1219,13 @@ try {
       await h.evaluate(() => document.getElementById("zeit").dispatchEvent(new Event("change", { bubbles: true })));
       ok("… loslassen in der Pause bleibt angehalten, an genau der Stelle",
         await h.evaluate((t) => window.__handbuch.pausiert() && Math.abs(window.__handbuch.position() - t) < 0.3, ziel), await h.evaluate(() => window.__handbuch.position()));
-      await h.evaluate(() => { window.__gespielt = []; });
+      await h.evaluate(() => { window.__gespielt = []; window.__ab = []; });
       await h.click("#spielen");
       await h.waitForFunction(() => window.__gespielt.length >= 1, null, { timeout: 8000 }).catch(() => {});
       ok("▶ spielt dort weiter: die Aufnahme von Szene 6",
         await h.evaluate(() => /handbuch\/ton\/de\/06-[^/]+\.mp3$/.test(window.__gespielt[0]) && !window.__handbuch.pausiert()), await h.evaluate(() => JSON.stringify(window.__gespielt)));
+      ok("… und zwar mitten in der Aufnahme, nicht von vorn (1,5 s hinein)",
+        await h.evaluate(() => Math.abs(window.__ab[0] - 1.5) < 0.2), await h.evaluate(() => JSON.stringify(window.__ab)));
       await h.click("#spielen");
       await h.locator("body").focus().catch(() => {});
       await h.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
@@ -1248,7 +1250,7 @@ try {
       await h.click("#vorfuehren");
       await h.click("#spielen");
       const m = await h.evaluate(() => { const b = document.getElementById("buehne").getBoundingClientRect();
-        const k = ["zurueck", "spielen", "vor", "stopp", "zeit"].map((id) => document.getElementById(id).getBoundingClientRect());
+        const k = ["zurueck", "spielen", "vor", "stopp", "zeit", "uhr", "welche"].map((id) => document.getElementById(id).getBoundingClientRect());
         return { b: [Math.round(b.left), Math.round(b.right)], innen: k.every((r) => r.left >= b.left - 1 && r.right <= b.right + 1 && r.width > 0),
           gross: k.slice(0, 4).every((r) => r.height >= 36 && r.width >= 36), ueber: document.documentElement.scrollWidth - document.documentElement.clientWidth }; });
       ok("380 px: der Abspieler passt — Regler und Knöpfe in der Leiste, groß genug für den Finger, nichts quer",
