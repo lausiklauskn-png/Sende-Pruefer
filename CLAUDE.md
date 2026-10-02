@@ -550,3 +550,28 @@ an eine KI meldet jetzt `KI-ANWEISUNG` mit Zeile; unsichtbare Zeichen im Bildtex
 gemeldet; eine unbekannte Binärdatei, ein PDF ohne pdf.js und eine verworfene OCR-Zeile heißen
 „ungeprüft". Die Erklärung steht im Auslieferungsprüfer (CLAUDE.md, gleicher Abschnitt).
 Cache v45. `npm test` 463 grün · 0 ROT. ⚠ Tablet nicht gemessen.
+
+## 🔊 Aufgenommene Stimme im Handbuch (Klaus 2026-10-02)
+
+Klaus: *„eine professionelle Stimme … nicht die Browserstimme, die so abgehackt klingt"* ·
+*„Kannst du diese selber teilen an den entsprechenden Stellen?"* Er hat alle zwölf
+Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s).
+
+- **`node tools/handbuch-ton.mjs <aufnahme.mp3> [de]`** schneidet die Aufnahme in
+  `handbuch/ton/<sprache>/NN-<id>.mp3` (ohne Neukodieren) und schreibt `schnitte.json`.
+  Geschnitten wird in der Mitte der Pause (≥ 0,45 s), die der erwarteten Stelle am
+  nächsten liegt (Zeichenanteil × Dauer). ⚠ **Gemessen ist die Lage, nicht der Wortlaut**
+  — es gibt keine Spracherkennung. Je Szene wird geprüft, ob die langen Pausen darin zu
+  ihren Sätzen passen (±1). Am 2026-10-02: alle 12 ✓. **Klaus' Ohr muss die Schnitte bestätigen.**
+- `handbuch-bauen.mjs` setzt `data-ton` an jede Szene, deren Datei es gibt. **Ändert sich ein
+  Sprechtext, passt die Aufnahme nicht mehr** — neu aufnehmen, neu schneiden, neu bauen.
+- ▶ Vorführen spielt die Aufnahme; **ein** Abspieler, im Tipp angelegt und für alle Szenen
+  wiederverwendet (am Handy darf nur ein im Tipp gestarteter weiterspielen). Lädt sie nicht,
+  liest wie bisher nur eine Stimme vom Gerät, sonst nur Untertitel. Eine Frist (6 s + Text)
+  hält eine hängende Datei auf.
+- Nicht im Installations-Vorrat (750 KB); `sw.js` legt nur noch Antworten mit Status 200 ab —
+  beim Abspielen kommen Teil-Antworten (206), und `cache.put` scheitert daran.
+- Englisch, Russisch, Arabisch: es gibt noch keine Sprechtexte in diesen Sprachen.
+- ⚠ Nicht gemessen: Klang und Schnitte am Tablet; ob speechmas Bedingungen das Veröffentlichen
+  der Stimme erlauben.
+- Proben: `smoke.mjs` (Dateien, Schnitte lückenlos, Abspielen gestellt) · Gegenprobe `TON:` (6 Fälle).

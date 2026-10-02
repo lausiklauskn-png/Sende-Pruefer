@@ -136,7 +136,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
 </div>
 
 <footer class="grenzen">
- <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="anleitung.html">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz; „▶ Vorführen“ liest nur mit einer Stimme vor, die auf diesem Gerät liegt.</p>
+ <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="anleitung.html">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz. „▶ Vorführen“ spielt eine aufgenommene Stimme ab, die mit dieser Seite kommt; fehlt sie, liest nur eine Stimme vor, die auf diesem Gerät liegt.</p>
 </footer>
 
 <div class="buehne" id="buehne" hidden role="status" aria-live="polite">
@@ -165,11 +165,17 @@ html.bewegt .szene.da{opacity:1;transform:none}
     szenen.forEach(function (s) { io.observe(s); });
   } else szenen.forEach(function (s) { s.classList.add("da"); });
 
-  /* ▶ Vorführen: Szene für Szene, mit Untertitel — vorgelesen nur von einer
-     Stimme, die AUF DEM GERÄT liegt (localService). Eine Netz-Stimme schickte
-     den Text an ihren Anbieter; dann gibt es eben nur den Untertitel. */
+  /* ▶ Vorführen: Szene für Szene, mit Untertitel. Trägt die Szene eine
+     Aufnahme (data-ton, Klaus 2026-10-02: „nicht die Browserstimme, die so
+     abgehackt klingt"), wird sie abgespielt — eine Datei von dieser Seite,
+     kein Aufruf nach draußen. Fehlt sie oder spielt sie nicht, liest nur
+     eine Stimme, die AUF DEM GERÄT liegt (localService). Eine Netz-Stimme
+     schickte den Text an ihren Anbieter; dann gibt es nur den Untertitel. */
   var buehne = document.getElementById("buehne"), ut = document.getElementById("ut"), balken = document.getElementById("fortschritt"), stimmeZeile = document.getElementById("stimme");
-  var laeuft = false, uhr = null, i = 0;
+  /* EIN Spieler für alle Szenen, angelegt beim Tipp auf „▶ Vorführen“:
+     Handys erlauben Ton nur aus einer Berührung heraus — ein neues
+     Audio-Element je Szene stünde nach der ersten stumm da. */
+  var laeuft = false, uhr = null, i = 0, ton = null, lauf = 0;
   function stimme() {
     var s = window.speechSynthesis; if (!s) return null;
     var alle = s.getVoices().filter(function (v) { return v.localService && /^de/i.test(v.lang); });
@@ -178,6 +184,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
   window.__handbuchStimme = stimme;
   function stopp() {
     laeuft = false; clearTimeout(uhr); buehne.hidden = true;
+    lauf++; if (ton) { try { ton.pause(); } catch (_e) {} }
     szenen.forEach(function (s) { s.classList.remove("aktiv"); });
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_e) {}
   }
@@ -191,6 +198,23 @@ html.bewegt .szene.da{opacity:1;transform:none}
     ut.textContent = text;
     balken.style.width = Math.round(((i + 1) / szenen.length) * 100) + "%";
     var weiter = function () { if (!laeuft) return; i++; uhr = setTimeout(zeige, 700); };
+    if (s.dataset.ton) {
+      var a = ton || (ton = new Audio()), mein = ++lauf, fertig = false;
+      var aus = function (geklappt) {
+        if (fertig || mein !== lauf || !laeuft) return; fertig = true; clearTimeout(uhr);
+        if (geklappt) weiter(); else sprechen(s, text, weiter);
+      };
+      a.onended = function () { aus(true); };
+      a.onerror = function () { aus(false); };
+      a.src = s.dataset.ton;
+      stimmeZeile.textContent = "Aufgenommene Stimme, abgespielt von dieser Seite.";
+      uhr = setTimeout(function () { aus(true); }, 6000 + text.length * 120);
+      var p = a.play(); if (p && p.catch) p.catch(function () { aus(false); });
+      return;
+    }
+    sprechen(s, text, weiter);
+  }
+  function sprechen(s, text, weiter) {
     var v = stimme();
     stimmeZeile.textContent = v ? "Vorgelesen von „" + v.name + "“ auf diesem Gerät." : "Keine Stimme auf diesem Gerät — nur Untertitel.";
     if (v) {
@@ -202,7 +226,8 @@ html.bewegt .szene.da{opacity:1;transform:none}
     } else uhr = setTimeout(weiter, Math.max(5000, text.length * 65));
   }
   document.getElementById("vorfuehren").addEventListener("click", function () {
-    stopp(); laeuft = true; i = 0; buehne.hidden = false; zeige();
+    stopp(); if (!ton && window.Audio) ton = new Audio();
+    laeuft = true; i = 0; buehne.hidden = false; zeige();
   });
   document.getElementById("stopp").addEventListener("click", stopp);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && laeuft) stopp(); });

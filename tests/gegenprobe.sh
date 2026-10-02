@@ -265,6 +265,23 @@ fall "HB: ein Icon im Manifest fehlt" manifest.json \
 fall "HB: am kleinen Handy steht der Thema-Knopf wieder in der Kopfleiste" $H \
   ' #thema{display:none}}' '}' 'über den Rand|Suchfeld'
 
+# ── Aufgenommene Stimme im Handbuch (Klaus 2026-10-02) ──
+# Benannte Grenzen, ohne Fall: „ein Abspieler für alle Szenen" (headless gibt es keine
+# Autoplay-Sperre, ein neuer je Szene wäre hier nicht von einem geteilten zu unterscheiden)
+# und der Zähler „lauf" (nach Stopp hält schon „laeuft" jede späte Meldung auf).
+fall "TON: eine Szene verliert ihre Aufnahme" handbuch.html \
+  ' data-ton="handbuch/ton/de/01-postfach.mp3"' '' 'trägt ihre Aufnahme'
+fall "TON: Vorführen nimmt wieder die Browser-Stimme" handbuch.html \
+  'if (s.dataset.ton) {' 'if (false) {' 'spielt die Aufnahme der Szene'
+fall "TON: ohne Aufnahme gibt es keinen Rückweg zur Stimme" handbuch.html \
+  'if (geklappt) weiter(); else sprechen(s, text, weiter);' 'weiter();' 'spielt die Aufnahme nicht'
+fall "TON: die Schnitte haben eine Lücke" handbuch/ton/de/schnitte.json \
+  '"von": 12.75' '"von": 13.75' 'lückenlos'
+fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
+  'if (r.status === 200) {' 'if (r.ok) {' 'ganze Antworten'
+fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
+  '"handbuch.html", ' '"handbuch.html", "handbuch/ton/de/01-postfach.mp3", ' 'NICHT im Installations-Vorrat'
+
 # ── Anleitung als Seite (Klaus 2026-09-29) ──
 fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \
   '## Selbsttest' '## Selbsttest (neu)' 'genau das, was aus LIESMICH'

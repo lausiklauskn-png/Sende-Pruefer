@@ -7,6 +7,7 @@
    "titel": "Das Postfach",
    "sprech": "Das ist Ihr Postfach im Browser. Vier Ordner, eine Liste, rechts die Mail. Die Zahl an jeder Zeile sagt, wie viele Angaben geschützt werden. Nichts davon liegt auf einem Server.",
    "bild": "handbuch/01-postfach.jpg",
+   "ton": "handbuch/ton/de/01-postfach.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -23,6 +24,7 @@
    "titel": "Eine Mail hereinholen",
    "sprech": "Eine Mail holen Sie mit Mail einfügen herein: aus der Zwischenablage oder als gespeicherte Datei. Von, An und Betreff erkennt der Sende-Prüfer selbst.",
    "bild": "handbuch/02-einfuegen.jpg",
+   "ton": "handbuch/ton/de/02-einfuegen.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -39,6 +41,7 @@
    "titel": "Die Mail, wie sie ist",
    "sprech": "Hier eine erfundene Mail mit allem, was nicht zur KI soll: Namen, Adressen, Rechnungsnummer, Betrag und Kontonummer.",
    "bild": "handbuch/03-original.jpg",
+   "ton": "handbuch/ton/de/03-original.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -55,6 +58,7 @@
    "titel": "Was die KI sieht",
    "sprech": "Mit Was die KI sieht erscheint der Text, der wirklich hinausgeht. Jede Angabe ist ein Platzhalter. Dieselbe Angabe hat immer denselben.",
    "bild": "handbuch/04-ki-sicht.jpg",
+   "ton": "handbuch/ton/de/04-ki-sicht.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -71,6 +75,7 @@
    "titel": "Namen, die kein Muster findet",
    "sprech": "Namen erkennt kein Muster. Die Namen aus Von und An nimmt der Sende-Prüfer selbst, weitere tragen Sie hier ein.",
    "bild": "handbuch/05-namen.jpg",
+   "ton": "handbuch/ton/de/05-namen.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -87,6 +92,7 @@
    "titel": "Was soll die KI tun?",
    "sprech": "Was soll die KI tun? Eine Aufgabe antippen, etwa Rechnung oder Mahnung, oder selbst eintragen. Daraus entsteht die ganze Anweisung. Eigene Aufgaben lassen sich als Knopf merken.",
    "bild": "handbuch/06-aufgaben.jpg",
+   "ton": "handbuch/ton/de/06-aufgaben.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -103,14 +109,15 @@
    "titel": "Zwei Wege hinaus",
    "sprech": "Zwei Wege, beide gleichwertig: kopieren für Ihr eigenes KI-Abo, oder direkt senden mit Ihrem Schlüssel. Hinaus geht nur der geschützte Text, und nur, wenn Sie tippen.",
    "bild": "handbuch/07-wege.jpg",
+   "ton": "handbuch/ton/de/07-wege.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
    "ring": {
     "x": 43.1,
-    "y": 4.3,
+    "y": 4.4,
     "w": 53.3,
-    "h": 95.7
+    "h": 95.6
    }
   },
   {
@@ -119,6 +126,7 @@
    "titel": "Die Antwort kommt mit Klartext zurück",
    "sprech": "Die Antwort der KI kommt mit Platzhaltern zurück. Der Sende-Prüfer setzt die echten Angaben wieder ein, und Sie können sie ablegen, speichern oder teilen.",
    "bild": "handbuch/08-antwort.jpg",
+   "ton": "handbuch/ton/de/08-antwort.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -135,11 +143,12 @@
    "titel": "Abschirmen",
    "sprech": "Abschirmen hält Schreib-Helfer und die KI-Schreibhilfe des Browsers aus den Feldern heraus. Liest etwas Fremdes mit, leuchtet die Lampe fremd.",
    "bild": "handbuch/09-abschirmen.jpg",
+   "ton": "handbuch/ton/de/09-abschirmen.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
    "ring": {
-    "x": 73.5,
+    "x": 62.8,
     "y": 1.3,
     "w": 11,
     "h": 5
@@ -151,6 +160,7 @@
    "titel": "Ein eigener Knoten im Netz",
    "sprech": "Oben die Netz-Leiste: drei Lampen, das Siegel und die Mycel-Blase. Der Sende-Prüfer ist ein eigener Knoten. Ins Netz geht er nur, wenn Sie es wollen, und nie mit Ihren Mails.",
    "bild": "handbuch/10-knoten.jpg",
+   "ton": "handbuch/ton/de/10-knoten.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
@@ -167,6 +177,7 @@
    "titel": "Am Handy",
    "sprech": "Am Handy zeigen oben drei Punkte den Zustand. Ein Tipp klappt Siegel und Netz auf. Die Ordner liegen unten.",
    "bild": "handbuch/11-handy.jpg",
+   "ton": "handbuch/ton/de/11-handy.mp3",
    "breite": 390,
    "hoehe": 844,
    "handy": true,
@@ -183,14 +194,15 @@
    "titel": "Der Selbsttest",
    "sprech": "Der Selbsttest im Menü prüft den Prüfer an einem Köder. So sehen Sie selbst, dass er hält, was er verspricht.",
    "bild": "handbuch/12-selbsttest.jpg",
+   "ton": "handbuch/ton/de/12-selbsttest.mp3",
    "breite": 1280,
    "hoehe": 800,
    "handy": false,
    "ring": {
     "x": 27.3,
-    "y": 1.7,
+    "y": 1.6,
     "w": 45.5,
-    "h": 98.3
+    "h": 98.4
    }
   }
  ]
