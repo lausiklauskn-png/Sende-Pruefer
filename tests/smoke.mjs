@@ -20,6 +20,7 @@ import * as Sprache from "./sprache.mjs";
 import * as Postfach from "./postfach.mjs";
 import * as Sicherung from "./sicherung.mjs";
 import * as Empfaenger from "./empfaenger.mjs";
+import * as Namensvorschlag from "./namensvorschlag.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -93,7 +94,7 @@ ok("LIESMICH nennt vor der Bedienung zwei Fälle, in denen man zur Seite greift"
    Wer das Modul in Sage ändert, kopiert es neu und zieht MODUL25_SHA nach.
    Eine Abwandlung HIER wäre eine zweite Fassung, die niemand prüft. */
 const MODUL25 = "modules/25_pseudonym.js";
-const MODUL25_SHA = "ad1316bfd42ae96a19ef5667fdd8cc2c4d48cbf3ac08b387f92ce00844977b61";
+const MODUL25_SHA = "8c3092babee80b8fce2c6607cc4c8ced4bbef4addf31a5f0f3de6ba5c92c2ad7";
 const modulBytes = (() => { try { return readFileSync(join(WURZEL, MODUL25)); } catch { return null; } })();
 ok("Modul 25 liegt bei (" + MODUL25 + ")", !!modulBytes);
 ok("Modul 25 ist unverändert (SHA-256 gepinnt)",
@@ -322,6 +323,7 @@ await Anhang.ohneBrowser(ok, WURZEL).catch((e) => ok("Anhänge ohne Browser: unt
 await Postfach.ohneBrowser(ok, WURZEL).catch((e) => ok("Postfach ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Sicherung.ohneBrowser(ok, WURZEL).catch((e) => ok("Sicherung ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Empfaenger.ohneBrowser(ok, WURZEL).catch((e) => ok("Empfänger ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Namensvorschlag.ohneBrowser(ok, WURZEL).catch((e) => ok("Vorschlag ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Anhang.seitentext(ok, WURZEL).catch((e) => ok("PDF-Seitentext ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
@@ -1397,6 +1399,7 @@ try {
   await Postfach.imBrowser(ok, browser, BASIS).catch((e) => ok("Postfach im Browser: unterwegs gestolpert", false, e && e.stack || e));
   await Sicherung.imBrowser(ok, browser, BASIS).catch((e) => ok("Sicherung im Browser: unterwegs gestolpert", false, e && e.stack || e));
   await Empfaenger.imBrowser(ok, browser, BASIS).catch((e) => ok("Empfänger im Browser: unterwegs gestolpert", false, e && e.stack || e));
+  await Namensvorschlag.imBrowser(ok, browser, BASIS).catch((e) => ok("Vorschlag im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {

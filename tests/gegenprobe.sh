@@ -678,6 +678,17 @@ fall "EMPF: Cc wird nicht mehr gelesen" assets/empfaenger.js \
   '["to", "cc"].forEach' '["to"].forEach' '\(\.eml\): weitere Empfänger'
 fall "EMPF: mailNamen nimmt die weiteren nicht mit" assets/empfaenger.js \
   'altNamen(m).concat(w.map' 'altNamen(m).concat([].map' 'mailNamen nimmt sie mit'
+
+fall "NAMVOR: wird nicht mehr nachgeladen" assets/ablehnung.js \
+  'nv.src = "assets/namensvorschlag.js"; document.head.append(nv);' '' 'nachgeladen'
+fall "NAMVOR: ein Tipp trägt nichts ein" assets/namensvorschlag.js \
+  'if (liste.indexOf(name) < 0) liste.push(name);' '' 'trägt den Namen in'
+fall "NAMVOR: bekannte Namen werden wieder vorgeschlagen" assets/namensvorschlag.js \
+  '{ values: mailNamen(m) }' '{}' 'schon bekannter Name'
+fall "NAMVOR: Vorschläge werden still verdeckt" assets/namensvorschlag.js \
+  'box.hidden = vs.length === 0;' 'box.hidden = vs.length === 0; if (vs.length && !m.namenExtra) m.namenExtra = vs.map(function (v) { return v.name; }).join(", ");' 'verdeckt NICHTS'
+fall "NAMVOR: leere Vorschlagszeile steht da" assets/namensvorschlag.js \
+  'box.hidden = vs.length === 0;' 'box.hidden = false;' 'ohne Anrede'
 fall "EMPF: Semikolon trennt nicht mehr" assets/empfaenger.js \
   '(c === "," || c === ";")' '(c === ",")' 'weitere Empfänger und Cc|mailNamen nimmt|keiner dieser Namen'
 fall "EMPF: ein gepasteter An-Eintrag bleibt ganz im ersten Namen" assets/empfaenger.js \

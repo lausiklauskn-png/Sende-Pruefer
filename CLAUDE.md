@@ -694,3 +694,13 @@ der Grenzen-Liste. Neu kopiert und gepinnt (`MODUL25_SHA`), `SORTE_NAME` kennt �
 (ein Datumsfall), LIESMICH-Tabelle und Grenze 2 nachgezogen, `anleitung.html` neu gebaut, Selbsttest 23/23 in
 PROBE.md. Die KI kann mit einem verdeckten Datum nicht mehr rechnen — das steht in der Tabelle. Cache v58.
 `npm test` 599 grün · `NUR_ANKER` 270 · 0 tot. Die Gegenprobe für die Datums-Regeln steht in Sage (20 Fälle).
+
+## 👤 Namensvorschläge (Klaus 2026-10-02, Grenzen-Liste 4c)
+
+„Gut, solange es ein Vorschlag bleibt." Modul 25 (neu kopiert, `MODUL25_SHA` nachgezogen) hat `suggestNames`:
+Namen nach Herr/Frau, aus der Begrüßung und aus der Grußformel. `assets/namensvorschlag.js` (nachgeladen von
+`assets/ablehnung.js`, die Seite ist voll) zeigt sie unter „Weitere Namen“ als Knöpfe (`#namen-vorschlag`,
+`data-vorschlag`). **Ein Vorschlag verdeckt nichts**; erst ein Tipp trägt den Namen in „Weitere Namen“ ein.
+Bekannte Namen (Von, An, Cc, eingetragene) werden nicht vorgeschlagen — aber ein Vorname allein schon („Hallo Anna,“
+bei bekanntem „Anna Erste“), denn verdeckt wird nur die ganze Zeichenkette. Probe `tests/namensvorschlag.mjs` ·
+Gegenprobe `NUR_FALL="NAMVOR:"` (5 Fälle, 5 gefangen). Cache v60. ⚠ Echte Mails und das Tablet nicht gemessen.

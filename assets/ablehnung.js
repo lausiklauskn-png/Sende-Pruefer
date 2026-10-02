@@ -36,5 +36,6 @@
     var p = document.createElement("script"); p.src = "assets/postfach.js"; document.head.append(p);
     var g = document.createElement("script"); g.src = "assets/sicherung.js"; document.head.append(g);
     var r = document.createElement("script"); r.src = "assets/empfaenger.js"; document.head.append(r);
+    var nv = document.createElement("script"); nv.src = "assets/namensvorschlag.js"; document.head.append(nv);
   }
 })();

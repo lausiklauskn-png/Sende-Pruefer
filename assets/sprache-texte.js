@@ -438,6 +438,7 @@
     ["Das ist keine Sicherungsdatei des Sende-Prüfers.", "This is not a backup file of the Send Checker.", "Это не файл резервной копии «Проверки отправки»."],
     ["Das Schloss (assets/schluesseltresor.js) ist nicht geladen — nichts wurde gesichert. Einmal neu laden.", "The lock (assets/schluesseltresor.js) is not loaded — nothing was backed up. Reload once.", "Замок (assets/schluesseltresor.js) не загружен — ничего не сохранено. Перезагрузите один раз."],
     ["Aus Von/An/Cc: {}", "From sender/To/Cc: {}", "Из полей От/Кому/Копия: {}"],
+    ["Vorschlag aus dem Text — verdeckt erst nach einem Tipp:", "Suggested from the text — hidden only after a tap:", "Предложение из текста — скрывается только после нажатия:"],
     // ── Fuß ──
     ["<a>Handbuch</a> · <a>Anleitung und Grenzen</a> · <a>Impressum</a> · <a>Datenschutz</a>", "<a>Manual</a> · <a>Guide and limits</a> · <a>Legal notice</a> · <a>Privacy</a>", "<a>Руководство</a> · <a>Инструкция и ограничения</a> · <a>Выходные данные</a> · <a>Конфиденциальность</a>"]
   ];

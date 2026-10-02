@@ -43,6 +43,13 @@
  * wieder ein. Rechnen kann die KI mit einem verdeckten Datum nicht („zwei
  * Wochen danach"); wer das braucht, lässt DATUM in `options.types` weg.
  *
+ * NAMENSVORSCHLÄGE (2026-10-02, Grenzen-Liste Punkt 4c): `suggestNames` nennt
+ * Wörter nach Herr/Frau, aus der Begrüßung und aus der Grußformel. Es bleibt
+ * ein VORSCHLAG (Klaus: „gut, solange es ein Vorschlag bleibt") — verdeckt wird
+ * ein Name erst, wenn der Mensch ihn über `values` mitgibt. Grenze: nur diese
+ * drei Stellen, nur großgeschriebene Wörter; „Herrn Meier Bescheid geben"
+ * ergibt „Meier", ein Name mitten im Satz wird nicht vorgeschlagen.
+ *
  * Ehrliche Grenzen: Pseudonymisierung ≠ Verschlüsselung. Was kein Muster hat
  * (Adressen, „die Filialleiterin in Kiel"), erkennt es nicht. Ein Datum ohne
  * Tag („März 2026") und englische Schreibweisen („March 12") auch nicht.
@@ -57,6 +64,7 @@
  * Public surface (registered on window.SbkimPseudonym):
  *   pseudonymize(text, options?)        -> { text, map, tokens, findings }
  *   find(text, options?)                -> Array<{start,end,line,type,value}>
+ *   suggestNames(text, options?)        -> Array<{name,start,end,line,grund}>  (nur Vorschlag)
  *   rehydrate(text, map)                -> text
  *   findLeak(text, map)                 -> string | null
  *   pseudonymizeObject(obj, options?)   -> { data, map, tokens }
@@ -163,6 +171,58 @@
   var ORDER = ["SCHLUESSEL", "MAIL", "IBAN", "BETRAG", "RECHNUNG", "TELEFON", "DATUM"];
   var ALIAS = { EMAIL: "MAIL", TEL: "TELEFON" };
   var DEFAULT_TYPES = ORDER.slice();
+
+  // ── Namensvorschläge (Klaus 2026-10-02, Grenzen-Liste 4c) ────────────────
+  // „gut, solange es ein Vorschlag bleibt": suggestNames VERDECKT NICHTS. Es
+  // nennt Wörter nach Herr/Frau, aus der Begrüßung („Hallo Petra,") und aus
+  // der Grußformel („Viele Grüße\nPetra Schmidt"). Was davon ein Name ist,
+  // entscheidet der Mensch und gibt ihn über `values` an find/pseudonymize.
+  // find und pseudonymize rufen diese Funktion nie auf.
+  var NW = "\\p{Lu}[\\p{Ll}ß]+(?:-\\p{Lu}[\\p{Ll}ß]+)?";
+  var TITEL = "(?:(?:Dr|Prof|Dipl\\.-Ing)\\.\\s+)*";
+  // Nach Herr/Frau EIN Wort — ein zweites nur, wenn danach die Zeile oder der
+  // Satzteil endet („Frau Petra Schmidt,"). Sonst wäre „Herrn Meier Bescheid
+  // geben" ein Name aus zwei Wörtern: im Deutschen sind Hauptwörter groß.
+  var VOR_ANREDE = rx("NAMENSVORSCHLAG", "(?<![\\p{L}])(?:Herrn?|Frau|Hr\\.|Fr\\.)\\s+" + TITEL +
+    "(" + NW + "(?:[ \\t]+" + NW + "(?=[ \\t]*(?:[,.;:!?)]|$)))?)", "gmu");
+  var VOR_GRUSS = rx("NAMENSVORSCHLAG", "^[ \\t]*(?:Hallo|Hi|Hey|Moin|Servus|Liebe[rs]?|Guten[ \\t]+(?:Tag|Morgen|Abend))[ \\t]+" +
+    "(" + NW + "(?:[ \\t]+" + NW + ")?)[ \\t]*(?:[,!]|$)", "gmu");
+  var VOR_ABSCHIED = rx("NAMENSVORSCHLAG", "^[ \\t]*(?:(?:Mit[ \\t]+)?(?:freundlichen|besten|herzlichen|lieben|vielen|sonnigen)[ \\t]+Gr(?:ü|ue)(?:ß|ss)en|" +
+    "(?:Viele|Beste|Liebe|Herzliche|Schöne|Freundliche)[ \\t]+Gr(?:ü|ue)(?:ß|ss)e|Gr(?:ü|ue)(?:ß|ss)e|Gru(?:ß|ss)|LG|VG|MfG)" +
+    "[ \\t]*,?[ \\t]*(?:\\r?\\n[ \\t]*)?(" + NW + "(?:[ \\t]+" + NW + "){0,2})[ \\t]*$", "gmu");
+  // Wörter, die an diesen Stellen stehen und kein Name sind.
+  var KEIN_NAME = ["herr", "herrn", "frau", "damen", "herren", "team", "kollege", "kollegin", "kollegen",
+    "kolleginnen", "alle", "allerseits", "zusammen", "leute", "kunde", "kundin", "kunden", "freunde",
+    "familie", "ihr", "ihre", "euer", "eure", "dein", "deine", "sie", "du", "euch", "mama", "papa",
+    "chef", "chefin", "nachbar", "nachbarin", "nochmal", "und", "aus", "vom", "von"];
+
+  function suggestNames(text, options) {
+    if (!isString(text)) throw InvalidPseudonymArgError("text muss ein String sein.");
+    options = options || {};
+    var bekannt = {};
+    normalizeValues(options).forEach(function (v) { bekannt[v.value.toLowerCase()] = true; });
+    var out = [], gesehen = {};
+    function zeileVon(pos) { var n = 1; for (var i = 0; i < pos; i++) if (text.charCodeAt(i) === 10) n++; return n; }
+    function nimm(re, grund) {
+      if (!re) return;
+      re.lastIndex = 0;
+      var m;
+      while ((m = re.exec(text)) !== null) {
+        if (m[0].length === 0) { re.lastIndex++; continue; }
+        var name = m[1], start = m.index + m[0].lastIndexOf(name), key = name.toLowerCase();
+        var woerter = key.split(/\s+/);
+        if (woerter.some(function (w) { return KEIN_NAME.indexOf(w) !== -1; })) continue;
+        if (bekannt[key] || gesehen[key]) continue;
+        gesehen[key] = true;
+        out.push({ name: name, start: start, end: start + name.length, line: zeileVon(start), grund: grund });
+      }
+    }
+    nimm(VOR_ANREDE, "anrede");
+    nimm(VOR_GRUSS, "begruessung");
+    nimm(VOR_ABSCHIED, "grussformel");
+    out.sort(function (a, b) { return a.start - b.start; });
+    return out;
+  }
 
   function makeToken(type, index) {
     if (!isType(type)) throw InvalidPseudonymArgError("Platzhalter-Sorte muss GROSS beginnen: " + String(type));
@@ -379,6 +439,7 @@
   global.SbkimPseudonym = {
     pseudonymize: pseudonymize,
     find: find,
+    suggestNames: suggestNames,
     rehydrate: rehydrate,
     findLeak: findLeak,
     pseudonymizeObject: pseudonymizeObject,
