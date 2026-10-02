@@ -1,7 +1,7 @@
 /* Offline-Vorrat des Sende-Prüfers. Wer eine Datei aus CORE ändert, erhöht
    CACHE_VERSION — sonst liefert der Worker die alte Fassung weiter.
    Anfragen an fremde Adressen (die KI-Anbieter) fasst er NICHT an. */
-const CACHE_VERSION = "sende-pruefer-v47";
+const CACHE_VERSION = "sende-pruefer-v48";
 const CORE = ["./", "index.html", "start.html", "assets/start.css?v=1", "sende-pruefer.html", "handbuch.html", "anleitung.html", "koeder.txt", "LIESMICH.md", "manifest.json", "icons/favicon-32.png", "icons/marke-72.png", "icons/sende-pruefer-bild.webp", "modules/25_pseudonym.js", "assets/abschirmung.js", "assets/sbkim-init.js", "assets/siegel-inhalt.js", "assets/schluesseltresor.js", "assets/tresor-ui.js", "assets/anbieter.js", "assets/ablehnung.js", "assets/aussen.js", "assets/anhaenge.js", "assets/installieren.js?v=1", "assets/pruefer-anhang.js", "assets/pruefer-formate.js", "assets/pruefer-mail.js", "assets/pruefer.js", "sicherheit.html", "impressum.html", "datenschutz.html"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_VERSION).then((c) =>
