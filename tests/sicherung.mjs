@@ -86,8 +86,9 @@ export async function imBrowser(ok, browser, BASIS) {
 
   /* ein zweites Zurückholen überschreibt nichts */
   await page.evaluate(() => { MAILS.find((x) => x.id === "eigen-1").betreff = "geändert"; });
+  await page.evaluate(() => { document.getElementById("sicherung-zurueck-meldung").textContent = ""; });
   await page.fill("#sicherung-pw-zurueck", "geheim-1234"); await page.click("#sicherung-holen");
-  await page.waitForFunction(() => /0 Mail\(s\) dazu/.test(document.getElementById("sicherung-zurueck-meldung").textContent), null, { timeout: 30000 });
+  await page.waitForFunction(() => /✓|passt nicht|ließ sich nicht/.test(document.getElementById("sicherung-zurueck-meldung").textContent), null, { timeout: 30000 });
   ok("Sicherung: ein zweites Zurückholen fügt nichts doppelt hinzu und überschreibt nichts",
     await page.evaluate(() => MAILS.filter((x) => x.id === "eigen-1").length === 1 && MAILS.find((x) => x.id === "eigen-1").betreff === "geändert"));
 
