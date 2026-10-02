@@ -282,7 +282,7 @@ fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
 fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
   '"handbuch.html", ' '"handbuch.html", "handbuch/ton/de/01-postfach.mp3", ' 'NICHT im Installations-Vorrat'
 fall "TON: eine Szene verliert ihre englische Aufnahme" handbuch.html \
-  ' data-ton-en="handbuch/ton/en/01-postfach.mp3"' '' 'englische Aufnahme (data-ton-en)'
+  ' data-ton-en="handbuch/ton/en/01-postfach.mp3"' '' 'englische Aufnahme .data-ton-en.'
 fall "TON: Watch in English spielt die deutsche Aufnahme" handbuch.html \
   'sprache === "en" ? s.dataset.tonEn : s.dataset.ton' 's.dataset.ton' 'Watch in English spielt die englische'
 fall "TON: der englische Knopf fehlt" handbuch.html \
