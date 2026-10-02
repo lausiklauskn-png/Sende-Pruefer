@@ -685,7 +685,7 @@ function zeichneLesen() {
   }
   const nx = el("input", { id: "namen", value: String(m.namenExtra || "").replace(/\s*\n\s*/g, ", "), autocomplete: "off", spellcheck: "false", oninput: (e) => { m.namenExtra = e.target.value; geaendert(m); } });
   box.append(el("div", { class: "namen" }, el("label", { for: "namen" }, "Weitere Namen, die nicht hinausgehen sollen"),
-    el("p", { class: "gedaempft", style: "margin:0 0 4px", "data-namen-zweck": true }, "Tragen Sie Personen- und Firmennamen ein, die im Text vorkommen (durch Komma getrennt): sie werden dann ebenfalls verdeckt. Die Namen aus Von und An sind schon dabei."),
+    el("p", { class: "gedaempft", style: "margin:0 0 4px", "data-namen-zweck": true }, "Tragen Sie Personen- und Firmennamen ein, die im Text vorkommen (durch Komma getrennt): sie werden dann ebenfalls verdeckt. Die Namen aus Von, An und Cc sind schon dabei."),
     nx, el("p", { class: "meldung warn", id: "namen-hinweis", "data-ohne-namen": true }, "Es sind keine Namen bekannt, deshalb wird kein Name verdeckt."),
     el("p", { class: "gedaempft", id: "namen-auto" })));
   box.append(el("div", { class: "funde", id: "funde" }),
