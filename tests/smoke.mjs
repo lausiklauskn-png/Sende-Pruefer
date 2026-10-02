@@ -16,6 +16,7 @@ import { join, dirname, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { findeChromium } from "./chromium-finden.mjs";
 import * as Anhang from "./anhaenge.mjs";
+import * as Postfach from "./postfach.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -314,6 +315,7 @@ const BASIS = `http://127.0.0.1:${server.address().port}/`;
 
 /* ── Anhänge ohne Browser (tests/anhaenge.mjs) ── */
 await Anhang.ohneBrowser(ok, WURZEL).catch((e) => ok("Anhänge ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Postfach.ohneBrowser(ok, WURZEL).catch((e) => ok("Postfach ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Anhang.seitentext(ok, WURZEL).catch((e) => ok("PDF-Seitentext ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
@@ -399,7 +401,8 @@ try {
 
   /* ── das Postfach: Ordner, Beispiele beim ersten Öffnen ─────────────── */
   const ordner = await page.evaluate(() => [...document.querySelectorAll("#ordnerliste [data-ordner]")].map((e) => e.dataset.ordner));
-  ok("vier Ordner: Eingefügt · Entwürfe · KI-Antworten · Exportiert", JSON.stringify(ordner) === '["eingang","entwurf","antwort","export"]', ordner.join(","));
+  /* Tafel-Evolution (2026-10-02): seit assets/postfach.js folgen Archiv und Papierkorb — die vier Ordner der ART stehen weiter vorn. */
+  ok("vier Ordner: Eingefügt · Entwürfe · KI-Antworten · Exportiert", JSON.stringify(ordner.slice(0, 4)) === '["eingang","entwurf","antwort","export"]', ordner.join(","));
   const saat = await page.evaluate(() => window.SendePruefer.mails().map((m) => m.bid + "@" + m.ordner).sort());
   ok("beim ersten Öffnen liegen die drei Beispiele da", JSON.stringify(saat) === '["eva@entwurf","jonas@eingang","petra@eingang"]', saat.join(","));
   ok("jede Zeile im Postfach trägt ihre Schutz-Zahl und die Marke „Beispiel“",
@@ -1383,6 +1386,7 @@ try {
   }
   /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
   await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
+  await Postfach.imBrowser(ok, browser, BASIS).catch((e) => ok("Postfach im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {
