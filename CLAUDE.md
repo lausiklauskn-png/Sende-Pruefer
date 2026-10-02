@@ -595,3 +595,16 @@ Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s). Se
 - ⚠ Nicht gemessen: Klang und Schnitte am Tablet; ob speechmas Bedingungen das Veröffentlichen
   der Stimme erlauben.
 - Proben: `smoke.mjs` (Dateien, Schnitte lückenlos, Abspielen gestellt) · Gegenprobe `TON:` (6 Fälle).
+
+## ⏯ Abspieler im Handbuch (Klaus 2026-10-02)
+
+„Manuell verschiebbar … stoppen und wieder play … eine Stufe zurück … vor … soll auch dann oben das Bild springen …
+wie ein Videoplayer in jeder Sprache." Die Leiste unter „▶ Vorführen" ist ein Abspieler: Regler `#zeit` über die
+ganze Vorführung (Marken an den Szenenwechseln), ⏮ `#zurueck` · ⏸/▶ `#spielen` · ⏭ `#vor` · ✕ `#stopp`, Uhr
+„m:ss / m:ss" und „Szene n/12", beschriftet in DE/EN/RU. Ziehen springt mitsamt Bild (`scrollIntoView` „instant",
+weil `html{scroll-behavior:smooth}` sonst hinterherläuft) und Untertitel; loslassen spielt nur weiter, wenn es vorher
+lief. Weiterspielen setzt `currentTime` in der Aufnahme; eine Geräte-Stimme kann das nicht und liest die Szene von vorn.
+Am Ende hält er an, statt zu schließen. Tastatur: Leertaste, ←/→, Esc. Länge je Szene aus `schnitte.json`
+(`data-dauer`, `-en`, `-ru`, gesetzt von `handbuch-bauen.mjs`); fehlt eine Aufnahme, wird sie aus der Textlänge
+geschätzt. Probe in `smoke.mjs` (1280 und 380 px) · Gegenprobe `REGLER:` (10 Fälle). Cache v53.
+⚠ Am Tablet nicht gemessen (Ziehen mit dem Finger, Springen in der echten Aufnahme).

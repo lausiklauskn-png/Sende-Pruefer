@@ -1179,6 +1179,81 @@ try {
       ok("… eine Stimme auf dem Gerät liest den Sprechtext vor", await h.evaluate(() => window.__gesprochen[0] === "Geräte-Stimme"));
       await h.keyboard.press("Escape");
       ok("… Esc beendet sie ebenfalls", await h.evaluate(() => !window.__handbuch.laeuft()));
+
+      /* ── der Abspieler (Klaus 2026-10-02: „manuell verschiebbar … stoppen und wieder
+         play … eine Stufe zurück … vor … soll auch dann oben das Bild springen …
+         wie ein Videoplayer in jeder Sprache") ── */
+      await h.evaluate(() => { window.__tonFehlt = false; window.__gespielt = []; window.__stimmen.length = 1; });
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => window.__gespielt.length >= 1, null, { timeout: 8000 }).catch(() => {});
+      const lage0 = await h.evaluate(() => ({ max: Number(document.getElementById("zeit").max), gesamt: window.__handbuch.gesamt(),
+        summe: [...document.querySelectorAll(".szene")].reduce((a, x) => a + Number(x.dataset.dauer || 0), 0),
+        marken: document.querySelectorAll("#marken i").length, szenen: document.querySelectorAll(".szene").length }));
+      ok("Abspieler: der Regler reicht über die ganze Vorführung (Summe der Szenenlängen aus den Schnitten)",
+        lage0.summe > 60 && Math.abs(lage0.gesamt - lage0.summe) < 0.5 && Math.abs(lage0.max - lage0.gesamt) < 0.2, JSON.stringify(lage0));
+      ok("… und trägt eine Marke an jedem Szenenwechsel", lage0.marken === lage0.szenen - 1, JSON.stringify(lage0));
+      await h.click("#spielen");
+      const nachPause = await h.evaluate(() => window.__gespielt.length);
+      await h.waitForTimeout(900);   /* hier soll NICHTS geschehen — eine Frist, die verstreichen muss */
+      ok("⏸ hält an: in der Pause läuft keine weitere Szene, die Leiste bleibt offen",
+        await h.evaluate((n) => window.__gespielt.length === n && window.__handbuch.pausiert() && window.__handbuch.laeuft() && !document.getElementById("buehne").hidden, nachPause));
+      ok("… und der Knopf heißt dann ▶ Abspielen", await h.evaluate(() => { const b = document.getElementById("spielen"); return b.textContent === "▶" && b.getAttribute("aria-label") === "Abspielen"; }));
+      const s0 = await h.evaluate(() => window.__handbuch.szene());
+      await h.click("#vor");
+      ok("⏭ springt eine Szene vor — samt Bild oben und Untertitel, und bleibt angehalten",
+        await h.evaluate((k) => { const a = document.querySelector(".szene.aktiv"); return window.__handbuch.szene() === k + 1 && a === document.querySelectorAll(".szene")[k + 1]
+          && document.getElementById("ut").textContent === a.querySelector("[data-sprech]").textContent.replace("🎙", "").trim() && window.__handbuch.pausiert(); }, s0));
+      await h.click("#zurueck");
+      ok("⏮ springt eine Szene zurück", await h.evaluate((k) => window.__handbuch.szene() === k && document.querySelector(".szene.aktiv") === document.querySelectorAll(".szene")[k], s0));
+      const ziel = await h.evaluate(() => {
+        const sz = [...document.querySelectorAll(".szene")]; let t = 0; for (let k = 0; k < 5; k++) t += Number(sz[k].dataset.dauer);
+        const z = document.getElementById("zeit"); z.value = String(t + 1.5);
+        z.dispatchEvent(new Event("input", { bubbles: true })); return t + 1.5; });
+      await h.waitForTimeout(400);   /* das Bild rollt hin */
+      const gezogen = await h.evaluate(() => { const a = document.querySelector(".szene.aktiv"), r = a.querySelector("img").getBoundingClientRect();
+        return { szene: window.__handbuch.szene(), nr: a.dataset.nr, ut: document.getElementById("ut").textContent === a.querySelector("[data-sprech]").textContent.replace("🎙", "").trim(),
+          imBild: r.top < innerHeight && r.bottom > 0, uhr: document.getElementById("uhr").textContent, welche: document.getElementById("welche").textContent }; });
+      ok("den Regler ziehen springt an die Stelle: Szene 6, oben das Bild im Blick, darunter ihr Untertitel",
+        gezogen.szene === 5 && gezogen.nr === "6" && gezogen.ut && gezogen.imBild, JSON.stringify(gezogen));
+      ok("… die Uhr nennt Stelle und Länge, daneben „Szene 6/12“", /^\d+:\d\d \/ \d+:\d\d$/.test(gezogen.uhr) && gezogen.welche === "Szene 6/12", JSON.stringify(gezogen));
+      await h.evaluate(() => document.getElementById("zeit").dispatchEvent(new Event("change", { bubbles: true })));
+      ok("… loslassen in der Pause bleibt angehalten, an genau der Stelle",
+        await h.evaluate((t) => window.__handbuch.pausiert() && Math.abs(window.__handbuch.position() - t) < 0.3, ziel), await h.evaluate(() => window.__handbuch.position()));
+      await h.evaluate(() => { window.__gespielt = []; });
+      await h.click("#spielen");
+      await h.waitForFunction(() => window.__gespielt.length >= 1, null, { timeout: 8000 }).catch(() => {});
+      ok("▶ spielt dort weiter: die Aufnahme von Szene 6",
+        await h.evaluate(() => /handbuch\/ton\/de\/06-[^/]+\.mp3$/.test(window.__gespielt[0]) && !window.__handbuch.pausiert()), await h.evaluate(() => JSON.stringify(window.__gespielt)));
+      await h.click("#spielen");
+      await h.locator("body").focus().catch(() => {});
+      await h.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+      await h.keyboard.press("ArrowRight");
+      ok("Tastatur: → springt eine Szene vor", await h.evaluate(() => window.__handbuch.szene() === 6));
+      await h.keyboard.press("Space");
+      ok("… Leertaste spielt weiter", await h.evaluate(() => !window.__handbuch.pausiert()));
+      await h.click("#stopp");
+      for (const [knopf, spr, vor, gross] of [["#vorfuehren-en", "en", "Next scene", "En"], ["#vorfuehren-ru", "ru", "Следующая сцена", "Ru"]]) {
+        await h.click(knopf);
+        await h.click("#spielen");
+        const l = await h.evaluate((g) => ({ vor: document.getElementById("vor").getAttribute("aria-label"), lang: document.getElementById("buehne").lang,
+          gesamt: window.__handbuch.gesamt(), summe: [...document.querySelectorAll(".szene")].reduce((a, x) => a + Number(x.dataset["dauer" + g] || 0), 0) }), gross);
+        ok("Abspieler auf " + spr + ": beschriftet in der Sprache, Länge aus den " + spr + "-Schnitten", l.vor === vor && l.lang === spr && l.summe > 60 && Math.abs(l.gesamt - l.summe) < 0.5, JSON.stringify(l));
+        await h.click("#vor");
+        ok("… ⏭ springt auch dort, mit dem Untertitel der Sprache",
+          await h.evaluate((g) => window.__handbuch.szene() === 1 && document.getElementById("ut").textContent === document.querySelector(".szene.aktiv").dataset["sprech" + g], gross));
+        await h.click("#stopp");
+      }
+    } else if (breite === 380) {
+      await h.evaluate(() => { window.__tonFehlt = false; });
+      await h.click("#vorfuehren");
+      await h.click("#spielen");
+      const m = await h.evaluate(() => { const b = document.getElementById("buehne").getBoundingClientRect();
+        const k = ["zurueck", "spielen", "vor", "stopp", "zeit"].map((id) => document.getElementById(id).getBoundingClientRect());
+        return { b: [Math.round(b.left), Math.round(b.right)], innen: k.every((r) => r.left >= b.left - 1 && r.right <= b.right + 1 && r.width > 0),
+          gross: k.slice(0, 4).every((r) => r.height >= 36 && r.width >= 36), ueber: document.documentElement.scrollWidth - document.documentElement.clientWidth }; });
+      ok("380 px: der Abspieler passt — Regler und Knöpfe in der Leiste, groß genug für den Finger, nichts quer",
+        m.b[0] >= 0 && m.b[1] <= 380 && m.innen && m.gross && m.ueber <= 0, JSON.stringify(m));
+      await h.click("#stopp");
     }
     await hCtx.close();
   }
