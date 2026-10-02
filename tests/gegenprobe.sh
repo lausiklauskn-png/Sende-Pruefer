@@ -272,9 +272,9 @@ fall "HB: am kleinen Handy steht der Thema-Knopf wieder in der Kopfleiste" $H \
 fall "TON: eine Szene verliert ihre Aufnahme" handbuch.html \
   ' data-ton="handbuch/ton/de/01-postfach.mp3"' '' 'trägt ihre Aufnahme'
 fall "TON: Vorführen nimmt wieder die Browser-Stimme" handbuch.html \
-  'if (tonQuelle) {' 'if (false) {' 'spielt die Aufnahme der Szene'
+  'q = tonVon(s), d = dauerVon(s)' 'q = null, d = dauerVon(s)' 'spielt die Aufnahme der Szene'
 fall "TON: ohne Aufnahme gibt es keinen Rückweg zur Stimme" handbuch.html \
-  'if (geklappt) weiter(); else sprechen(s, text, weiter);' 'weiter();' 'spielt die Aufnahme nicht'
+  'if (geklappt) naechste(); else sprechen(s, text, d, mein);' 'naechste();' 'spielt die Aufnahme nicht'
 fall "TON: die Schnitte haben eine Lücke" handbuch/ton/de/schnitte.json \
   '"von": 15.49,' '"von": 16.49,' 'lückenlos'
 fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
@@ -284,7 +284,7 @@ fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
 fall "TON: eine Szene verliert ihre englische Aufnahme" handbuch.html \
   ' data-ton-en="handbuch/ton/en/01-postfach.mp3"' '' 'englische Aufnahme .data-ton-en.'
 fall "TON: Watch in English spielt die deutsche Aufnahme" handbuch.html \
-  's.dataset["ton" + gross]' 's.dataset.ton' 'Watch in English spielt die englische'
+  ': s.dataset["ton" + gross()]; }' ': s.dataset.ton; }' 'Watch in English spielt die englische'
 fall "TON: der englische Knopf fehlt" handbuch.html \
   '<button class="knopf" id="vorfuehren-en" type="button" lang="en">' '<button class="knopf" id="vorfuehren-xx" type="button" lang="en">' 'Watch in English“ steht'
 fall "TON: die englischen Schnitte haben eine Lücke" handbuch/ton/en/schnitte.json \
@@ -297,6 +297,28 @@ fall "TON: die russische Zuordnung gilt als eindeutig, obwohl sie es nicht ist" 
   '"eindeutig": true,' '"eindeutig": false,' 'russischen Schnitte'
 fall "TON: Смотреть по-русски spielt die deutsche Aufnahme" handbuch.html \
   'if (ru) ru.addEventListener("click", function () { start("ru"); });' 'if (ru) ru.addEventListener("click", function () { start("de"); });' 'по-русски spielt die russische'
+
+# ── Abspieler (Klaus 2026-10-02: „wie ein Videoplayer in jeder Sprache") ──
+fall "REGLER: Pause hält nicht an" handbuch.html \
+  'else { halt(); pausiert = true; anzeigen(); }' 'else { anzeigen(); }' 'hält an: in der Pause'
+fall "REGLER: ⏭ springt nicht vor" handbuch.html \
+  'if (laeuft) gehe(i + 1, 0, !pausiert); });' 'if (laeuft) gehe(i, 0, !pausiert); });' 'springt eine Szene vor'
+fall "REGLER: ⏮ springt nicht zurück" handbuch.html \
+  'if (laeuft) gehe(i - 1, 0, !pausiert); });' 'if (laeuft) gehe(i, 0, !pausiert); });' 'springt eine Szene zurück'
+fall "REGLER: ziehen bewegt das Bild nicht mit" handbuch.html \
+  'var st = stelle(Number(zeit.value)); zeigeSzene(st[0], false); pos = st[1]; anzeigen();' 'pos = 0; anzeigen();' 'springt an die Stelle'
+fall "REGLER: loslassen spielt in der Pause los" handbuch.html \
+  'weiter = ziehen ? warSpielend : !pausiert;' 'weiter = true;' 'bleibt angehalten, an genau'
+fall "REGLER: weiterspielen beginnt die Szene von vorn" handbuch.html \
+  'try { a.currentTime = pos; } catch (_e) {}' '' 'nicht von vorn'
+fall "REGLER: die Länge kommt nicht aus den Schnitten" handbuch.html \
+  'return d > 0 ? d : Math.max(5,' 'return 0 > 1 ? d : Math.max(5,' 'Summe der Szenenlängen'
+fall "REGLER: keine Marken an den Szenenwechseln" handbuch.html \
+  'marken.appendChild(m);' '' 'eine Marke an jedem'
+fall "REGLER: der Abspieler spricht nur Deutsch" handbuch.html \
+  'document.getElementById("vor").setAttribute("aria-label", T.vor);' '' 'beschriftet in der Sprache'
+fall "REGLER: am Handy läuft die Steuerung aus der Leiste" handbuch.html \
+  '.buehne .steuer{display:flex;flex-wrap:wrap;' '.buehne .steuer{display:flex;flex-wrap:nowrap;width:600px;' '380 px: der Abspieler passt'
 
 # ── Anleitung als Seite (Klaus 2026-09-29) ──
 fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \

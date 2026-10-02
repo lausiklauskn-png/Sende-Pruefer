@@ -44,6 +44,15 @@ const browser = await chromium.launch({ executablePath: findeChromium() });
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const zwei = (n) => String(n).padStart(2, "0");
 const liste = [];
+/* Länge jeder Szene in Sekunden, aus den Schnitten (Klaus 2026-10-02: der
+   Regler unten soll wie bei einem Video zeigen, wo man steht). Fehlt eine
+   Aufnahme, schätzt die Seite selbst aus der Textlänge. */
+const dauern = {};
+for (const spr of ["de", "en", "ru"]) {
+  const f = path.join(W, "handbuch", "ton", spr, "schnitte.json");
+  dauern[spr] = {};
+  if (fs.existsSync(f)) for (const x of JSON.parse(fs.readFileSync(f, "utf8")).schnitte) dauern[spr][x.nr] = Math.round((x.bis - x.von) * 100) / 100;
+}
 
 for (const [i, s] of SZENEN.entries()) {
   const ctx = await browser.newContext({ viewport: s.ansicht, locale: "de-DE", colorScheme: "dark", deviceScaleFactor: 1, reducedMotion: "reduce" }); // „weniger Bewegung“: kein Bild mitten im Flug auf dem Foto
@@ -70,7 +79,9 @@ for (const [i, s] of SZENEN.entries()) {
   const fremd = (spr) => { const t = s.sprechText?.[spr] || null, d = `handbuch/ton/${spr}/${zwei(i + 1)}-${s.id}.mp3`;
     return [t, t && fs.existsSync(path.join(W, d)) ? d : null]; };
   const [sprechEn, tonEn] = fremd("en"), [sprechRu, tonRu] = fremd("ru");
-  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, ton, sprechEn, tonEn, sprechRu, tonRu, breite: vw, hoehe: vh, handy: vw < 600, ring });
+  const dauer = (spr, t) => (t && dauern[spr][i + 1]) || null;
+  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, ton, sprechEn, tonEn, sprechRu, tonRu,
+    dauer: dauer("de", ton), dauerEn: dauer("en", tonEn), dauerRu: dauer("ru", tonRu), breite: vw, hoehe: vh, handy: vw < 600, ring });
   await ctx.close();
   console.log(`  ✓ ${zwei(i + 1)} ${s.titel}`);
 }
@@ -82,7 +93,7 @@ fs.writeFileSync(path.join(ZIEL, "szenen.json"), JSON.stringify({
 }, null, 1) + "\n");
 
 const szenenHtml = liste.map((s) => `
-<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}"${s.ton ? ` data-ton="${s.ton}"` : ""}${s.sprechEn ? ` data-sprech-en="${esc(s.sprechEn)}"` : ""}${s.tonEn ? ` data-ton-en="${s.tonEn}"` : ""}${s.sprechRu ? ` data-sprech-ru="${esc(s.sprechRu)}"` : ""}${s.tonRu ? ` data-ton-ru="${s.tonRu}"` : ""}>
+<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}"${s.ton ? ` data-ton="${s.ton}"` : ""}${s.sprechEn ? ` data-sprech-en="${esc(s.sprechEn)}"` : ""}${s.tonEn ? ` data-ton-en="${s.tonEn}"` : ""}${s.sprechRu ? ` data-sprech-ru="${esc(s.sprechRu)}"` : ""}${s.tonRu ? ` data-ton-ru="${s.tonRu}"` : ""}${s.dauer ? ` data-dauer="${s.dauer}"` : ""}${s.dauerEn ? ` data-dauer-en="${s.dauerEn}"` : ""}${s.dauerRu ? ` data-dauer-ru="${s.dauerRu}"` : ""}>
  <div class="kopfzeile"><span class="nr">${zwei(s.nr)}</span><h2>${esc(s.titel)}</h2></div>
  <figure class="bild">
   <img src="${s.bild}" width="${s.breite}" height="${s.hoehe}" alt="${esc(s.titel)} — Bildschirmfoto der App" loading="${s.nr > 2 ? "lazy" : "eager"}" decoding="async">

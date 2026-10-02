@@ -93,8 +93,16 @@ html.bewegt .szene.da{opacity:1;transform:none}
 .buehne[hidden]{display:none}
 .buehne .zeile{display:flex;gap:12px;align-items:center}
 .buehne .ut{flex:1;font-size:1.02rem;color:var(--schrift)}
-.buehne .balken{height:3px;border-radius:3px;background:var(--linie);margin-top:10px;overflow:hidden}
-.buehne .balken i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--petrol),var(--gold))}
+/* Abspieler wie bei einem Video (Klaus 2026-10-02): Regler zum Ziehen, Pause, Szene vor und zurück. */
+.buehne .zu{min-width:40px;padding:6px 10px}
+.buehne .spur{position:relative;margin-top:10px}
+.buehne .marken{position:absolute;left:0;right:0;top:50%;height:10px;margin-top:-5px;pointer-events:none}
+.buehne .marken i{position:absolute;top:0;width:2px;height:10px;margin-left:-1px;background:var(--leise);opacity:.55}
+.buehne input[type=range]{position:relative;width:100%;margin:0;height:28px;background:transparent;accent-color:var(--gold);cursor:pointer}
+.buehne .steuer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.buehne .steuer .knopf{min-width:44px;min-height:40px;padding:6px 12px;font-size:1.05rem}
+.buehne .uhr{font-variant-numeric:tabular-nums;color:var(--schrift);font-size:.9rem;margin-left:4px}
+.buehne .welche{color:var(--leise);font-size:.85rem;margin-left:auto}
 .buehne .stimme{font-size:.8rem;color:var(--leise);margin-top:6px}
 .szene.aktiv .bild{border-color:var(--gold);box-shadow:0 30px 60px rgb(0 0 0/.45),0 0 40px rgb(243 181 74/.35)}
 @media (max-width:900px){
@@ -134,7 +142,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <nav class="film" aria-label="Szenen"><a href="#szene-postfach" data-zu="postfach"><span>01</span> Das Postfach</a><a href="#szene-einfuegen" data-zu="einfuegen"><span>02</span> Eine Mail hereinholen</a><a href="#szene-original" data-zu="original"><span>03</span> Die Mail, wie sie ist</a><a href="#szene-ki-sicht" data-zu="ki-sicht"><span>04</span> Was die KI sieht</a><a href="#szene-namen" data-zu="namen"><span>05</span> Namen, die kein Muster findet</a><a href="#szene-aufgaben" data-zu="aufgaben"><span>06</span> Was soll die KI tun?</a><a href="#szene-wege" data-zu="wege"><span>07</span> Zwei Wege hinaus</a><a href="#szene-antwort" data-zu="antwort"><span>08</span> Die Antwort kommt mit Klartext zurück</a><a href="#szene-abschirmen" data-zu="abschirmen"><span>09</span> Abschirmen</a><a href="#szene-knoten" data-zu="knoten"><span>10</span> Ein eigener Knoten im Netz</a><a href="#szene-handy" data-zu="handy"><span>11</span> Am Handy</a><a href="#szene-selbsttest" data-zu="selbsttest"><span>12</span> Der Selbsttest</a></nav>
  <div class="szenen">
 
-<section class="szene" id="szene-postfach" data-szene="postfach" data-nr="1" data-ton="handbuch/ton/de/01-postfach.mp3" data-sprech-en="This is your mailbox – right in your browser. Four folders, a message list, and the email on the right. The number on each line shows how many details are protected. Nothing is stored on a server." data-ton-en="handbuch/ton/en/01-postfach.mp3" data-sprech-ru="Это ваш почтовый ящик — прямо в браузере. Четыре папки, список писем, а справа — само письмо. Число в каждой строке показывает, сколько данных защищено. Ничего не хранится на сервере." data-ton-ru="handbuch/ton/ru/01-postfach.mp3">
+<section class="szene" id="szene-postfach" data-szene="postfach" data-nr="1" data-ton="handbuch/ton/de/01-postfach.mp3" data-sprech-en="This is your mailbox – right in your browser. Four folders, a message list, and the email on the right. The number on each line shows how many details are protected. Nothing is stored on a server." data-ton-en="handbuch/ton/en/01-postfach.mp3" data-sprech-ru="Это ваш почтовый ящик — прямо в браузере. Четыре папки, список писем, а справа — само письмо. Число в каждой строке показывает, сколько данных защищено. Ничего не хранится на сервере." data-ton-ru="handbuch/ton/ru/01-postfach.mp3" data-dauer="15.49" data-dauer-en="11.46" data-dauer-ru="15.16">
  <div class="kopfzeile"><span class="nr">01</span><h2>Das Postfach</h2></div>
  <figure class="bild">
   <img src="handbuch/01-postfach.jpg" width="1280" height="800" alt="Das Postfach — Bildschirmfoto der App" loading="eager" decoding="async">
@@ -144,7 +152,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Das ist Ihr Postfach im Browser. Vier Ordner, eine Liste – und rechts die Mail. Die Zahl an jeder Zeile zeigt, wie viele Angaben geschützt werden. Nichts davon liegt auf einem Server.</p>
 </section>
 
-<section class="szene" id="szene-einfuegen" data-szene="einfuegen" data-nr="2" data-ton="handbuch/ton/de/02-einfuegen.mp3" data-sprech-en="To add an email, select “Paste Email”. You can paste it from the clipboard or open a saved file. The Send Checker automatically recognizes From, To, and Subject." data-ton-en="handbuch/ton/en/02-einfuegen.mp3" data-sprech-ru="Чтобы добавить письмо, нажмите «Вставить письмо». Его можно вставить из буфера обмена или открыть из сохранённого файла. Поля «От кого», «Кому» и «Тема» Sende-Prüfer распознаёт автоматически." data-ton-ru="handbuch/ton/ru/02-einfuegen.mp3">
+<section class="szene" id="szene-einfuegen" data-szene="einfuegen" data-nr="2" data-ton="handbuch/ton/de/02-einfuegen.mp3" data-sprech-en="To add an email, select “Paste Email”. You can paste it from the clipboard or open a saved file. The Send Checker automatically recognizes From, To, and Subject." data-ton-en="handbuch/ton/en/02-einfuegen.mp3" data-sprech-ru="Чтобы добавить письмо, нажмите «Вставить письмо». Его можно вставить из буфера обмена или открыть из сохранённого файла. Поля «От кого», «Кому» и «Тема» Sende-Prüfer распознаёт автоматически." data-ton-ru="handbuch/ton/ru/02-einfuegen.mp3" data-dauer="11.95" data-dauer-en="10.36" data-dauer-ru="15.55">
  <div class="kopfzeile"><span class="nr">02</span><h2>Eine Mail hereinholen</h2></div>
  <figure class="bild">
   <img src="handbuch/02-einfuegen.jpg" width="1280" height="800" alt="Eine Mail hereinholen — Bildschirmfoto der App" loading="eager" decoding="async">
@@ -154,7 +162,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Eine Mail holen Sie mit „Mail einfügen“ herein: aus der Zwischenablage oder als gespeicherte Datei. Von, An und Betreff erkennt der Sende-Prüfer selbst.</p>
 </section>
 
-<section class="szene" id="szene-original" data-szene="original" data-nr="3" data-ton="handbuch/ton/de/03-original.mp3" data-sprech-en="Here’s a sample email containing information that should stay private: names, addresses, an invoice number, an amount, and bank details." data-ton-en="handbuch/ton/en/03-original.mp3" data-sprech-ru="Перед вами пример письма с данными, которые не должны передаваться ИИ: имена, адреса, номер счёта, сумма и банковские реквизиты." data-ton-ru="handbuch/ton/ru/03-original.mp3">
+<section class="szene" id="szene-original" data-szene="original" data-nr="3" data-ton="handbuch/ton/de/03-original.mp3" data-sprech-en="Here’s a sample email containing information that should stay private: names, addresses, an invoice number, an amount, and bank details." data-ton-en="handbuch/ton/en/03-original.mp3" data-sprech-ru="Перед вами пример письма с данными, которые не должны передаваться ИИ: имена, адреса, номер счёта, сумма и банковские реквизиты." data-ton-ru="handbuch/ton/ru/03-original.mp3" data-dauer="9.44" data-dauer-en="6.91" data-dauer-ru="8.96">
  <div class="kopfzeile"><span class="nr">03</span><h2>Die Mail, wie sie ist</h2></div>
  <figure class="bild">
   <img src="handbuch/03-original.jpg" width="1280" height="800" alt="Die Mail, wie sie ist — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -164,7 +172,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Hier sehen Sie eine erfundene Mail mit allem, was nicht zur KI soll: Namen, Adressen, Rechnungsnummer, Betrag und Kontonummer.</p>
 </section>
 
-<section class="szene" id="szene-ki-sicht" data-szene="ki-sicht" data-nr="4" data-ton="handbuch/ton/de/04-ki-sicht.mp3" data-sprech-en="Select “What the AI sees”. Now you see exactly what will be sent. Private information is replaced with placeholders. The same information always gets the same placeholder." data-ton-en="handbuch/ton/en/04-ki-sicht.mp3" data-sprech-ru="Нажмите «Что видит ИИ». Теперь вы видите именно тот текст, который будет отправлен. Конфиденциальные данные заменяются заполнителями. Одинаковые данные всегда получают одинаковый заполнитель." data-ton-ru="handbuch/ton/ru/04-ki-sicht.mp3">
+<section class="szene" id="szene-ki-sicht" data-szene="ki-sicht" data-nr="4" data-ton="handbuch/ton/de/04-ki-sicht.mp3" data-sprech-en="Select “What the AI sees”. Now you see exactly what will be sent. Private information is replaced with placeholders. The same information always gets the same placeholder." data-ton-en="handbuch/ton/en/04-ki-sicht.mp3" data-sprech-ru="Нажмите «Что видит ИИ». Теперь вы видите именно тот текст, который будет отправлен. Конфиденциальные данные заменяются заполнителями. Одинаковые данные всегда получают одинаковый заполнитель." data-ton-ru="handbuch/ton/ru/04-ki-sicht.mp3" data-dauer="13.76" data-dauer-en="9.41" data-dauer-ru="15.62">
  <div class="kopfzeile"><span class="nr">04</span><h2>Was die KI sieht</h2></div>
  <figure class="bild">
   <img src="handbuch/04-ki-sicht.jpg" width="1280" height="800" alt="Was die KI sieht — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -174,7 +182,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Mit „Was die KI sieht“ erscheint genau der Text, der hinausgeht. Geschützte Angaben werden durch Platzhalter ersetzt. Dieselbe Angabe bekommt immer denselben Platzhalter.</p>
 </section>
 
-<section class="szene" id="szene-namen" data-szene="namen" data-nr="5" data-ton="handbuch/ton/de/05-namen.mp3" data-sprech-en="Names from From and To are detected automatically. You can add more names here." data-ton-en="handbuch/ton/en/05-namen.mp3" data-sprech-ru="Имена из полей «От кого» и «Кому» определяются автоматически. Другие имена можно добавить здесь." data-ton-ru="handbuch/ton/ru/05-namen.mp3">
+<section class="szene" id="szene-namen" data-szene="namen" data-nr="5" data-ton="handbuch/ton/de/05-namen.mp3" data-sprech-en="Names from From and To are detected automatically. You can add more names here." data-ton-en="handbuch/ton/en/05-namen.mp3" data-sprech-ru="Имена из полей «От кого» и «Кому» определяются автоматически. Другие имена можно добавить здесь." data-ton-ru="handbuch/ton/ru/05-namen.mp3" data-dauer="7.57" data-dauer-en="6.27" data-dauer-ru="9.03">
  <div class="kopfzeile"><span class="nr">05</span><h2>Namen, die kein Muster findet</h2></div>
  <figure class="bild">
   <img src="handbuch/05-namen.jpg" width="1280" height="800" alt="Namen, die kein Muster findet — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -184,7 +192,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Die Namen aus Von und An übernimmt der Sende-Prüfer selbst. Weitere Namen tragen Sie hier ein.</p>
 </section>
 
-<section class="szene" id="szene-aufgaben" data-szene="aufgaben" data-nr="6" data-ton="handbuch/ton/de/06-aufgaben.mp3" data-sprech-en="What should the AI do? Choose a task, like checking an invoice or payment reminder, or enter your own. The Send Checker creates the full instruction for you. You can also save your own tasks." data-ton-en="handbuch/ton/en/06-aufgaben.mp3" data-sprech-ru="Что должен сделать ИИ? Выберите задачу — например, обработать счёт или напоминание об оплате. Или введите свою. Sende-Prüfer сам создаст полную инструкцию. Свои задачи можно сохранить." data-ton-ru="handbuch/ton/ru/06-aufgaben.mp3">
+<section class="szene" id="szene-aufgaben" data-szene="aufgaben" data-nr="6" data-ton="handbuch/ton/de/06-aufgaben.mp3" data-sprech-en="What should the AI do? Choose a task, like checking an invoice or payment reminder, or enter your own. The Send Checker creates the full instruction for you. You can also save your own tasks." data-ton-en="handbuch/ton/en/06-aufgaben.mp3" data-sprech-ru="Что должен сделать ИИ? Выберите задачу — например, обработать счёт или напоминание об оплате. Или введите свою. Sende-Prüfer сам создаст полную инструкцию. Свои задачи можно сохранить." data-ton-ru="handbuch/ton/ru/06-aufgaben.mp3" data-dauer="15.94" data-dauer-en="12.45" data-dauer-ru="17.21">
  <div class="kopfzeile"><span class="nr">06</span><h2>Was soll die KI tun?</h2></div>
  <figure class="bild">
   <img src="handbuch/06-aufgaben.jpg" width="1280" height="800" alt="Was soll die KI tun? — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -194,7 +202,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Was soll die KI tun? Wählen Sie eine Aufgabe, etwa Rechnung oder Mahnung, oder tragen Sie selbst eine ein. Daraus entsteht die vollständige Anweisung. Eigene Aufgaben lassen sich speichern.</p>
 </section>
 
-<section class="szene" id="szene-wege" data-szene="wege" data-nr="7" data-ton="handbuch/ton/de/07-wege.mp3" data-sprech-en="Now choose how to continue. Copy the protected text and use your own AI subscription – or send it directly with your own key. Only the protected text leaves your device. And only when you choose to send it." data-ton-en="handbuch/ton/en/07-wege.mp3" data-sprech-ru="Теперь выберите способ отправки. Скопируйте защищённый текст и используйте свою подписку на ИИ — или отправьте его напрямую с помощью собственного ключа. С устройства уходит только защищённый текст. И только тогда, когда вы сами запускаете отправку." data-ton-ru="handbuch/ton/ru/07-wege.mp3">
+<section class="szene" id="szene-wege" data-szene="wege" data-nr="7" data-ton="handbuch/ton/de/07-wege.mp3" data-sprech-en="Now choose how to continue. Copy the protected text and use your own AI subscription – or send it directly with your own key. Only the protected text leaves your device. And only when you choose to send it." data-ton-en="handbuch/ton/en/07-wege.mp3" data-sprech-ru="Теперь выберите способ отправки. Скопируйте защищённый текст и используйте свою подписку на ИИ — или отправьте его напрямую с помощью собственного ключа. С устройства уходит только защищённый текст. И только тогда, когда вы сами запускаете отправку." data-ton-ru="handbuch/ton/ru/07-wege.mp3" data-dauer="14.17" data-dauer-en="12.02" data-dauer-ru="17.91">
  <div class="kopfzeile"><span class="nr">07</span><h2>Zwei Wege hinaus</h2></div>
  <figure class="bild">
   <img src="handbuch/07-wege.jpg" width="1280" height="800" alt="Zwei Wege hinaus — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -204,7 +212,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Jetzt haben Sie zwei Wege: den geschützten Text kopieren und Ihr eigenes KI-Abo nutzen – oder direkt mit Ihrem Schlüssel senden. Hinaus geht nur der geschützte Text und nur, wenn Sie es auslösen.</p>
 </section>
 
-<section class="szene" id="szene-antwort" data-szene="antwort" data-nr="8" data-ton="handbuch/ton/de/08-antwort.mp3" data-sprech-en="The AI response comes back with the placeholders intact. The Send Checker restores the original information. Then you can file, save, or share the result." data-ton-en="handbuch/ton/en/08-antwort.mp3" data-sprech-ru="Ответ ИИ возвращается с теми же заполнителями. Sende-Prüfer восстанавливает исходные данные. После этого результат можно сохранить, отправить или поместить в нужную папку." data-ton-ru="handbuch/ton/ru/08-antwort.mp3">
+<section class="szene" id="szene-antwort" data-szene="antwort" data-nr="8" data-ton="handbuch/ton/de/08-antwort.mp3" data-sprech-en="The AI response comes back with the placeholders intact. The Send Checker restores the original information. Then you can file, save, or share the result." data-ton-en="handbuch/ton/en/08-antwort.mp3" data-sprech-ru="Ответ ИИ возвращается с теми же заполнителями. Sende-Prüfer восстанавливает исходные данные. После этого результат можно сохранить, отправить или поместить в нужную папку." data-ton-ru="handbuch/ton/ru/08-antwort.mp3" data-dauer="13.05" data-dauer-en="9.54" data-dauer-ru="13.02">
  <div class="kopfzeile"><span class="nr">08</span><h2>Die Antwort kommt mit Klartext zurück</h2></div>
  <figure class="bild">
   <img src="handbuch/08-antwort.jpg" width="1280" height="800" alt="Die Antwort kommt mit Klartext zurück — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -214,7 +222,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Die Antwort der KI kommt mit Platzhaltern zurück. Der Sende-Prüfer setzt die echten Angaben wieder ein. Danach können Sie die Antwort ablegen, speichern oder teilen.</p>
 </section>
 
-<section class="szene" id="szene-abschirmen" data-szene="abschirmen" data-nr="9" data-ton="handbuch/ton/de/09-abschirmen.mp3" data-sprech-en="“Shield” keeps writing assistants out of your fields. If something else tries to read along, the “External” light turns on." data-ton-en="handbuch/ton/en/09-abschirmen.mp3" data-sprech-ru="Функция «Защита» не позволяет помощникам по письму читать содержимое полей. Если что-то постороннее пытается получить доступ, загорается индикатор «Посторонний»." data-ton-ru="handbuch/ton/ru/09-abschirmen.mp3">
+<section class="szene" id="szene-abschirmen" data-szene="abschirmen" data-nr="9" data-ton="handbuch/ton/de/09-abschirmen.mp3" data-sprech-en="“Shield” keeps writing assistants out of your fields. If something else tries to read along, the “External” light turns on." data-ton-en="handbuch/ton/en/09-abschirmen.mp3" data-sprech-ru="Функция «Защита» не позволяет помощникам по письму читать содержимое полей. Если что-то постороннее пытается получить доступ, загорается индикатор «Посторонний»." data-ton-ru="handbuch/ton/ru/09-abschirmen.mp3" data-dauer="8.9" data-dauer-en="7.59" data-dauer-ru="12.15">
  <div class="kopfzeile"><span class="nr">09</span><h2>Abschirmen</h2></div>
  <figure class="bild">
   <img src="handbuch/09-abschirmen.jpg" width="1280" height="800" alt="Abschirmen — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -224,7 +232,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> „Abschirmen“ hält Schreibhelfer aus den Feldern heraus. Versucht etwas Fremdes mitzulesen, leuchtet die Lampe „Fremd“.</p>
 </section>
 
-<section class="szene" id="szene-knoten" data-szene="knoten" data-nr="10" data-ton="handbuch/ton/de/10-knoten.mp3" data-sprech-en="At the top is the network bar, with three lights, the seal, and the Mycel bubble. The Send Checker connects only when you want it to – and never with your emails." data-ton-en="handbuch/ton/en/10-knoten.mp3" data-sprech-ru="Вверху находится сетевая панель: три индикатора, печать и значок Mycel. Sende-Prüfer подключается к сети только по вашему желанию — и никогда не передаёт туда ваши письма." data-ton-ru="handbuch/ton/ru/10-knoten.mp3">
+<section class="szene" id="szene-knoten" data-szene="knoten" data-nr="10" data-ton="handbuch/ton/de/10-knoten.mp3" data-sprech-en="At the top is the network bar, with three lights, the seal, and the Mycel bubble. The Send Checker connects only when you want it to – and never with your emails." data-ton-en="handbuch/ton/en/10-knoten.mp3" data-sprech-ru="Вверху находится сетевая панель: три индикатора, печать и значок Mycel. Sende-Prüfer подключается к сети только по вашему желанию — и никогда не передаёт туда ваши письма." data-ton-ru="handbuch/ton/ru/10-knoten.mp3" data-dauer="11.14" data-dauer-en="9.36" data-dauer-ru="12.43">
  <div class="kopfzeile"><span class="nr">10</span><h2>Ein eigener Knoten im Netz</h2></div>
  <figure class="bild">
   <img src="handbuch/10-knoten.jpg" width="1280" height="800" alt="Ein eigener Knoten im Netz — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -234,7 +242,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Oben sehen Sie die Netz-Leiste mit drei Lampen, Siegel und Mycel-Blase. Ins Netz geht der Sende-Prüfer nur, wenn Sie es wollen – niemals mit Ihren Mails.</p>
 </section>
 
-<section class="szene hoch" id="szene-handy" data-szene="handy" data-nr="11" data-ton="handbuch/ton/de/11-handy.mp3" data-sprech-en="On mobile, three dots show the current status. Tap them to open the seal and network controls. Your folders are at the bottom." data-ton-en="handbuch/ton/en/11-handy.mp3" data-sprech-ru="На телефоне три точки показывают текущее состояние. Нажмите на них, чтобы открыть настройки печати и сети. Папки находятся внизу." data-ton-ru="handbuch/ton/ru/11-handy.mp3">
+<section class="szene hoch" id="szene-handy" data-szene="handy" data-nr="11" data-ton="handbuch/ton/de/11-handy.mp3" data-sprech-en="On mobile, three dots show the current status. Tap them to open the seal and network controls. Your folders are at the bottom." data-ton-en="handbuch/ton/en/11-handy.mp3" data-sprech-ru="На телефоне три точки показывают текущее состояние. Нажмите на них, чтобы открыть настройки печати и сети. Папки находятся внизу." data-ton-ru="handbuch/ton/ru/11-handy.mp3" data-dauer="9.89" data-dauer-en="7.89" data-dauer-ru="11.29">
  <div class="kopfzeile"><span class="nr">11</span><h2>Am Handy</h2></div>
  <figure class="bild">
   <img src="handbuch/11-handy.jpg" width="390" height="844" alt="Am Handy — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -244,7 +252,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p class="sprech" data-sprech><span class="mikro" aria-hidden="true">🎙</span> Am Handy zeigen drei Punkte den Zustand. Ein Tipp öffnet Siegel und Netz. Die Ordner liegen unten.</p>
 </section>
 
-<section class="szene" id="szene-selbsttest" data-szene="selbsttest" data-nr="12" data-ton="handbuch/ton/de/12-selbsttest.mp3" data-sprech-en="The self-test uses a decoy to check the Send Checker. So you can see for yourself that it does exactly what it promises." data-ton-en="handbuch/ton/en/12-selbsttest.mp3" data-sprech-ru="Самотест проверяет Sende-Prüfer с помощью приманки. Так вы сами можете убедиться, что он выполняет именно то, что обещает." data-ton-ru="handbuch/ton/ru/12-selbsttest.mp3">
+<section class="szene" id="szene-selbsttest" data-szene="selbsttest" data-nr="12" data-ton="handbuch/ton/de/12-selbsttest.mp3" data-sprech-en="The self-test uses a decoy to check the Send Checker. So you can see for yourself that it does exactly what it promises." data-ton-en="handbuch/ton/en/12-selbsttest.mp3" data-sprech-ru="Самотест проверяет Sende-Prüfer с помощью приманки. Так вы сами можете убедиться, что он выполняет именно то, что обещает." data-ton-ru="handbuch/ton/ru/12-selbsttest.mp3" data-dauer="9" data-dauer-en="6.88" data-dauer-ru="9.69">
  <div class="kopfzeile"><span class="nr">12</span><h2>Der Selbsttest</h2></div>
  <figure class="bild">
   <img src="handbuch/12-selbsttest.jpg" width="1280" height="800" alt="Der Selbsttest — Bildschirmfoto der App" loading="lazy" decoding="async">
@@ -260,9 +268,16 @@ html.bewegt .szene.da{opacity:1;transform:none}
  <p><b>Was der Sende-Prüfer nicht ist:</b> kein Virenscanner und kein Mail-Programm. Alle Grenzen stehen in der <a href="anleitung.html">Anleitung</a>. Dieses Handbuch holt nichts aus dem Netz. „▶ Vorführen“ spielt eine aufgenommene Stimme ab, die mit dieser Seite kommt; fehlt sie, liest nur eine Stimme vor, die auf diesem Gerät liegt. „▶ Watch in English“ tut dasselbe auf Englisch — die Bilder zeigen weiter die deutsche Oberfläche.</p>
 </footer>
 
-<div class="buehne" id="buehne" hidden role="status" aria-live="polite">
- <div class="zeile"><span class="ut" id="ut"></span><button class="knopf" id="stopp" type="button">■ Stopp</button></div>
- <div class="balken"><i id="fortschritt"></i></div>
+<div class="buehne" id="buehne" hidden role="region" aria-label="Abspieler">
+ <div class="zeile"><span class="ut" id="ut" aria-live="polite"></span><button class="knopf zu" id="stopp" type="button" aria-label="Schließen">✕</button></div>
+ <div class="spur"><div class="marken" id="marken" aria-hidden="true"></div><input type="range" id="zeit" min="0" max="1" step="0.1" value="0" aria-label="Stelle in der Vorführung"></div>
+ <div class="steuer">
+  <button class="knopf" id="zurueck" type="button" aria-label="Vorige Szene">⏮</button>
+  <button class="knopf haupt" id="spielen" type="button" aria-label="Pause">⏸</button>
+  <button class="knopf" id="vor" type="button" aria-label="Nächste Szene">⏭</button>
+  <span class="uhr" id="uhr"></span>
+  <span class="welche" id="welche"></span>
+ </div>
  <div class="stimme" id="stimme"></div>
 </div>
 
@@ -292,7 +307,7 @@ html.bewegt .szene.da{opacity:1;transform:none}
      kein Aufruf nach draußen. Fehlt sie oder spielt sie nicht, liest nur
      eine Stimme, die AUF DEM GERÄT liegt (localService). Eine Netz-Stimme
      schickte den Text an ihren Anbieter; dann gibt es nur den Untertitel. */
-  var buehne = document.getElementById("buehne"), ut = document.getElementById("ut"), balken = document.getElementById("fortschritt"), stimmeZeile = document.getElementById("stimme");
+  var buehne = document.getElementById("buehne"), ut = document.getElementById("ut"), stimmeZeile = document.getElementById("stimme");
   /* EIN Spieler für alle Szenen, angelegt beim Tipp auf „▶ Vorführen“:
      Handys erlauben Ton nur aus einer Berührung heraus — ein neues
      Audio-Element je Szene stünde nach der ersten stumm da. */
@@ -300,12 +315,29 @@ html.bewegt .szene.da{opacity:1;transform:none}
      data-ton-en. Die Bilder bleiben die der deutschen Oberfläche — der
      Sende-Prüfer hat noch keine englische. Russisch genauso
      (data-sprech-ru, data-ton-ru, Knopf „▶ Смотреть по-русски“). */
-  var laeuft = false, uhr = null, i = 0, ton = null, lauf = 0, sprache = "de";
+  /* Abspieler (Klaus 2026-10-02: „wie ein Videoplayer, in jeder Sprache"):
+     der Regler steht über der ganzen Vorführung; ziehen springt mitsamt Bild
+     an die Stelle, ⏸/▶ hält an und spielt weiter, ⏮/⏭ springen eine Szene.
+     Die Länge einer Szene kommt aus den Schnitten (data-dauer…); fehlt die
+     Aufnahme, wird sie aus der Textlänge geschätzt. */
+  var zeit = document.getElementById("zeit"), uhrZeile = document.getElementById("uhr"), welche = document.getElementById("welche"),
+      knopfSpielen = document.getElementById("spielen"), marken = document.getElementById("marken");
+  var laeuft = false, pausiert = false, ziehen = false, warSpielend = false, uhr = null, ticker = null,
+      i = 0, pos = 0, ton = null, lauf = 0, sprache = "de", anfang = [], gesamt = 0;
   var TXT = {
-    de: { ton: "Aufgenommene Stimme, abgespielt von dieser Seite.", geraet: function (n) { return "Vorgelesen von „" + n + "“ auf diesem Gerät."; }, keine: "Keine Stimme auf diesem Gerät — nur Untertitel." },
-    en: { ton: "Recorded voice, played from this page.", geraet: function (n) { return "Read by “" + n + "” on this device."; }, keine: "No voice on this device — subtitles only." },
-    ru: { ton: "Записанный голос, воспроизводится с этой страницы.", geraet: function (n) { return "Читает «" + n + "» на этом устройстве."; }, keine: "На этом устройстве нет голоса — только субтитры." }
+    de: { ton: "Aufgenommene Stimme, abgespielt von dieser Seite.", geraet: function (n) { return "Vorgelesen von „" + n + "“ auf diesem Gerät."; }, keine: "Keine Stimme auf diesem Gerät — nur Untertitel.",
+      pause: "Pause", spielen: "Abspielen", zurueck: "Vorige Szene", vor: "Nächste Szene", zu: "Schließen", stelle: "Stelle in der Vorführung", szene: "Szene", spieler: "Abspieler" },
+    en: { ton: "Recorded voice, played from this page.", geraet: function (n) { return "Read by “" + n + "” on this device."; }, keine: "No voice on this device — subtitles only.",
+      pause: "Pause", spielen: "Play", zurueck: "Previous scene", vor: "Next scene", zu: "Close", stelle: "Position in the tour", szene: "Scene", spieler: "Player" },
+    ru: { ton: "Записанный голос, воспроизводится с этой страницы.", geraet: function (n) { return "Читает «" + n + "» на этом устройстве."; }, keine: "На этом устройстве нет голоса — только субтитры.",
+      pause: "Пауза", spielen: "Воспроизвести", zurueck: "Предыдущая сцена", vor: "Следующая сцена", zu: "Закрыть", stelle: "Позиция в показе", szene: "Сцена", spieler: "Проигрыватель" }
   };
+  function gross() { return sprache.charAt(0).toUpperCase() + sprache.slice(1); }
+  function textVon(s) { return sprache === "de" ? s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim() : (s.dataset["sprech" + gross()] || ""); }
+  function tonVon(s) { return sprache === "de" ? s.dataset.ton : s.dataset["ton" + gross()]; }
+  function dauerVon(s) { var d = Number(sprache === "de" ? s.dataset.dauer : s.dataset["dauer" + gross()]);
+    return d > 0 ? d : Math.max(5, textVon(s).length * 0.065); }
+  function mmss(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); }
   function stimme() {
     var s = window.speechSynthesis; if (!s) return null;
     var re = new RegExp("^" + sprache, "i");
@@ -313,63 +345,134 @@ html.bewegt .szene.da{opacity:1;transform:none}
     return alle[0] || null;
   }
   window.__handbuchStimme = stimme;
-  function stopp() {
-    laeuft = false; clearTimeout(uhr); buehne.hidden = true;
-    lauf++; if (ton) { try { ton.pause(); } catch (_e) {} }
-    szenen.forEach(function (s) { s.classList.remove("aktiv"); });
+  /* Hält jede laufende Wiedergabe an, ohne die Leiste zu schließen. */
+  function halt() {
+    lauf++; clearTimeout(uhr); clearInterval(ticker);
+    if (ton) { try { ton.onended = ton.onerror = ton.ontimeupdate = null; ton.pause(); } catch (_e) {} }
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_e) {}
   }
-  function zeige() {
-    if (!laeuft) return;
-    if (i >= szenen.length) { stopp(); return; }
-    var s = szenen[i], gross = sprache.charAt(0).toUpperCase() + sprache.slice(1), text = sprache === "de" ? s.querySelector("[data-sprech]").textContent.replace("🎙", "").trim() : (s.dataset["sprech" + gross] || "");
-    var tonQuelle = sprache === "de" ? s.dataset.ton : s.dataset["ton" + gross];
+  function stopp() {
+    halt(); laeuft = false; pausiert = false; buehne.hidden = true;
+    szenen.forEach(function (s) { s.classList.remove("aktiv"); });
+  }
+  function anzeigen() {
+    var t = (anfang[i] || 0) + pos;
+    if (!ziehen) zeit.value = String(Math.round(t * 10) / 10);
+    uhrZeile.textContent = mmss(t) + " / " + mmss(gesamt);
+    welche.textContent = TXT[sprache].szene + " " + (i + 1) + "/" + szenen.length;
+    var spielt = laeuft && !pausiert;
+    knopfSpielen.textContent = spielt ? "⏸" : "▶";
+    knopfSpielen.setAttribute("aria-label", spielt ? TXT[sprache].pause : TXT[sprache].spielen);
+  }
+  /* Zeigt Szene k (Bild, Ring, Untertitel), ohne zu spielen. */
+  function zeigeSzene(k, sanft) {
+    var neu = k !== i || !szenen[k].classList.contains("aktiv"); i = k;
+    var s = szenen[i];
     szenen.forEach(function (x) { x.classList.toggle("aktiv", x === s); });
     s.classList.add("da");
-    s.scrollIntoView({ behavior: ruhig ? "auto" : "smooth", block: "start" });
-    ut.textContent = text;
-    balken.style.width = Math.round(((i + 1) / szenen.length) * 100) + "%";
-    var weiter = function () { if (!laeuft) return; i++; uhr = setTimeout(zeige, 700); };
-    if (tonQuelle) {
-      var a = ton || (ton = new Audio()), mein = ++lauf, fertig = false;
+    if (neu) s.scrollIntoView({ behavior: ruhig || !sanft ? "instant" : "smooth", block: "start" });
+    ut.textContent = textVon(s);
+  }
+  function naechste() { if (!laeuft || pausiert) return; if (i + 1 >= szenen.length) { pos = dauerVon(szenen[i]); pausiert = true; anzeigen(); return; }
+    uhr = setTimeout(function () { gehe(i + 1, 0, true); }, 300); }
+  /* Springt an Szene k, Sekunde off; spielen = gleich weiterspielen. */
+  function gehe(k, off, spielen) {
+    halt();
+    k = Math.max(0, Math.min(szenen.length - 1, k));
+    zeigeSzene(k, true); pos = Math.max(0, off || 0);
+    if (spielen) { pausiert = false; abspielen(); } else pausiert = true;
+    anzeigen();
+  }
+  function abspielen() {
+    var s = szenen[i], text = textVon(s), q = tonVon(s), d = dauerVon(s), mein = lauf;
+    if (q) {
+      var a = ton || (ton = new Audio()), fertig = false;
       var aus = function (geklappt) {
         if (fertig || mein !== lauf || !laeuft) return; fertig = true; clearTimeout(uhr);
-        if (geklappt) weiter(); else sprechen(s, text, weiter);
+        if (geklappt) naechste(); else sprechen(s, text, d, mein);
       };
-      a.onended = function () { aus(true); };
+      a.onended = function () { pos = d; anzeigen(); aus(true); };
       a.onerror = function () { aus(false); };
-      a.src = tonQuelle;
+      a.ontimeupdate = function () { if (mein === lauf && !ziehen) { pos = Math.min(d, a.currentTime || 0); anzeigen(); } };
+      if (a.getAttribute("src") !== q) a.src = q;
+      try { a.currentTime = pos; } catch (_e) {}
       stimmeZeile.textContent = TXT[sprache].ton;
-      uhr = setTimeout(function () { aus(true); }, 6000 + text.length * 120);
+      uhr = setTimeout(function () { aus(true); }, (d - pos + 6) * 1000 + text.length * 40);
       var p = a.play(); if (p && p.catch) p.catch(function () { aus(false); });
       return;
     }
-    sprechen(s, text, weiter);
+    sprechen(s, text, d, mein);
   }
-  function sprechen(s, text, weiter) {
-    var v = stimme();
+  /* Ohne Aufnahme: eine Stimme auf dem Gerät oder nur Untertitel. Eine
+     Geräte-Stimme kann nicht mitten im Satz einsetzen — sie liest die Szene
+     von vorn; der Regler läuft nach der Uhr. */
+  function sprechen(s, text, d, mein) {
+    var v = stimme(), los = Date.now() - pos * 1000;
     stimmeZeile.textContent = v ? TXT[sprache].geraet(v.name) : TXT[sprache].keine;
+    clearInterval(ticker);
+    ticker = setInterval(function () { if (mein !== lauf) return; pos = Math.min(d, (Date.now() - los) / 1000); anzeigen(); }, 250);
+    var fertig = false; var ende = function () { if (fertig || mein !== lauf) return; fertig = true; clearInterval(ticker); naechste(); };
     if (v) {
       var u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang; u.rate = 1;
-      var fertig = false; var ende = function () { if (fertig) return; fertig = true; weiter(); };
       u.onend = ende; u.onerror = ende;
       uhr = setTimeout(ende, 4000 + text.length * 90);
       window.speechSynthesis.speak(u);
-    } else uhr = setTimeout(weiter, Math.max(5000, text.length * 65));
+    } else uhr = setTimeout(ende, Math.max(0, d - pos) * 1000);
+  }
+  function umschalten() {
+    if (!laeuft) return;
+    if (pausiert) { if (i === szenen.length - 1 && pos >= dauerVon(szenen[i]) - 0.05) gehe(0, 0, true); else { pausiert = false; abspielen(); anzeigen(); } }
+    else { halt(); pausiert = true; anzeigen(); }
+  }
+  function stelle(t) {
+    var k = 0; while (k + 1 < szenen.length && t >= anfang[k + 1]) k++;
+    return [k, Math.max(0, t - anfang[k])];
   }
   function start(spr) {
     stopp(); if (!ton && window.Audio) ton = new Audio();
     sprache = spr; buehne.lang = spr;
-    laeuft = true; i = 0; buehne.hidden = false; zeige();
+    var T = TXT[spr];
+    buehne.setAttribute("aria-label", T.spieler); zeit.setAttribute("aria-label", T.stelle);
+    document.getElementById("zurueck").setAttribute("aria-label", T.zurueck);
+    document.getElementById("vor").setAttribute("aria-label", T.vor);
+    document.getElementById("stopp").setAttribute("aria-label", T.zu);
+    anfang = []; gesamt = 0;
+    szenen.forEach(function (s) { anfang.push(gesamt); gesamt += dauerVon(s); });
+    zeit.max = String(Math.round(gesamt * 10) / 10);
+    marken.textContent = "";
+    anfang.slice(1).forEach(function (t) { var m = document.createElement("i"); m.style.left = (t / gesamt * 100) + "%"; marken.appendChild(m); });
+    laeuft = true; buehne.hidden = false; gehe(0, 0, true);
   }
+  zeit.addEventListener("input", function () {
+    if (!laeuft) return;
+    if (!ziehen) { ziehen = true; warSpielend = !pausiert; halt(); pausiert = true; }
+    var st = stelle(Number(zeit.value)); zeigeSzene(st[0], false); pos = st[1]; anzeigen();
+  });
+  zeit.addEventListener("change", function () {
+    if (!laeuft) return;
+    var st = stelle(Number(zeit.value)), weiter = ziehen ? warSpielend : !pausiert;
+    ziehen = false; gehe(st[0], st[1], weiter);
+  });
+  knopfSpielen.addEventListener("click", umschalten);
+  document.getElementById("zurueck").addEventListener("click", function () { if (laeuft) gehe(i - 1, 0, !pausiert); });
+  document.getElementById("vor").addEventListener("click", function () { if (laeuft) gehe(i + 1, 0, !pausiert); });
   document.getElementById("vorfuehren").addEventListener("click", function () { start("de"); });
   var en = document.getElementById("vorfuehren-en");
   if (en) en.addEventListener("click", function () { start("en"); });
   var ru = document.getElementById("vorfuehren-ru");
   if (ru) ru.addEventListener("click", function () { start("ru"); });
   document.getElementById("stopp").addEventListener("click", stopp);
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && laeuft) stopp(); });
-  window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, szene: function () { return i; }, sprache: function () { return sprache; } };
+  document.addEventListener("keydown", function (e) {
+    if (!laeuft) return;
+    if (e.key === "Escape") { stopp(); return; }
+    var feld = e.target && /^(INPUT|BUTTON|TEXTAREA|SELECT|A)$/.test(e.target.tagName);
+    if (feld) return;
+    if (e.key === " " || e.key === "k") { e.preventDefault(); umschalten(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); gehe(i - 1, 0, !pausiert); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); gehe(i + 1, 0, !pausiert); }
+  });
+  window.__handbuch = { stopp: stopp, laeuft: function () { return laeuft; }, pausiert: function () { return pausiert; }, szene: function () { return i; },
+    sprache: function () { return sprache; }, position: function () { return (anfang[i] || 0) + pos; }, gesamt: function () { return gesamt; } };
 })();
 </script>
 </body>
