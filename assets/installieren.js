@@ -91,7 +91,8 @@
     var t = document.createElement("span"); t.className = "t";
     k.appendChild(z); k.appendChild(t);
     k.addEventListener("click", klick);
-    hilfe.parentNode.insertBefore(k, hilfe);
+    var vor = document.getElementById("neuladen") || hilfe;   /* ⟳ steht immer direkt vor dem ? */
+    hilfe.parentNode.insertBefore(k, vor);
     /* Am schmalen Handy fehlt der Platz (das Suchfeld braucht 60 px); dort geht
        der Weg über Chrome ⋮ → „App installieren". */
     var st = document.createElement("style");

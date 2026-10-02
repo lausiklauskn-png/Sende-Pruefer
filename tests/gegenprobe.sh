@@ -276,7 +276,7 @@ fall "TON: Vorführen nimmt wieder die Browser-Stimme" handbuch.html \
 fall "TON: ohne Aufnahme gibt es keinen Rückweg zur Stimme" handbuch.html \
   'if (geklappt) weiter(); else sprechen(s, text, weiter);' 'weiter();' 'spielt die Aufnahme nicht'
 fall "TON: die Schnitte haben eine Lücke" handbuch/ton/de/schnitte.json \
-  '"von": 12.75' '"von": 13.75' 'lückenlos'
+  '"von": 12.2,' '"von": 13.2,' 'lückenlos'
 fall "TON: der Worker legt auch Teil-Antworten ab" sw.js \
   'if (r.status === 200) {' 'if (r.ok) {' 'ganze Antworten'
 fall "TON: die Aufnahme rutscht in den Installations-Vorrat" sw.js \
@@ -556,6 +556,21 @@ fall "SICHER: die sichere Fassung nennt den KI-Fund als entfernt" assets/anhaeng
   'var WEG_BEIM_ZEICHNEN = ["BILD-METADATEN",' 'var WEG_BEIM_ZEICHNEN = ["BILD-KI-ANWEISUNG", "BILD-METADATEN",' 'nur, was das Neuzeichnen'
 fall "LESEN: das Beispiel im Eingang verspricht wieder Überschreiben" assets/aussen.js \
   'if (h && m && m.ordner === "eingang") {' 'if (h && m && m.ordner === "nie") {' 'kein Überschreiben'
+
+fall "NEULADEN: der Knopf wird nicht mehr nachgeladen" assets/sbkim-init.js \
+  's.src = "assets/neuladen.js?v=1";' 's.src = "assets/fehlt.js";' 'steht sichtbar direkt vor dem'
+fall "NEULADEN: der Knopf bekommt wieder Text" assets/neuladen.js \
+  'z.textContent = "⟳";' 'z.textContent = "⟳ Aktualisieren";' 'nur das Zeichen, kein Text'
+fall "NEULADEN: der eigene Vorrat bleibt liegen" assets/neuladen.js \
+  'return caches.delete(n);' 'return n;' 'wirft den eigenen Vorrat weg'
+fall "NEULADEN: fremde Vorräte werden mit weggeworfen" assets/neuladen.js \
+  '.filter(function (n) { return EIGEN.test(n); })' '' 'fremde Vorr'
+fall "NEULADEN: frisch= bleibt in der Adresszeile" assets/neuladen.js \
+  '    adresseAufraeumen();' '' 'putzt .frisch='
+fall "NEULADEN: unter 360 px bleibt der Knopf stehen" assets/neuladen.js \
+  '@media (max-width:359px){#neuladen{display:none}}' '' 'unter 360 px fehlt'
+fall "NEULADEN: der Knopf fehlt im Offline-Vorrat" sw.js \
+  '"assets/neuladen.js?v=1", ' '' 'Neu-laden-Knopf steht im Offline'
 
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]
