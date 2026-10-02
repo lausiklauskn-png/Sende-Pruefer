@@ -288,7 +288,7 @@ fall "TON: Watch in English spielt die deutsche Aufnahme" handbuch.html \
 fall "TON: der englische Knopf fehlt" handbuch.html \
   '<button class="knopf" id="vorfuehren-en" type="button" lang="en">' '<button class="knopf" id="vorfuehren-xx" type="button" lang="en">' 'Watch in English“ steht'
 fall "TON: die englischen Schnitte haben eine Lücke" handbuch/ton/en/schnitte.json \
-  '"von": 12.06' '"von": 13.06' 'englischen Schnitte'
+  '"von": 11.46,' '"von": 12.46,' 'englischen Schnitte'
 
 # ── Anleitung als Seite (Klaus 2026-09-29) ──
 fall "ANL: die Anleitung ist veraltet (LIESMICH geändert, nicht neu gebaut)" LIESMICH.md \
