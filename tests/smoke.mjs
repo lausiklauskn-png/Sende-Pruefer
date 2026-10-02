@@ -188,6 +188,19 @@ ok("… die Schnitte folgen der Szenenliste lückenlos, jeder in einer Pause",
   ton.schnitte.length === SZENEN.length && ton.schnitte.every((t, i) => t.id === SZENEN[i].id && t.bis > t.von + 3 && (i === 0 ? t.von === 0 : t.von === ton.schnitte[i - 1].bis)) && Math.abs(ton.schnitte.at(-1).bis - ton.dauer) < 0.05,
   JSON.stringify(ton.schnitte.map((t) => [t.von, t.bis])));
 ok("… die Aufnahme liegt NICHT im Installations-Vorrat (wird beim ersten Vorführen geholt)", !/handbuch\/ton/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
+/* ── Englisch (Klaus 2026-10-02): eigener Sprechtext, eigene Aufnahme, eigener Knopf ── */
+const tonEnPfad = join(WURZEL, "handbuch", "ton", "en", "schnitte.json");
+const tonEn = existsSync(tonEnPfad) ? JSON.parse(readFileSync(tonEnPfad, "utf8")) : { schnitte: [] };
+const escA = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+ok("jede Szene trägt einen englischen Sprechtext (sprechText.en), und er steht als data-sprech-en im Handbuch",
+  SZENEN.length > 0 && SZENEN.every((z) => (z.sprechText?.en || "").length > 30 && hb.includes('data-sprech-en="' + escA(z.sprechText.en) + '"')));
+ok("… jede Szene trägt ihre englische Aufnahme (data-ton-en), und die Datei liegt da",
+  SZENEN.length > 0 && SZENEN.every((z, i) => { const d = "handbuch/ton/en/" + String(i + 1).padStart(2, "0") + "-" + z.id + ".mp3";
+    return hb.includes('data-ton-en="' + d + '"') && existsSync(join(WURZEL, d)) && statSync(join(WURZEL, d)).size > 5000; }));
+ok("… die englischen Schnitte gehen lückenlos durch die ganze Aufnahme, kein Satzende weiter als die Grenze neben der erwarteten Stelle",
+  tonEn.sprache === "en" && tonEn.schnitte.length === SZENEN.length && tonEn.schnitte.every((t, i) => t.id === SZENEN[i].id && t.bis > t.von + 3 && t.groessteAbweichung <= tonEn.abweichungMax && (i === 0 ? t.von === 0 : t.von === tonEn.schnitte[i - 1].bis)) && Math.abs(tonEn.schnitte.at(-1).bis - tonEn.dauer) < 0.05,
+  JSON.stringify(tonEn.schnitte.map((t) => [t.von, t.bis, t.groessteAbweichung])));
+ok("… der Knopf „▶ Watch in English“ steht im Handbuch", /<button class="knopf" id="vorfuehren-en" type="button" lang="en">/.test(hb));
 ok("… und der Worker legt nur ganze Antworten ab (eine Teil-Antwort 206 vom Abspielen ließe cache.put scheitern)",
   /if \(r\.status === 200\) \{ const k = r\.clone\(\)/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
 /* ── Anleitung und Grenzen als Seite (Klaus 2026-09-29): gebaut aus LIESMICH.md ── */
@@ -1111,6 +1124,21 @@ try {
         await h.evaluate(() => JSON.stringify(window.__gespielt)));
       await h.click("#stopp");
       ok("■ Stopp hält auch die Aufnahme an", await h.evaluate(() => { const n = window.__gespielt.length; return new Promise((ok) => setTimeout(() => ok(window.__gespielt.length === n && !window.__handbuch.laeuft()), 900)); }));
+      await h.evaluate(() => { window.__gespielt = []; });
+      await h.click("#vorfuehren-en");
+      await h.waitForFunction(() => window.__gespielt.length >= 2, null, { timeout: 8000 }).catch(() => {});   /* gemeldet, nicht abgewartet */
+      ok("▶ Watch in English spielt die englische Aufnahme, Szene für Szene, mit englischem Untertitel",
+        await h.evaluate(() => /handbuch\/ton\/en\/01-postfach\.mp3$/.test(window.__gespielt[0]) && /handbuch\/ton\/en\/02-einfuegen\.mp3$/.test(window.__gespielt[1])
+          && window.__gesprochen.length === 0 && /Recorded voice/.test(document.getElementById("stimme").textContent)
+          && document.getElementById("ut").textContent === document.querySelector(".szene.aktiv").dataset.sprechEn && document.getElementById("buehne").lang === "en"),
+        await h.evaluate(() => JSON.stringify([window.__gespielt, document.getElementById("ut").textContent])));
+      await h.click("#stopp");
+      await h.evaluate(() => { window.__gespielt = []; });
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => window.__gespielt.length >= 1, null, { timeout: 8000 }).catch(() => {});
+      ok("… danach spielt ▶ Vorführen wieder Deutsch (die Sprache bleibt nicht hängen)",
+        await h.evaluate(() => /handbuch\/ton\/de\/01-postfach\.mp3$/.test(window.__gespielt[0]) && document.getElementById("buehne").lang === "de"));
+      await h.click("#stopp");
       await h.evaluate(() => { window.__tonFehlt = true; });
       await h.click("#vorfuehren");
       await h.waitForFunction(() => /Keine Stimme|Vorgelesen/.test(document.getElementById("stimme").textContent), null, { timeout: 8000 }).catch(() => {});
