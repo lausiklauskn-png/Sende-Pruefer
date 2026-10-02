@@ -78,6 +78,13 @@ const satzAb = saetze.slice(0, K).map((x, k) => Math.abs(pausen[zuordnung[k]].mi
 const ziel = path.join(W, "handbuch", "ton", sprache);
 fs.rmSync(ziel, { recursive: true, force: true }); fs.mkdirSync(ziel, { recursive: true });
 const zwei = (n) => String(n).padStart(2, "0");
+/* Russisch (Svetlana, 2026-10-02): genau so viele Pausen ≥ PAUSE_MIN wie
+ * Satzenden. Dann gibt es nur EINE Zuordnung — der Reihe nach —, und eine
+ * große Abweichung heißt nur, dass das Sprechtempo vom Zeichenanteil
+ * abweicht (gemessen: sie wuchs in Szene 06/07 stetig bis 3,9 s und fiel
+ * danach wieder, kein Sprung). Das wird vermerkt, nicht verschwiegen; die
+ * Grenze von 2,5 s bleibt für jede andere Aufnahme. */
+const eindeutig = M === K;
 const schnitte = []; let warnungen = 0;
 SZENEN.forEach((s, i) => {
   const von = i ? grenzen[i - 1].mitte : 0, bis = i < grenzen.length ? grenzen[i].mitte : dauer;
@@ -93,6 +100,7 @@ SZENEN.forEach((s, i) => {
 });
 fs.writeFileSync(path.join(ziel, "schnitte.json"), JSON.stringify({
   hinweis: "Gebaut von tools/handbuch-ton.mjs aus einer Aufnahme aller Sprechtexte. Geschnitten in der Mitte einer Pause; gemessen ist die Lage, nicht der Wortlaut.",
-  sprache, quelle: path.basename(quelle), dauer: +dauer.toFixed(2), pauseMin: PAUSE_MIN, abweichungMax: ABWEICHUNG_MAX, schnitte,
+  sprache, quelle: path.basename(quelle), dauer: +dauer.toFixed(2), pauseMin: PAUSE_MIN, abweichungMax: ABWEICHUNG_MAX, eindeutig, schnitte,
 }, null, 1) + "\n");
+if (eindeutig) console.log(`= ${M} Pausen für ${K} Satzenden: die Zuordnung ist eindeutig (der Reihe nach).`);
 console.log(warnungen ? `⚠ ${warnungen} Szene(n) mit einem Satzende über ${ABWEICHUNG_MAX} s neben der erwarteten Stelle — bitte anhören.` : `${SZENEN.length} Szenen geschnitten, jedes Satzende liegt höchstens ${ABWEICHUNG_MAX} s neben der erwarteten Stelle.`);
