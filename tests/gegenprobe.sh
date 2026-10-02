@@ -587,6 +587,34 @@ fall "SICHER: die sichere Fassung nennt den KI-Fund als entfernt" assets/anhaeng
 fall "LESEN: das Beispiel im Eingang verspricht wieder Überschreiben" assets/aussen.js \
   'if (h && m && m.ordner === "eingang") {' 'if (h && m && m.ordner === "nie") {' 'kein Überschreiben'
 
+# 📁 Postfach: Auswahl, Verschieben, Papierkorb, eigene Ordner (Klaus 2026-10-02)
+fall "POSTFACH: assets/postfach.js wird nicht mehr nachgeladen" assets/ablehnung.js \
+  'p.src = "assets/postfach.js";' 'p.src = "assets/fehlt.js";' 'nachgeladen'
+fall "POSTFACH: der Klick nach einem langen Druck mit dem Finger wird nicht geschluckt" assets/postfach.js \
+  '      if (schluckBis && Date.now() < schluckBis) { e.stopPropagation(); e.preventDefault(); }' '' 'Klick beim Loslassen hebt die Auswahl nicht auf'
+fall "POSTFACH: ein neuer Druck löscht die Schluck-Marke nicht" assets/postfach.js \
+  '    document.addEventListener("pointerdown", function () { schluckBis = 0; }, true);' '' 'wählt ein Tipp eine weitere Mail dazu'
+fall "POSTFACH: ein langer Druck tut nichts" assets/postfach.js \
+  '      }, LANGDRUCK);' '      }, 999999);' 'langer Druck wählt'
+fall "POSTFACH: Löschen löscht sofort statt in den Papierkorb" assets/postfach.js \
+  '    verschiebe(ms, PK);' '    endgueltig(ms, true);' 'Papierkorb, nicht weg'
+fall "POSTFACH: Rückgängig holt nichts zurück" assets/postfach.js \
+  'function () { zurueckholen(ms); });' 'function () {});' 'Rückgängig'
+fall "POSTFACH: endgültig löschen fragt nicht" assets/postfach.js \
+  'if (!ohneFrage && !confirm(' 'if (false && !confirm(' 'fragt vorher'
+fall "POSTFACH: endgültig löschen bleibt nur im Speicher" assets/postfach.js \
+  'ids.forEach(function (id) { dbTx("readwrite", function (s) { return s.delete(id); }); });' '' 'auch nach dem Neuladen'
+fall "POSTFACH: Verschieben schreibt die ART um" assets/postfach.js \
+  '      else { m.ablage = ziel; delete m.geloeschtAus; }' '      else { m.ablage = ziel; m.ordner = "entwurf"; delete m.geloeschtAus; }' 'ART|Art bleibt'
+fall "POSTFACH: Verschieben speichert nicht" assets/postfach.js \
+  '      jetztSpeichern(m);   // der Ort steht an der Mail' '      // nicht gespeichert' 'nach dem Neuladen liegen'
+fall "POSTFACH: ein gelöschter Ordner nimmt seine Mails mit" assets/postfach.js \
+  'drin.forEach(function (m) { delete m.ablage; jetztSpeichern(m); });' 'drin.forEach(function (m) { endgueltig([m], true); });' 'löscht keine Mail'
+fall "POSTFACH: ein Ordnername wird als HTML gesetzt" assets/postfach.js \
+  'el("span", { class: "t" }, name), el("span", { class: "zahl" }' '(function(){var s=document.createElement("span");s.className="t";s.innerHTML=name;return s;})(), el("span", { class: "zahl" }' 'nicht als HTML|kein innerHTML'
+fall "POSTFACH: am Handy fehlt der Knopf Mehr" assets/postfach.js \
+  '    bn.append(el("button", { type: "button", id: "ordner-mehr"' '    if (0) bn.append(el("button", { type: "button", id: "ordner-mehr"' 'fünf Knöpfe'
+
 fall "NEULADEN: der Knopf wird nicht mehr nachgeladen" assets/sbkim-init.js \
   's.src = "assets/neuladen.js?v=1";' 's.src = "assets/fehlt.js";' 'steht sichtbar direkt vor dem'
 fall "NEULADEN: der Knopf bekommt wieder Text" assets/neuladen.js \

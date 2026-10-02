@@ -33,5 +33,6 @@
      Systemkanal und Marken) wird von hier nachgeladen. */
   if (typeof document !== "undefined") {
     var s = document.createElement("script"); s.src = "assets/aussen.js"; document.head.append(s);
+    var p = document.createElement("script"); p.src = "assets/postfach.js"; document.head.append(p);
   }
 })();

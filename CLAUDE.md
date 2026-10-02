@@ -608,3 +608,21 @@ Am Ende hält er an, statt zu schließen. Tastatur: Leertaste, ←/→, Esc. Lä
 (`data-dauer`, `-en`, `-ru`, gesetzt von `handbuch-bauen.mjs`); fehlt eine Aufnahme, wird sie aus der Textlänge
 geschätzt. Probe in `smoke.mjs` (1280 und 380 px) · Gegenprobe `REGLER:` (10 Fälle). Cache v53.
 ⚠ Am Tablet nicht gemessen (Ziehen mit dem Finger, Springen in der echten Aufnahme).
+
+## 🗂 Postfach: Auswahl, Verschieben, eigene Ordner, Papierkorb (Klaus 2026-10-02)
+
+„Längerer Druck auf die Mail, kann man einzeln selektieren oder alle, kann sie löschen, verschieben. Und neue
+Ordner hinzufügen auf der linken Seite." `assets/postfach.js` (nachgeladen von `assets/ablehnung.js`, die Seite ist
+voll) ersetzt `zeichneOrdner`, `zeichneListe` und `loeschen` der Seite.
+
+- **Art und Ort sind zwei Felder.** `m.ordner` (eingang · entwurf · antwort · export) bleibt, was die Mail IST,
+  und wird nie umgeschrieben. Der Ort steht neu in `m.ablage` (`archiv`, `papierkorb` oder `f_<id>`). Ein Ort,
+  den es nicht mehr gibt, fällt auf die Art zurück (`ortVon`). Eigene Ordner in `sendepruefer_ablagen`
+  (Archiv beim ersten Start angelegt).
+- **Auswahl:** langer Druck (450 ms, unter 10 px Weg) oder „☑ Auswählen"; danach wählt ein Tipp. Leiste: Alle/Keine ·
+  Verschieben · Löschen · ✕; im Papierkorb Zurückholen · Endgültig löschen. Esc beendet.
+- **Löschen** legt in den Papierkorb (mit „Rückgängig", 7 s); endgültig nur dort, mit Frage. Ein gelöschter Ordner
+  gibt seine Mails an ihren Ursprung zurück. Namen sind Text, nie HTML.
+- Am Handy fünfter Knopf „Mehr" in der unteren Leiste (Archiv, Papierkorb, eigene Ordner).
+- Probe `tests/postfach.mjs` (in `npm test`) · Gegenprobe `NUR_FALL="POSTFACH:"` (12 Fälle). Cache v54.
+- ⚠ Am Tablet nicht gemessen (langer Druck mit dem Finger). Noch nicht gebaut: Sicherung des Postfachs (Punkt 2).
