@@ -609,6 +609,24 @@ Am Ende hält er an, statt zu schließen. Tastatur: Leertaste, ←/→, Esc. Lä
 geschätzt. Probe in `smoke.mjs` (1280 und 380 px) · Gegenprobe `REGLER:` (10 Fälle). Cache v53.
 ⚠ Am Tablet nicht gemessen (Ziehen mit dem Finger, Springen in der echten Aufnahme).
 
+## 🗂 Postfach: Auswahl, Verschieben, eigene Ordner, Papierkorb (Klaus 2026-10-02)
+
+„Längerer Druck auf die Mail, kann man einzeln selektieren oder alle, kann sie löschen, verschieben. Und neue
+Ordner hinzufügen auf der linken Seite." `assets/postfach.js` (nachgeladen von `assets/ablehnung.js`, die Seite ist
+voll) ersetzt `zeichneOrdner`, `zeichneListe` und `loeschen` der Seite.
+
+- **Art und Ort sind zwei Felder.** `m.ordner` (eingang · entwurf · antwort · export) bleibt, was die Mail IST,
+  und wird nie umgeschrieben. Der Ort steht neu in `m.ablage` (`archiv`, `papierkorb` oder `f_<id>`). Ein Ort,
+  den es nicht mehr gibt, fällt auf die Art zurück (`ortVon`). Eigene Ordner in `sendepruefer_ablagen`
+  (Archiv beim ersten Start angelegt).
+- **Auswahl:** langer Druck (450 ms, unter 10 px Weg) oder „☑ Auswählen"; danach wählt ein Tipp. Leiste: Alle/Keine ·
+  Verschieben · Löschen · ✕; im Papierkorb Zurückholen · Endgültig löschen. Esc beendet.
+- **Löschen** legt in den Papierkorb (mit „Rückgängig", 7 s); endgültig nur dort, mit Frage. Ein gelöschter Ordner
+  gibt seine Mails an ihren Ursprung zurück. Namen sind Text, nie HTML.
+- Am Handy fünfter Knopf „Mehr" in der unteren Leiste (Archiv, Papierkorb, eigene Ordner).
+- Probe `tests/postfach.mjs` (in `npm test`) · Gegenprobe `NUR_FALL="POSTFACH:"` (12 Fälle). Cache v54.
+- ⚠ Am Tablet nicht gemessen (langer Druck mit dem Finger). Noch nicht gebaut: Sicherung des Postfachs (Punkt 2).
+
 ## 🌐 Drei Sprachen: Deutsch · English · Русский (Klaus 2026-10-02)
 
 Brief `docs/BRIEF_2026-10-02_drei-sprachen.md`, Schritt 3. Die Seite schreibt weiter Deutsch;
@@ -627,5 +645,10 @@ eigene Schlüssel, nicht `toolpoint_lang` (Klaus: Sprachwahl je App getrennt). O
 - Proben: `tests/sprache.mjs` (aus `smoke.mjs`; ohne Browser: Einträge vollständig, nichts leer, kein
   russischer Eintrag gleich dem Deutschen; im Browser EN und RU: Ernte leer, Betreff bleibt, confirm
   übersetzt, kein Querlaufen bei 380/360/320, Wahl übersteht Neuladen) · Gegenprobe
-  `NUR_FALL="SPRACHE:"` (8 Fälle). Cache v54.
+  `NUR_FALL="SPRACHE:"` (8 Fälle). Cache v55 (Postfach hatte am selben Tag ebenfalls v54 vergeben).
+- ⚠ Russisch braucht in der Leiste unten (5 Spalten, ≤ 720 px) **.66rem statt .72rem** — gemessen bei 320 px:
+  „📥 Вставлено" 67 px in 64 px Spalte; mit .66rem passen alle fünf (64/64). Regel in `assets/postfach.js`
+  (`html[lang="ru"] .bottomnav button`). Der Wächter „nichts läuft quer" misst auch `#bottomnav button`.
+- Löschen aus dem Papierkorb fragt („Diese Mail endgültig löschen?"); `prompt()` (Ordnernamen) wird wie
+  confirm/alert zeilenweise übersetzt.
 - ⚠ Am Tablet nicht gemessen.

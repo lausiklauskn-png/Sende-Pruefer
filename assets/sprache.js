@@ -269,6 +269,8 @@
   const altConfirm = window.confirm.bind(window), altAlert = window.alert.bind(window);
   window.confirm = (s) => altConfirm(zeilen(s));
   window.alert = (s) => altAlert(zeilen(s));
+  const altPrompt = window.prompt.bind(window);
+  window.prompt = (s, d) => altPrompt(zeilen(s), d);
 
   /* ---------- Sprachriegel (wie im Auslieferungsprüfer) ----------
      Wer nicht gewählt hat, dem darf der Browser übersetzen. Wer gewählt hat, bekommt die

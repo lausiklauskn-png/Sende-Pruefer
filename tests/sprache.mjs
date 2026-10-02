@@ -33,7 +33,9 @@ export function ohneBrowser(ok, WURZEL) {
   const leer = [...en.filter((k) => T.en[k] === "" || T.en[k] == null), ...ru.filter((k) => T.ru[k] === "" || T.ru[k] == null)];
   ok("SPRACHE: kein Eintrag ist leer", leer.length === 0, leer.slice(0, 5).join(" | "));
   const kyr = /[а-яё]/i;
-  const ruOhne = ru.filter((k) => typeof T.ru[k] === "string" && /(^|[^A-Za-zÄÖÜäöüß])[a-zäöüß]{4,}/.test(k) && !kyr.test(T.ru[k]) && T.ru[k] === k);
+  // Markup und Platzhalter sind kein Satz: "<span>📁</span>{}" bleibt mit Recht gleich.
+  const satz = (k) => k.replace(/<[^>]*>/g, " ").replace(/\{\}/g, " ");
+  const ruOhne = ru.filter((k) => typeof T.ru[k] === "string" && /(^|[^A-Za-zÄÖÜäöüß])[a-zäöüß]{4,}/.test(satz(k)) && !kyr.test(T.ru[k]) && T.ru[k] === k);
   ok("SPRACHE: kein russischer Eintrag ist einfach der deutsche Satz", ruOhne.length === 0, ruOhne.slice(0, 5).join(" | "));
 }
 
@@ -70,13 +72,20 @@ export async function imBrowser(ok, browser, BASIS) {
     await klick("#ki-oeffnen"); await klick("#aufgaben button");
     await klick("#kopieren");
     await p.waitForTimeout(400);
+    await klick("#loeschen");                        // legt in den Papierkorb (Postfach), ohne Frage
+    await p.waitForTimeout(300);
+    /* Im Papierkorb: Auswahl-Leiste ansehen, dann eine Mail endgültig löschen — das fragt (confirm). */
+    await klick('#ordnerliste [data-ordner="papierkorb"]');
+    await klick("#auswahl-start"); await klick("#wahl-alle"); await klick("#wahl-ende");
+    await p.locator("#liste .zeile").first().click({ timeout: 3000 }).catch(() => {});
+    await p.waitForTimeout(300);
     await klick("#loeschen");
     await p.waitForTimeout(300);
     const r = await p.evaluate(() => ({ f: [...SPSprache.fehlt], s: [...SPSprache.fehltSatz] }));
     ok(SPR + ": kein deutscher Satz ohne Eintrag auf dem Schirm (Ordner, Mails, Menü, Einfügen, Verfassen, KI, Halt)", r.f.length === 0, r.f.slice(0, 6).join(" | "));
     ok(SPR + ": … und kein ganzer Satz mit Auszeichnung ohne Eintrag", r.s.length === 0, r.s.slice(0, 4).join(" | "));
     const frage = dialoge.find((d) => /\n\n/.test(d)) || dialoge[0] || "";
-    ok(SPR + ": die Frage vor dem Löschen kommt übersetzt (confirm)", !!frage && !/Diese Mail von diesem Gerät/.test(frage) && (SPR === "ru" ? /[а-яё]/i.test(frage) : /Delete/.test(frage)), frage.slice(0, 60));
+    ok(SPR + ": die Frage vor dem endgültigen Löschen kommt übersetzt (confirm)", !!frage && !/endgültig löschen/.test(frage) && (SPR === "ru" ? /[а-яё]/i.test(frage) : /Delete/.test(frage)), frage.slice(0, 60));
     const halt = await p.evaluate(() => document.body.innerText);
     ok(SPR + ": der Halt vor dem Hinausgehen spricht die Sprache", SPR === "ru" ? /[а-яё]{4}/i.test(halt) : /AI|stopped|Stopped|halt/i.test(halt));
     ok(SPR + ": keine Fehler im Skript", fehler.length === 0, fehler.join(" | "));
