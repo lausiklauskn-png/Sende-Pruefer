@@ -418,8 +418,11 @@ export async function imBrowser(ok, browser, BASIS) {
     ok("🧪 im Menü steht „Beispiel-E-Mail mit Test-Anhängen“, als erfunden und präpariert benannt", da && /präparierten Anhängen/.test(hin) && /erfundene/.test(hin), hin);
     for (let mal = 0; da && mal < 2; mal++) {
       if (mal) { await page.click("#menue"); await page.waitForSelector("#menue-dialog[open] #beispiel-anhaenge"); }
+      /* Gewartet wird auf NEUE Zeilen: beim zweiten Tipp stehen die alten (mit Befund) noch
+         einen Augenblick da, und das Warten lief nach 52 ms an ihnen vorbei (gemessen 2026-10-02). */
+      const vorher = await page.evaluate(() => [...document.querySelectorAll("#anhang-liste > li")].map((l) => l.dataset.anhang));
       await page.click("#beispiel-anhaenge");
-      await page.waitForFunction(() => { const l = [...document.querySelectorAll("#anhang-liste > li")]; return l.length === 2 && l.every((x) => x.dataset.befunde != null); }, null, { timeout: 120000 }).catch(() => {});
+      await page.waitForFunction((alt) => { const l = [...document.querySelectorAll("#anhang-liste > li")]; return l.length === 2 && l.every((x) => x.dataset.befunde != null && !alt.includes(x.dataset.anhang)); }, vorher, { timeout: 120000 }).catch(() => {});
     }
     if (!da) await page.evaluate(() => document.getElementById("menue-dialog").close());
     const tm = await page.evaluate(() => ({ betreff: document.getElementById("lesen").textContent.includes("🧪 Test: Mail mit präparierten Anhängen"),

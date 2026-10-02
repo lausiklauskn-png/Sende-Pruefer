@@ -1,0 +1,117 @@
+{
+ "hinweis": "Gebaut von tools/handbuch-ton.mjs aus einer Aufnahme aller Sprechtexte. Geschnitten in der Mitte einer Pause; gemessen ist die Lage, nicht der Wortlaut.",
+ "sprache": "de",
+ "quelle": "b461abed-speechma_audio_Emma_German_at_8_00_12_AM_on_October_2nd_2026.mp3",
+ "dauer": 120.22,
+ "pauseMin": 0.45,
+ "schnitte": [
+  {
+   "nr": 1,
+   "id": "postfach",
+   "datei": "handbuch/ton/de/01-postfach.mp3",
+   "von": 0,
+   "bis": 12.75,
+   "saetze": 4,
+   "pausenInnen": 3
+  },
+  {
+   "nr": 2,
+   "id": "einfuegen",
+   "datei": "handbuch/ton/de/02-einfuegen.mp3",
+   "von": 12.75,
+   "bis": 23.16,
+   "saetze": 2,
+   "pausenInnen": 2
+  },
+  {
+   "nr": 3,
+   "id": "original",
+   "datei": "handbuch/ton/de/03-original.mp3",
+   "von": 23.16,
+   "bis": 31.35,
+   "saetze": 1,
+   "pausenInnen": 0
+  },
+  {
+   "nr": 4,
+   "id": "ki-sicht",
+   "datei": "handbuch/ton/de/04-ki-sicht.mp3",
+   "von": 31.35,
+   "bis": 41.04,
+   "saetze": 3,
+   "pausenInnen": 2
+  },
+  {
+   "nr": 5,
+   "id": "namen",
+   "datei": "handbuch/ton/de/05-namen.mp3",
+   "von": 41.04,
+   "bis": 48.63,
+   "saetze": 2,
+   "pausenInnen": 1
+  },
+  {
+   "nr": 6,
+   "id": "aufgaben",
+   "datei": "handbuch/ton/de/06-aufgaben.mp3",
+   "von": 48.63,
+   "bis": 61.43,
+   "saetze": 4,
+   "pausenInnen": 3
+  },
+  {
+   "nr": 7,
+   "id": "wege",
+   "datei": "handbuch/ton/de/07-wege.mp3",
+   "von": 61.43,
+   "bis": 73.13,
+   "saetze": 2,
+   "pausenInnen": 1
+  },
+  {
+   "nr": 8,
+   "id": "antwort",
+   "datei": "handbuch/ton/de/08-antwort.mp3",
+   "von": 73.13,
+   "bis": 83.25,
+   "saetze": 2,
+   "pausenInnen": 2
+  },
+  {
+   "nr": 9,
+   "id": "abschirmen",
+   "datei": "handbuch/ton/de/09-abschirmen.mp3",
+   "von": 83.25,
+   "bis": 92.38,
+   "saetze": 2,
+   "pausenInnen": 1
+  },
+  {
+   "nr": 10,
+   "id": "knoten",
+   "datei": "handbuch/ton/de/10-knoten.mp3",
+   "von": 92.38,
+   "bis": 104.71,
+   "saetze": 3,
+   "pausenInnen": 2
+  },
+  {
+   "nr": 11,
+   "id": "handy",
+   "datei": "handbuch/ton/de/11-handy.mp3",
+   "von": 104.71,
+   "bis": 112.38,
+   "saetze": 3,
+   "pausenInnen": 2
+  },
+  {
+   "nr": 12,
+   "id": "selbsttest",
+   "datei": "handbuch/ton/de/12-selbsttest.mp3",
+   "von": 112.38,
+   "bis": 120.22,
+   "saetze": 2,
+   "pausenInnen": 1
+  }
+ ]
+}

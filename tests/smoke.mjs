@@ -178,6 +178,18 @@ ok("… jeder Leuchtring liegt im Bild", hbJson.length > 0 && hbJson.every((z) =
   JSON.stringify(hbJson.map((z) => z.ring)));
 ok("… holt nichts aus dem Netz (keine fremde Adresse in src oder href)", hb.length > 0 && !/(?:src|href)="https?:/i.test(hb));
 ok("… und liest nur mit einer Stimme auf dem Gerät vor (localService)", /v\.localService/.test(hb));
+/* ── Aufgenommene Stimme (Klaus 2026-10-02): eine Aufnahme, in Szenen geschnitten ── */
+const tonPfad = join(WURZEL, "handbuch", "ton", "de", "schnitte.json");
+const ton = existsSync(tonPfad) ? JSON.parse(readFileSync(tonPfad, "utf8")) : { schnitte: [] };
+ok("jede Szene trägt ihre Aufnahme (data-ton), und die Datei liegt da (sonst: node tools/handbuch-ton.mjs, dann handbuch-bauen)",
+  SZENEN.length > 0 && SZENEN.every((z, i) => { const d = "handbuch/ton/de/" + String(i + 1).padStart(2, "0") + "-" + z.id + ".mp3";
+    return hb.includes('data-szene="' + z.id + '" data-nr="' + (i + 1) + '" data-ton="' + d + '"') && existsSync(join(WURZEL, d)) && statSync(join(WURZEL, d)).size > 5000; }));
+ok("… die Schnitte folgen der Szenenliste lückenlos, jeder in einer Pause",
+  ton.schnitte.length === SZENEN.length && ton.schnitte.every((t, i) => t.id === SZENEN[i].id && t.bis > t.von + 3 && (i === 0 ? t.von === 0 : t.von === ton.schnitte[i - 1].bis)) && Math.abs(ton.schnitte.at(-1).bis - ton.dauer) < 0.05,
+  JSON.stringify(ton.schnitte.map((t) => [t.von, t.bis])));
+ok("… die Aufnahme liegt NICHT im Installations-Vorrat (wird beim ersten Vorführen geholt)", !/handbuch\/ton/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
+ok("… und der Worker legt nur ganze Antworten ab (eine Teil-Antwort 206 vom Abspielen ließe cache.put scheitern)",
+  /if \(r\.status === 200\) \{ const k = r\.clone\(\)/.test(readFileSync(join(WURZEL, "sw.js"), "utf8")));
 /* ── Anleitung und Grenzen als Seite (Klaus 2026-09-29): gebaut aus LIESMICH.md ── */
 const anlPfad = join(WURZEL, "anleitung.html");
 const anl = existsSync(anlPfad) ? readFileSync(anlPfad, "utf8") : "";
@@ -1067,6 +1079,13 @@ try {
       Object.defineProperty(window, "speechSynthesis", { configurable: true, value: { getVoices: () => stimmen, speak: (u) => { window.__gesprochen.push(u.voice && u.voice.name); setTimeout(() => u.onend && u.onend(), 30); }, cancel: () => {} } });
       window.SpeechSynthesisUtterance = function (t) { this.text = t; };
       window.__stimmen = stimmen;
+      /* Abspielen gestellt: die Probe misst, WELCHE Datei wann läuft, nicht den Lautsprecher. */
+      window.__gespielt = []; window.__tonFehlt = false;
+      HTMLMediaElement.prototype.play = function () {
+        window.__gespielt.push(this.src);
+        if (window.__tonFehlt) return Promise.reject(new Error("gestellt: kein Ton"));
+        const el = this; setTimeout(() => el.onended && el.onended(), 40); return Promise.resolve();
+      };
     });
     await h.goto(BASIS + "handbuch.html", { waitUntil: "load" });
     const was = mitJs ? " (mit Skript)" : " (OHNE Skript)";
@@ -1081,11 +1100,23 @@ try {
       const blass = await h.evaluate(() => [...document.querySelectorAll(".szene")].filter((x) => getComputedStyle(x).opacity !== "1").length);
       ok("ohne Skript steht jede Szene voll da (nichts wartet auf ein Einblenden)", blass === 0, blass);
     } else if (breite === 1280) {
+      const dauer = await h.evaluate(() => new Promise((ok) => { const a = new Audio(); a.preload = "metadata";
+        a.onloadedmetadata = () => ok(a.duration); a.onerror = () => ok(-1); a.src = document.querySelector(".szene").dataset.ton; setTimeout(() => ok(-2), 8000); }));
+      ok("die erste Aufnahme lässt sich im Browser lesen (Länge in Sekunden)", dauer > 5 && dauer < 20, dauer);
       await h.click("#vorfuehren");
-      await h.waitForFunction(() => /Keine Stimme|Vorgelesen/.test(document.getElementById("stimme").textContent));
+      await h.waitForFunction(() => window.__gespielt.length >= 2, null, { timeout: 8000 }).catch(() => {});   /* gemeldet, nicht abgewartet */
+      ok("▶ Vorführen spielt die Aufnahme der Szene, Szene für Szene (nicht die Browser-Stimme)",
+        await h.evaluate(() => /handbuch\/ton\/de\/01-postfach\.mp3$/.test(window.__gespielt[0]) && /02-einfuegen\.mp3$/.test(window.__gespielt[1])
+          && window.__gesprochen.length === 0 && /Aufgenommene Stimme/.test(document.getElementById("stimme").textContent)),
+        await h.evaluate(() => JSON.stringify(window.__gespielt)));
+      await h.click("#stopp");
+      ok("■ Stopp hält auch die Aufnahme an", await h.evaluate(() => { const n = window.__gespielt.length; return new Promise((ok) => setTimeout(() => ok(window.__gespielt.length === n && !window.__handbuch.laeuft()), 900)); }));
+      await h.evaluate(() => { window.__tonFehlt = true; });
+      await h.click("#vorfuehren");
+      await h.waitForFunction(() => /Keine Stimme|Vorgelesen/.test(document.getElementById("stimme").textContent), null, { timeout: 8000 }).catch(() => {});
       ok("▶ Vorführen zeigt die Untertitel-Leiste mit dem Sprechtext der ersten Szene",
         await h.evaluate(() => !document.getElementById("buehne").hidden && document.getElementById("ut").textContent.length > 30 && document.querySelector(".szene.aktiv") === document.querySelector(".szene")));
-      ok("… eine Netz-Stimme liest NICHT vor — dann gibt es nur Untertitel",
+      ok("… spielt die Aufnahme nicht, liest eine Netz-Stimme trotzdem NICHT vor — dann gibt es nur Untertitel",
         await h.evaluate(() => window.speechSynthesis.getVoices() === window.__stimmen && window.__gesprochen.length === 0 && /Keine Stimme/.test(document.getElementById("stimme").textContent)));
       await h.click("#stopp");
       ok("■ Stopp beendet die Vorführung", await h.evaluate(() => document.getElementById("buehne").hidden && !window.__handbuch.laeuft()));

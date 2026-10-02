@@ -7,6 +7,9 @@
  *   handbuch/NN-<id>.jpg      das Bild
  *   handbuch.html             eine Szene mit Lesetext, Sprechtext und Leuchtring
  *   handbuch/szenen.json      dieselbe Liste für ein späteres Video
+ * Liegt unter handbuch/ton/de/NN-<id>.mp3 eine Aufnahme (tools/handbuch-ton.mjs),
+ * trägt die Szene sie als data-ton; „▶ Vorführen" spielt dann sie statt einer
+ * Browser-Stimme.
  *
  * Kein Netz: jeder Aufruf nach draußen wird abgewiesen.
  * Aufruf:  node tools/handbuch-bauen.mjs   (braucht playwright-core)
@@ -58,7 +61,9 @@ for (const [i, s] of SZENEN.entries()) {
   const datei = `handbuch/${zwei(i + 1)}-${s.id}.jpg`;
   await page.screenshot({ path: path.join(W, datei), type: "jpeg", quality: 80 });
   if (fehler.length) throw new Error(`Szene ${s.id}: ${fehler.join(" | ")}`);
-  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, breite: vw, hoehe: vh, handy: vw < 600, ring });
+  const tonDatei = `handbuch/ton/de/${zwei(i + 1)}-${s.id}.mp3`;
+  const ton = fs.existsSync(path.join(W, tonDatei)) ? tonDatei : null;
+  liste.push({ nr: i + 1, id: s.id, titel: s.titel, text: s.text, sprech: s.sprech, bild: datei, ton, breite: vw, hoehe: vh, handy: vw < 600, ring });
   await ctx.close();
   console.log(`  ✓ ${zwei(i + 1)} ${s.titel}`);
 }
@@ -70,7 +75,7 @@ fs.writeFileSync(path.join(ZIEL, "szenen.json"), JSON.stringify({
 }, null, 1) + "\n");
 
 const szenenHtml = liste.map((s) => `
-<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}">
+<section class="szene${s.handy ? " hoch" : ""}" id="szene-${s.id}" data-szene="${s.id}" data-nr="${s.nr}"${s.ton ? ` data-ton="${s.ton}"` : ""}>
  <div class="kopfzeile"><span class="nr">${zwei(s.nr)}</span><h2>${esc(s.titel)}</h2></div>
  <figure class="bild">
   <img src="${s.bild}" width="${s.breite}" height="${s.hoehe}" alt="${esc(s.titel)} — Bildschirmfoto der App" loading="${s.nr > 2 ? "lazy" : "eager"}" decoding="async">
