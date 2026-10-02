@@ -128,4 +128,27 @@ export async function imBrowser(ok, browser, BASIS) {
   await page.click('#ziel-dialog [data-ziel="archiv"]');
   ok("Postfach: „Mehr“ führt zum Archiv", await page.evaluate(() => document.querySelector("#liste h2").textContent === "Archiv"));
   await ctx.close();
+
+  /* Finger: ein langer Druck mit Touch-Ereignissen (CDP). Beim Loslassen schickt der
+     Browser einen Klick — und weil die Auswahl-Leiste über der Liste erscheint, landet
+     er auf einem Knopf der Leiste (gemessen: „✕ Fertig“). Mit der Maus kommt dieser
+     Klick nicht, deshalb braucht es diesen Abschnitt. */
+  const fctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
+  const fp = await fctx.newPage();
+  await fp.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+  await fp.goto(BASIS + "sende-pruefer.html");
+  await fp.waitForFunction(() => window.SPPostfach && window.SPPostfach.eingebaut && document.querySelector("#liste .zeile"), null, { timeout: 15000 });
+  const fr = await fp.locator("#liste .zeile >> nth=0").boundingBox();
+  const cdp = await fctx.newCDPSession(fp);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: fr.x + 40, y: fr.y + fr.height / 2 }] });
+  await fp.waitForTimeout(650);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await fp.waitForTimeout(300);
+  const nachFinger = await fp.evaluate(() => ({ leiste: !!document.getElementById("wahlleiste"), n: document.querySelectorAll("#liste .zeile[data-gewaehlt]").length,
+    ansicht: document.getElementById("app").dataset.ansicht }));
+  ok("Postfach: Finger — nach dem langen Druck bleibt die Mail gewählt (der Klick beim Loslassen hebt die Auswahl nicht auf)", nachFinger.leiste && nachFinger.n === 1, JSON.stringify(nachFinger));
+  ok("Postfach: Finger — … und die Mail ist nicht geöffnet", nachFinger.ansicht !== "lesen", nachFinger.ansicht);
+  await fp.click("#liste .zeile >> nth=1");
+  ok("Postfach: Finger — der nächste Tipp wird NICHT geschluckt (er wählt eine zweite Mail)", await fp.evaluate(() => document.querySelectorAll("#liste .zeile[data-gewaehlt]").length) === 2);
+  await fctx.close();
 }

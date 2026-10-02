@@ -25,7 +25,7 @@
   var ABLAGEN_KEY = "sendepruefer_ablagen";
   var PK = "papierkorb";
   var LANGDRUCK = 450;
-  var auswahl = false, sel = new Set(), geschluckt = { id: null, zeit: 0 };
+  var auswahl = false, sel = new Set(), schluckBis = 0;
 
   function ablagen() {
     try {
@@ -220,9 +220,9 @@
     function weg() { clearTimeout(uhr); uhr = 0; }
     zeile.addEventListener("pointerdown", function (e) {
       if (e.button > 0) return;
-      x = e.clientX; y = e.clientY; weg(); geschluckt = { id: null, zeit: 0 };   // ein neuer Druck beginnt
+      x = e.clientX; y = e.clientY; weg();
       uhr = setTimeout(function () {
-        uhr = 0; geschluckt = { id: id, zeit: Date.now() };
+        uhr = 0; schluckBis = Date.now() + 1500;
         if (!auswahl) { auswahl = true; sel.clear(); }
         sel.add(id);
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_e) {}
@@ -252,8 +252,6 @@
       var z = el("button", { class: "zeile" + (m.ungelesen ? " ungelesen" : ""), type: "button", "data-id": m.id, "aria-current": String(!auswahl && st.id === m.id),
         "data-gewaehlt": auswahl && gew ? "" : null, "aria-pressed": auswahl ? String(gew) : null,
         onclick: function () {
-          var schluck = geschluckt.id === m.id && Date.now() - geschluckt.zeit < 1500; geschluckt = { id: null, zeit: 0 };
-          if (schluck) return;   // genau der EINE Klick, der den langen Druck beendet
           if (auswahl) umschalten(m.id); else oeffne(m.id);
         } },
         auswahl ? el("span", { class: "av wahl", "aria-hidden": "true" }, gew ? "✓" : "") : avatar(wer(m).replace(/^An: /, ""), m.id),
@@ -296,6 +294,15 @@
     window.zeichneOrdner = zeichneOrdner;
     window.zeichneListe = zeichneListe;
     window.loeschen = loeschen;
+    /* Der EINE Klick, der einen langen Druck mit dem Finger beendet, wird geschluckt —
+       egal wo er landet. Die Auswahl-Leiste erscheint über der Liste, unter dem Finger
+       liegt dann ein Knopf der Leiste (gemessen: „✕ Fertig“ hob die Auswahl sofort auf).
+       Mit der Maus kommt kein solcher Klick; ein neuer Druck löscht die Marke. */
+    document.addEventListener("pointerdown", function () { schluckBis = 0; }, true);
+    document.addEventListener("click", function (e) {
+      if (schluckBis && Date.now() < schluckBis) { e.stopPropagation(); e.preventDefault(); }
+      schluckBis = 0;
+    }, true);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && auswahl && !document.querySelector("dialog[open]")) { auswahlEnde(); zeichneOrdner(); zeichneListe(); } });
     window.SPPostfach = { eingebaut: true, ortVon: ortVon, ablagen: ablagen, verschiebe: verschiebe, PAPIERKORB: PK, LANGDRUCK: LANGDRUCK };
     if (window.SendePruefer && window.SendePruefer.bereit) alles();

@@ -590,8 +590,10 @@ fall "LESEN: das Beispiel im Eingang verspricht wieder Überschreiben" assets/au
 # 📁 Postfach: Auswahl, Verschieben, Papierkorb, eigene Ordner (Klaus 2026-10-02)
 fall "POSTFACH: assets/postfach.js wird nicht mehr nachgeladen" assets/ablehnung.js \
   'p.src = "assets/postfach.js";' 'p.src = "assets/fehlt.js";' 'nachgeladen'
-fall "POSTFACH: ein langer Druck öffnet die Mail statt sie zu wählen" assets/postfach.js \
-  '          if (schluck) return;' '' 'öffnet sie dabei NICHT'
+fall "POSTFACH: der Klick nach einem langen Druck mit dem Finger wird nicht geschluckt" assets/postfach.js \
+  '      if (schluckBis && Date.now() < schluckBis) { e.stopPropagation(); e.preventDefault(); }' '' 'Klick beim Loslassen hebt die Auswahl nicht auf'
+fall "POSTFACH: ein neuer Druck löscht die Schluck-Marke nicht" assets/postfach.js \
+  '    document.addEventListener("pointerdown", function () { schluckBis = 0; }, true);' '' 'wählt ein Tipp eine weitere Mail dazu'
 fall "POSTFACH: ein langer Druck tut nichts" assets/postfach.js \
   '      }, LANGDRUCK);' '      }, 999999);' 'langer Druck wählt'
 fall "POSTFACH: Löschen löscht sofort statt in den Papierkorb" assets/postfach.js \
