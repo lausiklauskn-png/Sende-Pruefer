@@ -372,7 +372,7 @@ function anweisung(t) {
 }
 const EIGENE = "sendepruefer_aufgaben";
 function eigeneAufgaben() { try { return JSON.parse(lies(EIGENE) || "[]"); } catch (_e) { return []; } }
-const SORTE_NAME = { NAME: "Name", MAIL: "E-Mail", TELEFON: "Telefon", IBAN: "IBAN", BETRAG: "Betrag", RECHNUNG: "Rechnung", SCHLUESSEL: "Schlüssel" };
+const SORTE_NAME = { NAME: "Name", MAIL: "E-Mail", TELEFON: "Telefon", IBAN: "IBAN", BETRAG: "Betrag", RECHNUNG: "Rechnung", DATUM: "Datum", SCHLUESSEL: "Schlüssel" };
 
 function adrZeile(name, adr) { return name && adr ? name + " <" + adr + ">" : (name || adr || ""); }
 function zerlegeAdresse(s) {
@@ -690,7 +690,7 @@ function zeichneLesen() {
   box.append(el("div", { class: "funde", id: "funde" }),
     el("details", null, el("summary", null, "Was gefunden wurde: ", el("b", { id: "anzahl" }, "0"), " Angabe(n), mit Zeile"),
       el("ul", { class: "befunde", id: "befunde" }),
-      el("p", { class: "gedaempft" }, "Erkannt werden Zugangsschlüssel, Mailadressen, Telefonnummern mit Ländervorwahl, Kontonummern (IBAN mit stimmender Prüfziffer), Beträge mit Währung, Rechnungs- und Kundennummern und die Namen oben. Eine Telefonnummer ohne Ländervorwahl und gewöhnliche Links bleiben stehen.")));
+      el("p", { class: "gedaempft" }, "Erkannt werden Zugangsschlüssel, Mailadressen, Telefonnummern mit Ländervorwahl, Kontonummern (IBAN mit stimmender Prüfziffer), Beträge mit Währung, Rechnungs- und Kundennummern, Daten und die Namen oben. Eine Telefonnummer ohne Ländervorwahl und gewöhnliche Links bleiben stehen.")));
   const akt = el("div", { class: "werkzeug", style: "margin-top:16px" },
     el("button", { class: "knopf haupt", id: "ki-oeffnen", type: "button", onclick: () => { st.ki = true; zeichneLesen(); $("s-ki").scrollIntoView({ block: "start" }); } },
       m.ordner === "eingang" ? "✦ Mit KI beantworten" : "✦ Mit KI überarbeiten"));

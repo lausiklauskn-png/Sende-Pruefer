@@ -652,7 +652,7 @@ eigene Schlüssel, nicht `toolpoint_lang` (Klaus: Sprachwahl je App getrennt). O
 - Löschen aus dem Papierkorb fragt („Diese Mail endgültig löschen?"); `prompt()` (Ordnernamen) wird wie
   confirm/alert zeilenweise übersetzt.
 - ⚠ Am Tablet nicht gemessen.
-- Mit Sicherung (#66) und Empfänger (#68) zusammengeführt: Cache **v58**.
+- Mit Sicherung (#66) und Empfänger (#68) zusammengeführt: Cache **v58**; mit #69 (ebenfalls v58, anderer Inhalt) zusammengeführt: **v59**.
 
 ## 🔐 Postfach sichern und zurückholen (Klaus 2026-10-02)
 
@@ -686,3 +686,11 @@ fielen weg, und ihre Namen wurden im Text nicht verdeckt. `assets/empfaenger.js`
 mehreren Einträgen behält als `anName` nur den ersten. Die Kopfzeilen selbst gehen weiter NICHT an die KI.
 Namen unter 2 Zeichen werden nicht verdeckt. Probe `tests/empfaenger.mjs` · Gegenprobe `NUR_FALL="EMPF:"` (7 Fälle).
 Cache v57. ⚠ Am Tablet nicht gemessen; echte Verteiler-Mails nicht.
+
+## 📅 DATUM aus Modul 25 (2026-10-02)
+
+Sage-Modul 25 erkennt jetzt Daten (`12.03.1985`, `2026-10-02`, `3. Mai 2026`), standardmäßig an — Punkt 4b
+der Grenzen-Liste. Neu kopiert und gepinnt (`MODUL25_SHA`), `SORTE_NAME` kennt „Datum", Köder `# BEFUNDE: 11`
+(ein Datumsfall), LIESMICH-Tabelle und Grenze 2 nachgezogen, `anleitung.html` neu gebaut, Selbsttest 23/23 in
+PROBE.md. Die KI kann mit einem verdeckten Datum nicht mehr rechnen — das steht in der Tabelle. Cache v58.
+`npm test` 599 grün · `NUR_ANKER` 270 · 0 tot. Die Gegenprobe für die Datums-Regeln steht in Sage (20 Fälle).
