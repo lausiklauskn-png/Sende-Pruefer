@@ -551,6 +551,10 @@ gemeldet; eine unbekannte Binärdatei, ein PDF ohne pdf.js und eine verworfene O
 „ungeprüft". Die Erklärung steht im Auslieferungsprüfer (CLAUDE.md, gleicher Abschnitt).
 Cache v45. `npm test` 463 grün · 0 ROT. ⚠ Tablet nicht gemessen.
 
+## ⟳ Neu laden · kein Knopf in der App (Klaus 2026-10-02)
+
+`assets/neuladen.js` hängt einen runden ⟳-Knopf ohne Text in die Kopfleiste (wirft den eigenen Vorrat weg, lädt mit `?frisch=` neu, putzt es danach). Läuft die Seite als installierte App, ist der Installieren-Knopf verborgen und es gibt keine Meldung „nichts mehr zu tun“ (`installieren.js?v=2`). Gegenproben `NEULADEN:` (7) und `APPWEG:` (2). Cache v50.
+
 ## 🔊 Aufgenommene Stimme im Handbuch (Klaus 2026-10-02)
 
 Klaus: *„eine professionelle Stimme … nicht die Browserstimme, die so abgehackt klingt"* ·
@@ -571,7 +575,7 @@ Sprechtexte am Stück bei speechma aufgenommen (Stimme Emma, Deutsch, 120 s). Se
   hält eine hängende Datei auf.
 - Nicht im Installations-Vorrat (750 KB); `sw.js` legt nur noch Antworten mit Status 200 ab —
   beim Abspielen kommen Teil-Antworten (206), und `cache.put` scheitert daran.
-- **Englisch (Klaus 2026-10-02, Stimme Andrew):** `sprechText.en` je Szene, Aufnahme in
+- **Englisch (Klaus 2026-10-02, Stimme Andrew; eine verbesserte Aufnahme (Sonia, 123 s) wartet auf ihren Text — gegen den alten Text geschnitten liegt in Szene 06 ein Satzende 3,2 s neben der erwarteten Stelle, die Probe ist dann zu Recht rot):** `sprechText.en` je Szene, Aufnahme in
   `handbuch/ton/en/` (`node tools/handbuch-ton.mjs <aufnahme.mp3> en`), Knopf **▶ Watch in English**
   (`#vorfuehren-en`, erscheint nur, wenn jede Szene einen englischen Text trägt). Die Bilder zeigen
   weiter die deutsche Oberfläche. Russisch, Arabisch: noch keine Sprechtexte.
