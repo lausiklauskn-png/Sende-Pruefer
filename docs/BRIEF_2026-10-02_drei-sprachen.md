@@ -17,6 +17,28 @@ Zwei Aufgaben:
    Stimme, wie es im Sende-Prüfer steht, für den Auslieferungsprüfer bauen,
    „da, wo die Erklärungen sind".
 
+## Entscheidungen (Klaus 2026-10-02, nach dem Brief)
+
+> „eigenes Handbuch und die Sprache pro App einzeln"
+
+| Frage | Antwort |
+|---|---|
+| Handbuch des Auslieferungsprüfers | **eigene Seite** `handbuch.html`, wie im Sende-Prüfer — keine Abspiel-Knöpfe an Ort und Stelle |
+| Sprachwahl | **je App getrennt** — eigener Speicher-Schlüssel je App |
+
+**Was daraus folgt (gemessen auf `origin/main` des Auslieferungsprüfers):**
+`toolpoint_lang` / `toolpoint_lang_wahl` stehen an **fünf** Stellen —
+`assets/sprache.js` (Z. 24/25), der inline-Sprachriegel im `<head>` von
+`auslieferungspruefer.html`, `impressum.html`, `datenschutz.html` und
+`start.html` (Z. 15 und 302). Neu: `auslieferungspruefer_lang` /
+`auslieferungspruefer_lang_wahl`; im Sende-Prüfer `sendepruefer_lang` /
+`sendepruefer_lang_wahl`. **Alle Stellen in einem Commit**, sonst liest der
+Riegel im `<head>` einen anderen Schlüssel als die Sprachschicht, und die Seite
+blitzt in der falschen Sprache auf. Ein Wächter zählt den alten Namen auf 0.
+⚠ Den alten Wert **nicht** übernehmen — er kann aus PWA-Toolpoint stammen, und
+eine Übernahme wäre genau die geteilte Wahl, die Klaus nicht will. Wer vorher
+Englisch gewählt hatte, wählt einmal neu; das steht im Abschlussbrief.
+
 ## Stand (gemessen 2026-10-02, nicht angenommen)
 
 | | Sende-Prüfer | Auslieferungsprüfer |
@@ -53,9 +75,9 @@ Zwei Aufgaben:
 - **Russisch braucht Schrift**: die Seiten laufen in Systemschrift, das ist
   unkritisch. Bilder des Handbuchs zeigen weiter die deutsche Oberfläche, bis
   neu fotografiert wird — benannte Grenze, wie heute beim englischen Handbuch.
-- **Wer eine Sprache wählt, braucht die Wahl getrennt je App** (Speicher-Schlüssel
-  app-eigen; `github.io` ist geteilt). Der Auslieferungsprüfer nutzt heute
-  `toolpoint_lang` — das teilt er mit PWA-Toolpoint. Nachsehen, ob das gewollt ist.
+- **Die Sprachwahl ist je App getrennt** (Klaus' Entscheidung, oben). Der
+  Auslieferungsprüfer nutzt heute noch `toolpoint_lang` — das teilt er mit
+  PWA-Toolpoint und wird umgestellt.
 
 ## Aufgabe 2 — das Handbuch für den Auslieferungsprüfer
 
@@ -71,9 +93,8 @@ Vorbild ist der Sende-Prüfer, **kopiert, nicht neu erfunden**:
 
 **„Da, wo die Erklärungen sind"** heißt: im Prüfer stehen Erklärungen heute an
 der Startseite (`start.html`), im Zweck-Absatz (`pr_zweck`, `pr_wann_*`) und
-in der Anleitung („Wann brauche ich das?"). Die erste Frage an Klaus:
-**Soll das Handbuch eine eigene Seite werden (wie im Sende-Prüfer) oder sollen
-die Abspiel-Knöpfe direkt an diesen Stellen stehen?**
+in der Anleitung („Wann brauche ich das?"). Klaus' Antwort: **eigene Seite** wie im Sende-Prüfer. Diese Stellen verlinken
+darauf (`?` in der Kopfleiste, ein Link auf `start.html`).
 
 **Die Stimme macht Klaus**, nicht die Sitzung: Sprechtexte schreiben (je Szene
 DE, dann EN und RU — Klaus hat beim Sende-Prüfer die Texte selbst gekürzt und
@@ -84,8 +105,7 @@ Wortlaut** — Klaus' Ohr bestätigt.
 
 ## Reihenfolge (Vorschlag)
 
-1. Klaus fragen: eigene Handbuch-Seite oder Knöpfe an Ort und Stelle? Sprachwahl
-   je App oder gemeinsam?
+1. ✅ beantwortet (siehe „Entscheidungen") — Sprach-Schlüssel je App umstellen.
 2. Auslieferungsprüfer: `ru` in alle Wörterbücher, Wächter auf drei Sprachen.
 3. Sende-Prüfer: Sprachschicht aus dem Auslieferungsprüfer übernehmen (in
    `assets/`), Wörterbuch DE/EN/RU, Wächter.
