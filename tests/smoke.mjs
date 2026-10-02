@@ -16,6 +16,7 @@ import { join, dirname, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { findeChromium } from "./chromium-finden.mjs";
 import * as Anhang from "./anhaenge.mjs";
+import * as Sprache from "./sprache.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -48,6 +49,7 @@ const groesse = ["sende-pruefer.html", "koeder.txt", "LIESMICH.md", "PROBE.md"]
 /* 96 KB statt 48 KB: Klaus 2026-09-28 für das Postfach. Die Grenze gilt dem Code
    und der Anleitung, nicht den Mails — die liegen in IndexedDB auf dem Gerät. */
 ok(`die vier Dateien zusammen unter 96 KB (${groesse} Bytes)`, groesse > 0 && groesse < 96 * 1024);
+Sprache.ohneBrowser(ok, WURZEL);
 ok("keine fremde Quelle im Markup (src/href nach draußen außer Links zum Anklicken)",
   !/<(?:script|link|img|iframe)[^>]+(?:src|href)=["']https?:/i.test(html));
 ok("kein Eingabefeld für eine Adresse (keine type=url, kein Feld namens adresse/url/endpoint)",
@@ -1381,6 +1383,8 @@ try {
     }
     await nCtx.close();
   }
+  /* ── Drei Sprachen (tests/sprache.mjs) ── */
+  await Sprache.imBrowser(ok, browser, BASIS).catch((e) => ok("Sprachen im Browser: unterwegs gestolpert", false, e && e.stack || e));
   /* ── Anhänge im Browser (tests/anhaenge.mjs) ── */
   await Anhang.imBrowser(ok, browser, BASIS).catch((e) => ok("Anhänge im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {

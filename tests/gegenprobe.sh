@@ -607,5 +607,22 @@ fall "APPWEG: als App steht wieder der Knopf da" assets/installieren.js \
 fall "APPWEG: als App kommt wieder die Meldung" assets/installieren.js \
   'if (alsApp()) return;' 'if (alsApp()) { melde("App"); return; }' 'keine Meldung'
 
+fall "SPRACHE: ein russischer Eintrag ist nur der deutsche Satz" assets/sprache-texte.js \
+  '["Eingefügt", "Pasted", "Вставленные"],' '["Eingefügt", "Pasted", "Eingefügt"],' 'einfach der deutsche Satz'
+fall "SPRACHE: die Frage vor dem Löschen fehlt im Wörterbuch" assets/sprache-texte.js \
+  '["Diese Mail von diesem Gerät löschen?", "Delete this mail from this device?", "Удалить это письмо с этого устройства?"],' '' 'Frage vor dem Löschen'
+fall "SPRACHE: confirm wird nicht mehr übersetzt" assets/sprache.js \
+  'window.confirm = (s) => altConfirm(zeilen(s));' 'window.confirm = (s) => altConfirm(s);' 'Frage vor dem Löschen'
+fall "SPRACHE: der Speicher-Schlüssel ist wieder ein fremder" assets/sprache.js \
+  'const KEY = "sendepruefer_lang", KEY_WAHL' 'const KEY = "toolpoint_lang", KEY_WAHL' 'eigener Speicher-Schl'
+fall "SPRACHE: der Knopf kennt kein Russisch mehr" assets/sprache.js \
+  '    { code: "ru", name: "Русский", kurz: "RU" }' '    { code: "xx", name: "Русский", kurz: "RU" }' 'kennt DE, EN und RU|in der gewählten Sprache'
+fall "SPRACHE: die russische Ordner-Leiste läuft am Handy wieder quer" assets/sprache-texte.js \
+  '"<span>📥</span>Вставлено"]' '"<span>📥</span>Вставленные"]' 'nichts läuft quer'
+fall "SPRACHE: der Betreff einer Mail wird mitübersetzt" assets/sprache.js \
+  '#test-ergebnis,.wer,.betr,' '#test-ergebnis,.wer,' 'Betreff einer Mail|kein deutscher Satz ohne Eintrag'
+fall "SPRACHE: das Wörterbuch fehlt im Offline-Vorrat" sw.js \
+  '"assets/sprache-texte.js?v=1", ' '' 'Offline-Vorrat'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

@@ -608,3 +608,24 @@ Am Ende hält er an, statt zu schließen. Tastatur: Leertaste, ←/→, Esc. Lä
 (`data-dauer`, `-en`, `-ru`, gesetzt von `handbuch-bauen.mjs`); fehlt eine Aufnahme, wird sie aus der Textlänge
 geschätzt. Probe in `smoke.mjs` (1280 und 380 px) · Gegenprobe `REGLER:` (10 Fälle). Cache v53.
 ⚠ Am Tablet nicht gemessen (Ziehen mit dem Finger, Springen in der echten Aufnahme).
+
+## 🌐 Drei Sprachen: Deutsch · English · Русский (Klaus 2026-10-02)
+
+Brief `docs/BRIEF_2026-10-02_drei-sprachen.md`, Schritt 3. Die Seite schreibt weiter Deutsch;
+`assets/sprache.js` (eine Zeile im `<head>`, die vier Dateien bleiben unter 96 KB) übersetzt **auf der
+Seite** per MutationObserver aus `assets/sprache-texte.js` (Dreiergruppen `[de, en, ru]`). Knopf
+`#sprache` in der Kopfleiste (DE → EN → RU), am Handy (≤ 700 px) als Zeile im Menü. `confirm`/`alert`
+werden Zeile für Zeile übersetzt. Speicher: **`sendepruefer_lang`** und `sendepruefer_lang_wahl` —
+eigene Schlüssel, nicht `toolpoint_lang` (Klaus: Sprachwahl je App getrennt). Ohne Wahl: Deutsch.
+
+- **Nie übersetzt** (GESCHUETZT): Mails, Betreffe, Absender, Platzhalter, Eingaben — das ist Inhalt.
+- ⚠ **Benannte Grenzen:** die Selbsttest-Zeilen bleiben Deutsch · die SBKIM-Fenster (Kanon) sprechen
+  DE/EN, Russisch fällt dort auf Deutsch zurück · Impressum/Datenschutz werden nicht übersetzt ·
+  die Handbuch-Bilder zeigen die deutsche Oberfläche · die Anweisung an die KI bleibt Deutsch.
+- Russische Ordnernamen in der unteren Leiste sind gekürzt („Вставлено", „Экспорт"), sonst lief sie
+  bei 320–380 px um 11–18 px quer.
+- Proben: `tests/sprache.mjs` (aus `smoke.mjs`; ohne Browser: Einträge vollständig, nichts leer, kein
+  russischer Eintrag gleich dem Deutschen; im Browser EN und RU: Ernte leer, Betreff bleibt, confirm
+  übersetzt, kein Querlaufen bei 380/360/320, Wahl übersteht Neuladen) · Gegenprobe
+  `NUR_FALL="SPRACHE:"` (8 Fälle). Cache v54.
+- ⚠ Am Tablet nicht gemessen.
