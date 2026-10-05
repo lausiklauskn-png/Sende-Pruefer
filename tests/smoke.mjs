@@ -675,12 +675,19 @@ try {
     const meld = []; const r1 = bereit(m, (t) => meld.push(t)); const r2 = bereit(m, (t) => meld.push(t));
     const sauber = { id: "ki-sauber", vonName: "", vonAdr: "", anName: "", anAdr: "", betreff: "Gruß", text: "Hallo,\nbis morgen.", namenExtra: "", bitte: "" };
     const r3 = bereit(sauber, (t) => meld.push("SAUBER:" + t));
-    return { eingebaut: !!(window.SPAussen && window.SPAussen.eingebaut), r1: r1 === null, r2: !!r2, r3: !!r3, meld };
+    /* 2026-10-05: ein Fachbegriff (KI-BEGRIFF) ist keine Anweisung und hält nicht an */
+    const begriff = { id: "ki-begriff", vonName: "", vonAdr: "", anName: "", anAdr: "", betreff: "Lesetipp", text: "Hallo,\nmehr zum Thema prompt injection steht in unserem Blog.", namenExtra: "", bitte: "" };
+    const r4 = bereit(begriff, (t) => meld.push("BEGRIFF:" + t));
+    const art = window.PrueferMail ? window.PrueferMail.pruefeMail("\n" + begriff.text).stellen.map((s) => s.kennung) : [];
+    return { eingebaut: !!(window.SPAussen && window.SPAussen.eingebaut), r1: r1 === null, r2: !!r2, r3: !!r3, r4: !!r4, art, meld };
   });
   ok("assets/aussen.js ist geladen und eingebaut", kiHalt.eingebaut);
   ok("eine Anweisung an eine KI im Mailtext hält beim ersten Tipp an, mit Zeile", kiHalt.r1 && /Angehalten/.test(kiHalt.meld[0] || "") && /Zeile 3/.test(kiHalt.meld[0] || ""), kiHalt.meld[0]);
   ok("… ein zweiter Tipp geht trotzdem weiter", kiHalt.r2, JSON.stringify(kiHalt.meld));
   ok("… eine Mail ohne Anweisung hält nicht an", kiHalt.r3 && !kiHalt.meld.some((x) => /^SAUBER:/.test(x)), JSON.stringify(kiHalt.meld));
+  ok("… ein bloßer Fachbegriff („prompt injection“) wird als KI-BEGRIFF erkannt, nicht als Anweisung",
+    kiHalt.art.includes("KI-BEGRIFF") && !kiHalt.art.includes("KI-ANWEISUNG"), JSON.stringify(kiHalt.art));
+  ok("… und hält nicht an", kiHalt.r4 && !kiHalt.meld.some((x) => /^BEGRIFF:/.test(x)), JSON.stringify(kiHalt.meld));
 
   /* ── Schlüssel löschen, Zuordnung verwerfen ──────────────────────────── */
   await page.click("#schluessel-weg");

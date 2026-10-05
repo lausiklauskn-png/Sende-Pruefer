@@ -698,5 +698,8 @@ fall "EMPF: die Zeile Aus Von/An/Cc fehlt" assets/empfaenger.js \
 fall "EMPF: fehlt im Offline-Vorrat" sw.js \
   '"assets/empfaenger.js", ' '' 'Offline-Vorrat'
 
+fall "BEGRIFF: ein Fachbegriff hält beim Hinausgehen an wie eine Anweisung" assets/aussen.js \
+  'var ARTEN = ["KI-ANWEISUNG", ' 'var ARTEN = ["KI-ANWEISUNG", "KI-BEGRIFF", ' 'und hält nicht an'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

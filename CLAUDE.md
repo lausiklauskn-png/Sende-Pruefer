@@ -704,3 +704,13 @@ Namen nach Herr/Frau, aus der Begrüßung und aus der Grußformel. `assets/namen
 Bekannte Namen (Von, An, Cc, eingetragene) werden nicht vorgeschlagen — aber ein Vorname allein schon („Hallo Anna,“
 bei bekanntem „Anna Erste“), denn verdeckt wird nur die ganze Zeichenkette. Probe `tests/namensvorschlag.mjs` ·
 Gegenprobe `NUR_FALL="NAMVOR:"` (5 Fälle, 5 gefangen). Cache v60. ⚠ Echte Mails und das Tablet nicht gemessen.
+
+## 📖 Ein Fachbegriff ist keine Anweisung (Klaus 2026-10-05)
+
+`pruefer-anhang.js` und `pruefer-mail.js` byte-1:1 aus dem Auslieferungsprüfer (Pins nachgezogen). Zwei Neuerungen
+kommen mit: Anweisungen in Bild-Metadaten (`BILD-METADATEN-KI-ANWEISUNG`, Stufe 0) und **`KI-BEGRIFF`**: steht in einer
+Zeile nur das Wort „prompt injection“ und keine Anweisung, heißt der Befund „Fachbegriff zu KI-Angriffen“, ohne
+„Was jetzt tun“. Beide Sätze nennen, wie der Befund entsteht (feste Wortliste bzw. feste Liste von Wendungen).
+`assets/aussen.js` hält vor dem Hinausgehen weiter **nur** bei KI-ANWEISUNG (und unsichtbarem/verstecktem Text),
+nicht bei KI-BEGRIFF. Probe in `smoke.mjs`, Gegenprobe `NUR_FALL="BEGRIFF:"` (1 Fall, gefangen). Cache v61.
+`npm test` 647 grün · 0 ROT. ⚠ Tablet nicht gemessen.
