@@ -14,10 +14,10 @@ import * as M from "./anhang-muster.mjs";
 export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "3f0c28f0294ff65f754702fad5f1749f244082ebebff57d31a74592da9abfc09";
+export const ANHANG_SHA = "d249fd665af2f112e9c330eac6ca948a24481fee2df23df62214d4102be6d9d9";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
-export const MAIL_SHA = "27e86606a3de4592100f20224eb955cb2f6e48339a82dc40e48fe309f8bdc989";
+export const MAIL_SHA = "cdf3ca7881bfa68763a2c0be7436d35a65bea4dbd03f606e02eaec5c613632d7";
 
 /* byte-1:1 aus Auslieferung-Pruefer — der HTML-Prüfer, für Anhänge, die HTML-Seiten sind (2026-09-30) */
 export const HTML_SHA = "9b004f0c76bf8d79b75d361b5b8d4cae87d2b2becd229f2d37391e93566300fd";
