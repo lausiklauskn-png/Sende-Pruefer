@@ -37,5 +37,8 @@
     var g = document.createElement("script"); g.src = "assets/sicherung.js"; document.head.append(g);
     var r = document.createElement("script"); r.src = "assets/empfaenger.js"; document.head.append(r);
     var nv = document.createElement("script"); nv.src = "assets/namensvorschlag.js"; document.head.append(nv);
+    /* Prioritätenliste: erst der Kern, dann der Klebstoff — in dieser Reihenfolge. */
+    var pk = document.createElement("script"); pk.src = "assets/prioritaeten.js"; pk.async = false; document.head.append(pk);
+    var pg = document.createElement("script"); pg.src = "assets/prio.js"; pg.async = false; document.head.append(pg);
   }
 })();
