@@ -21,6 +21,7 @@ import * as Postfach from "./postfach.mjs";
 import * as Sicherung from "./sicherung.mjs";
 import * as Empfaenger from "./empfaenger.mjs";
 import * as Namensvorschlag from "./namensvorschlag.mjs";
+import * as Prio from "./prio.mjs";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..");
 let gruen = 0, rot = 0;
@@ -324,6 +325,7 @@ await Postfach.ohneBrowser(ok, WURZEL).catch((e) => ok("Postfach ohne Browser: u
 await Sicherung.ohneBrowser(ok, WURZEL).catch((e) => ok("Sicherung ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Empfaenger.ohneBrowser(ok, WURZEL).catch((e) => ok("Empfänger ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Namensvorschlag.ohneBrowser(ok, WURZEL).catch((e) => ok("Vorschlag ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
+await Prio.ohneBrowser(ok, WURZEL).catch((e) => ok("Prio ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 await Anhang.seitentext(ok, WURZEL).catch((e) => ok("PDF-Seitentext ohne Browser: unterwegs gestolpert", false, e && e.stack || e));
 
 const browser = await chromium.launch({ executablePath: exe });
@@ -1407,6 +1409,7 @@ try {
   await Sicherung.imBrowser(ok, browser, BASIS).catch((e) => ok("Sicherung im Browser: unterwegs gestolpert", false, e && e.stack || e));
   await Empfaenger.imBrowser(ok, browser, BASIS).catch((e) => ok("Empfänger im Browser: unterwegs gestolpert", false, e && e.stack || e));
   await Namensvorschlag.imBrowser(ok, browser, BASIS).catch((e) => ok("Vorschlag im Browser: unterwegs gestolpert", false, e && e.stack || e));
+  await Prio.imBrowser(ok, browser, BASIS).catch((e) => ok("Prio im Browser: unterwegs gestolpert", false, e && e.stack || e));
 } catch (e) {
   rot++; console.log("✗ ROT: unterwegs gestolpert → " + (e && e.stack || e));
 } finally {

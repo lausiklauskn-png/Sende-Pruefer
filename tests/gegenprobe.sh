@@ -701,5 +701,25 @@ fall "EMPF: fehlt im Offline-Vorrat" sw.js \
 fall "BEGRIFF: ein Fachbegriff hält beim Hinausgehen an wie eine Anweisung" assets/aussen.js \
   'var ARTEN = ["KI-ANWEISUNG", ' 'var ARTEN = ["KI-ANWEISUNG", "KI-BEGRIFF", ' 'und hält nicht an'
 
+P=assets/prio.js
+fall "PRIO: der Ausgang hält nicht mehr an" $P \
+  'if (streng.length) {' 'if (false) {' 'erste Tipp hält an|KI-Weg'
+fall "PRIO: das Anhalten ist für immer (zweiter Tipp geht nicht weiter)" $P \
+  'if (bestaetigt[k]) return null;' '' 'zweite Tipp geht weiter|zweiter teilt|zweiter geht'
+fall "PRIO: Anhänge zählen nicht mit" $P \
+  'if (mitAnhang) (m.anhaenge || []).forEach(' 'if (false) (m.anhaenge || []).forEach(' 'Anhangs zählt mit'
+fall "PRIO: die Empfehlung fehlt" $P \
+  'el("span", { "data-prio-empf": "" }, "Empfehlung: " + t.empfehlung)' 'el("span", { "data-prio-empf": "" }, "")' 'gibt eine Empfehlung'
+fall "PRIO: ein Eingang zählt als Ausgang" $P \
+  'return m && m.ordner === "eingang" ? "eingang" : "ausgang";' 'return "ausgang";' 'als Eingang erkannt'
+fall "PRIO: ohne Kern geht es still weiter" $P \
+  'if (!r) { bestaetigt[k] = true; return "Die Prioritätenliste' 'if (!r) { return null; return "Die Prioritätenliste' 'UNGEPRÜFT'
+fall "PRIO: der fremde Schlüssel des In-and-Out-Books" $P \
+  'var SCHLUESSEL = "sendepruefer_prioritaeten_v1";' 'var SCHLUESSEL = "inout_prioritaeten_v1";' 'eigener Speicher-Schl'
+fall "PRIO: das Menü bleibt leer" $P \
+  'if (p) p.baueEinstellungen(box, SCHLUESSEL, function () {' 'if (p) (function(){})(box, SCHLUESSEL, function () {' 'mit Einstellungen'
+fall "PRIO: fehlt im Offline-Vorrat" sw.js \
+  '"assets/prio.js"' '"assets/prio-weg.js"' 'Offline-Vorrat'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

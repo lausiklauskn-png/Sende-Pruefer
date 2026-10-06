@@ -468,7 +468,7 @@
     var p = el("p", { "data-test-anhaenge-hin": "" }, "Eine erfundene Mail mit zwei mit Absicht präparierten Anhängen: ein Bild mit blasser Anweisung an eine KI und ein PDF mit unsichtbarem Text. Ein Befund ist hier das Soll.");
     vor.after(p, k);
   }
-  API.testMailLaden = testMailLaden;
+  API.testMailLaden = testMailLaden; API.ergebnis = ergebnis;
 
   function start() {
     testKnopfEinbauen();
