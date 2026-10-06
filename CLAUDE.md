@@ -714,3 +714,23 @@ Zeile nur das Wort „prompt injection“ und keine Anweisung, heißt der Befund
 `assets/aussen.js` hält vor dem Hinausgehen weiter **nur** bei KI-ANWEISUNG (und unsichtbarem/verstecktem Text),
 nicht bei KI-BEGRIFF. Probe in `smoke.mjs`, Gegenprobe `NUR_FALL="BEGRIFF:"` (1 Fall, gefangen). Cache v61.
 `npm test` 647 grün · 0 ROT. ⚠ Tablet nicht gemessen.
+
+## ⭐ Prioritätenliste (Klaus 2026-10-05)
+
+Stufe 1 aus Mein-In-and-Out-Book (PR #6), hier in den Einstellungen. Der Kern `assets/prioritaeten.js` ist
+**byte-1:1 aus Mein-In-and-Out-Book**, SHA-gepinnt in `tests/prio.mjs` — dort pflegen, hier neu kopieren.
+Klebstoff `assets/prio.js` (`window.SPPrio`, nachgeladen von `assets/ablehnung.js`, die Seite ist voll).
+
+- **Eigener Schlüssel** `sendepruefer_prioritaeten_v1` (github.io ist geteilt; die Probe misst, dass der des
+  Auslieferungsprüfers leer bleibt). Gruppen: Bank, Kunden, Zugang streng · Vertrag, Geheim, Eigen normal.
+- **Menü:** Kasten „⭐ Was Ihnen wichtig ist" vor der Abschirmung (`#prio-kasten`, `#prio-einst`).
+- **Jede geöffnete Mail:** Kasten `[data-prio-treffer]` nach `#funde`. Eine eingefügte Mail zählt als Eingang
+  (`data-richtung`), alles andere als Ausgang. Anhänge zählen mit (Name und gelesener Text, über
+  `SPAnhangUI.ergebnis` — kein zweiter Prüflauf). Die Befundkarten werden nicht umgefärbt, sie tragen nur
+  `data-prio-stufe` und einen Vermerk.
+- **Ausgang:** ein Treffer der Stufe „streng" hält Kopieren, Senden, .eml und Teilen **einmal** an; ein zweiter
+  Tipp geht weiter. Fehlt der Kern, hält der erste Tipp ebenfalls an und sagt „UNGEPRÜFT".
+- Nie „harmlos": jeder Treffer nennt, dass er über eine feste Wortliste gefunden wurde, und gibt eine Empfehlung.
+  Nur `textContent`. Ein Fehler beim Bau (Kinder an `el()` nicht als Liste) hat die Probe gefunden.
+- Cache **v62**. Probe `tests/prio.mjs` (aus `smoke.mjs`) · Gegenprobe `NUR_FALL="PRIO:"` (9 Fälle, in einer Kopie).
+- ⚠ Am Tablet nicht gemessen. Die Sprachschicht übersetzt die festen Sätze, die gefundenen Wörter nicht.
