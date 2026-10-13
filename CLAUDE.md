@@ -734,3 +734,13 @@ Klebstoff `assets/prio.js` (`window.SPPrio`, nachgeladen von `assets/ablehnung.j
   Nur `textContent`. Ein Fehler beim Bau (Kinder an `el()` nicht als Liste) hat die Probe gefunden.
 - Cache **v62**. Probe `tests/prio.mjs` (aus `smoke.mjs`) · Gegenprobe `NUR_FALL="PRIO:"` (9 Fälle, in einer Kopie).
 - ⚠ Am Tablet nicht gemessen. Die Sprachschicht übersetzt die festen Sätze, die gefundenen Wörter nicht.
+
+## Zwei rote Zeilen im vollen Lauf (2026-10-13)
+
+- **Modul 23-UI hinkte Sage nach:** Sage hat es am 2026-10-11 geändert (#1067: eine gemerkte obere Lage dockt in den
+  Leisten-Platz). Neu kopiert, Pin `KNOTEN_PINS` nachgezogen, Cache v64. ⚠ Zehn weitere Träger (Auslieferung-Pruefer,
+  BookLedgerPro, Kimboard, Kimseek, Mixarium, beide Rezeptbücher, PWA-Toolpoint, Tomys-Hub, family-project) tragen noch die alte Fassung.
+- **„nach dem Neuladen liegen die zwei weiter im Archiv" war ein Rennen der Probe:** sie las den Speicher der Seite und
+  lud sofort neu, ohne zu fragen, ob IndexedDB das Speichern abgeschlossen hat. Unter Last rot, ruhig grün. Jetzt wartet
+  sie im Browser, bis IndexedDB beide im Archiv führt (eigene Zeile). Gegengeprüft: speichert das Verschieben nicht, ist
+  genau diese Zeile die erste rote. `smoke.mjs` 675 grün · 0 ROT.

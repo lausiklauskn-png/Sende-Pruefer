@@ -70,7 +70,28 @@ export async function imBrowser(ok, browser, BASIS) {
   ok("Postfach: … Eingefügt zählt zwei weniger, Archiv zwei", await zahl(page, "eingang") === ein0 - 2 && await zahl(page, "archiv") === 2);
   ok("Postfach: … und die Auswahl ist danach beendet", await page.evaluate(() => !document.getElementById("wahlleiste")));
 
-  /* nach dem Neuladen noch dort */
+  /* nach dem Neuladen noch dort.
+     Erst warten, bis IndexedDB SELBST beide im Archiv fuehrt — die Seite
+     speichert asynchron, und ein sofortiges Neuladen verlor unter Last das
+     Rennen (gemessen 2026-10-13: im vollen Lauf mit Last daneben rot, ruhig
+     zweimal gruen). Eine Bedingung, keine Frist. */
+  /* ⚠ NICHT waitForFunction mit einem Promise — das wartet nicht (Kimhub,
+     gemessen 2026-09-28). Gewartet wird IM Browser, bis die Bedingung gilt. */
+  const gespeichert = await page.evaluate(() => new Promise((fertig) => {
+    const ende = Date.now() + 15000;
+    const frage = () => {
+      const r = indexedDB.open("SendePruefer1");
+      r.onerror = () => weiter(false);
+      r.onsuccess = () => {
+        const g = r.result.transaction("mails").objectStore("mails").getAll();
+        g.onsuccess = () => { r.result.close(); weiter(g.result.filter((m) => m.ablage === "archiv").length === 2); };
+        g.onerror = () => { r.result.close(); weiter(false); };
+      };
+    };
+    const weiter = (ja) => (ja || Date.now() > ende) ? fertig(ja) : setTimeout(frage, 50);
+    frage();
+  }));
+  ok("Postfach: … und IndexedDB fuehrt beide im Archiv, bevor neu geladen wird", gespeichert);
   await page.reload();
   await page.waitForFunction(() => window.SendePruefer && window.SendePruefer.bereit === true && window.SPPostfach);
   ok("Postfach: nach dem Neuladen liegen die zwei weiter im Archiv", (await mails(page)).filter((m) => m.ablage === "archiv").length === 2);
