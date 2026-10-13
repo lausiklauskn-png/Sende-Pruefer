@@ -123,7 +123,7 @@ const KNOTEN_PINS = {
   "16_siegel.js": "d84fa539e76e0cc54c956b648fcb1505f08843662d97854dc1a95e6ab65b7e25",
   "16b_andock_wizard.js": "c415eafdb1b660a5256e19957c667074b64b0c3990cc8acc4daeeef34a57e85d",
   "23_rendezvous.js": "3caa0bb1fbe7bf5293c90b6a59a74cccf8600bff45095a892b1f048244c61fcf",
-  "23_rendezvous_ui.js": "fc47f16b24d5c5f69eb4b53ca0079ec9f289ae023bede17954297f048fefe1f7",
+  "23_rendezvous_ui.js": "d2d762c921043532c964c0a385dcaf9c3d964a5af8b775c796a424c6de3db439",
   "noble-secp256k1.js": "8f3879ca422c4fdfe7ca0361688636fa7cc550a59bd94d512ed6ec79aa3d55d1",
 };
 for (const [datei, sha] of Object.entries(KNOTEN_PINS)) {
