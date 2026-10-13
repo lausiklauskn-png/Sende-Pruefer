@@ -89,6 +89,13 @@
     } catch (_e) {}
   }
 
+  /* Sprachmodell vom eigenen Server (Klaus 2026-10-13, Weg A: die App setzt die
+   * Adresse, Modul 03 bleibt neutral). Steht hier statt in der Seite, weil die
+   * vier Dateien unter 96 KB bleiben müssen. Modul 03 liest den Wert erst beim
+   * Laden — und es wird erst in der Kette darunter geladen. Antwortet der
+   * Server nicht, nimmt Modul 03 Hugging Face. */
+  if (!window.SBKIM_MODEL_ROOT) window.SBKIM_MODEL_ROOT = "https://family-projekt.de/models/";
+
   /* ---- Die Kette, kanonische Reihenfolge (Sage docs/PFLICHT_MODULE.md) ---- */
   var KANON = [
     ["",       "modules/01_storage.js"],
