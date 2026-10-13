@@ -744,3 +744,20 @@ Klebstoff `assets/prio.js` (`window.SPPrio`, nachgeladen von `assets/ablehnung.j
   lud sofort neu, ohne zu fragen, ob IndexedDB das Speichern abgeschlossen hat. Unter Last rot, ruhig grün. Jetzt wartet
   sie im Browser, bis IndexedDB beide im Archiv führt (eigene Zeile). Gegengeprüft: speichert das Verschieben nicht, ist
   genau diese Zeile die erste rote. `smoke.mjs` 675 grün · 0 ROT.
+
+## 🔒 Eigenes Netz (Sage-Modul 23 „Netz“, 2026-10-13)
+
+Erster Träger: 05b, 23 und 23-UI kommen byte-1:1 aus Sage, verteilt per
+`kanon-verteilen` (Pins nachgezogen, Cache v66). In der Mycel-Blase steht die Box
+„Netz“ (`[data-sbkim-netz-box]`, Knopf `data-sbkim-netz`):
+- **öffentlich** ist die Vorgabe;
+- ein **eigenes Netz** kommt über einen Beitritts-Link `#sbkim-netz=…`, nach Rückfrage, oder von Hand;
+- gespeichert wird unter `sbkim_netz_sendepruefer`;
+- der Netz-Code steht nie im Depot;
+- eine kaputte Einstellung verbindet nicht und fällt nicht still auf öffentlich zurück.
+
+Das Relais `relay-intern.family-projekt.de` richtet `family-project/server/relais-intern/` ein.
+
+Gemessen: `npm test` 675 grün. Im Browser ist die Box da, und beim Laden geht kein ws hinaus.
+
+⚠ Nicht gemessen: der Beitritt am Tablet und das echte interne Relais (es steht noch nicht).
