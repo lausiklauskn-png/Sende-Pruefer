@@ -775,3 +775,9 @@ Testdateien werden in `tests/anhang-muster.mjs` gebaut (erfunden). Cache v68.
 Proben: `tests/anhaenge.mjs` (JPEG + PDF mit Nachweis, PDF ohne) · Gegenprobe `NUR_FALL="HERKUNFT:"` (4 Fälle).
 ⚠ Kein Gegenprobe-Fall für „kein Was jetzt tun“: `wasTun` kennt die Art nicht, eine Sabotage in `anhaenge.js` bliebe wirkungslos.
 ⚠ Nicht gemessen: Tablet, echte C2PA-Dateien außer Klaus' PDF (dort im Auslieferungsprüfer gelesen, nicht eingecheckt).
+
+
+## 🛡 Prüfliste vor dem KI-Richter (Sage Bau 04.J, 2026-10-14)
+
+Modul 04 kommt neu aus dem Kanon (Sage #1082). Der Richter prüft die Suchfrage und jede fremde Antwort mit der Prüfliste (`pruefer-mail.js`). Fehlt die Liste, läuft er nicht. Eine Antwort, in der eine Anweisung an eine KI steht, geht nicht an die KI. Sie bekommt „gefahr“ und `ausgeschlossen: "ki-anweisung"`.
+In der Kette steht `assets/pruefer-mail.js` direkt nach 04. Der Wächter in `tests/smoke.mjs` verlangt diese Stelle. Gemessen: `npm test` 681 grün; im Browser ist `prueflisteGeladen` true. Am Tablet nicht gemessen.

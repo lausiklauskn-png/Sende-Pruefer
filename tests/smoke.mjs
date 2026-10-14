@@ -115,7 +115,7 @@ const KNOTEN_PINS = {
   "01_storage.js": "5a5a4bf64dfcc107da7ed70fb755d7db5cce7d80e963b3e2fbc2004537747820",
   "02_spore.js": "6789fe6e903ad2e53f39b2dee576c640698555ef71ef4e9134eb75573fdb7d68",
   "03_embedding.js": "a6ac64d7536da3fa5cc426d0f7db9440fdaf5ab4460f0bdc66a10eb8203b1b68",
-  "04_match.js": "5de95923c3f62f141e94f576feebcac0eecc55c60e40b564540a56420436a4cd",
+  "04_match.js": "721eecc3c0d6ea4c259259e6071215ec1cd16f1c43c87b42ce9e72e9a0b5e41c",
   "05_anastomose.js": "255ac79aeb3b0203e92f0cebd0a905e47c488b43efe18f41332a7d35520bbf23",
   "05b_nostr_relay.js": "37eee5b196b3efad57131edd1cc3c0ee23acb97b5ca40740d6a0771db4b4a421",
   "07_apoptose.js": "0acdd6ab2d95e131fa6953061cc0e95a2396e05fff091a7dc690b2668a4c035a",
@@ -145,8 +145,9 @@ ok("Modul 17 (das fliegende Widget) liegt NICHT mehr bei — die Leiste steht fe
   !existsSync(join(WURZEL, "modules", "17_floating_widget.js")) && !/17_floating_widget/.test(html + readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8")));
 const glue = readFileSync(join(WURZEL, "assets", "sbkim-init.js"), "utf8");
 const kette = [...((glue.match(/var KANON = \[([\s\S]*?)\];/) || [])[1] || "").matchAll(/"((?:modules|assets)\/[^"]+)"/g)].map((m) => m[1]);
-const soll = ["01_storage", "02_spore", "03_embedding", "04_match", "05_anastomose", "07_apoptose", "15_membran", "16_siegel", "05b_nostr_relay", "23_rendezvous", "23_rendezvous_ui", "siegel-inhalt", "16b_andock_wizard"];
-ok("die Kette nennt alle 13 Pflicht-Module und den Wizard, in kanonischer Reihenfolge",
+// pruefer-mail steht direkt nach 04: ohne Prüfliste läuft der KI-Richter nicht (Sage Bau 04.J, 2026-10-14)
+const soll = ["01_storage", "02_spore", "03_embedding", "04_match", "pruefer-mail", "05_anastomose", "07_apoptose", "15_membran", "16_siegel", "05b_nostr_relay", "23_rendezvous", "23_rendezvous_ui", "siegel-inhalt", "16b_andock_wizard"];
+ok("die Kette nennt alle 13 Pflicht-Module, die Prüfliste und den Wizard, in kanonischer Reihenfolge",
   kette.length === soll.length && soll.every((n, i) => kette[i].includes(n + ".js")), kette.join(" "));
 ok("05b läuft als ES-Modul (sonst leuchtet das Siegel, während der Raum tot ist)", /\["module",\s*"modules\/05b_nostr_relay\.js"\]/.test(glue));
 ok("zwischen den Gliedern der Kette steht jedes Komma (sonst ist [..] [..] ein Index-Zugriff)",
