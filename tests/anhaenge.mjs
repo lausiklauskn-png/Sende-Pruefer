@@ -11,10 +11,10 @@ import { pathToFileURL } from "node:url";
 import * as M from "./anhang-muster.mjs";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Namensräume sind keine fremden Adressen) — dort pflegen, hier neu kopieren */
-export const FORMATE_SHA = "b057aa084f4b7821fce96f2b717ae51d183a0d8e3bcb67a08edc9fdfa3862a98";
+export const FORMATE_SHA = "c7206f163521fd3cf1b09845a7e547e912564838ff1bf899c2575366764d15cd";
 
 /* byte-1:1 aus Auslieferung-Pruefer (2026-09-30: Textdateien werden als Text geprüft) — dort pflegen, hier neu kopieren */
-export const ANHANG_SHA = "d249fd665af2f112e9c330eac6ca948a24481fee2df23df62214d4102be6d9d9";
+export const ANHANG_SHA = "c31ddb5cebc293b542e781a5d1f3bca6d558da227db997822c73b2b8a4c1ea17";
 
 /* byte-1:1 aus Auslieferung-Pruefer (7452e51) — trägt die Liste der KI-Anweisungen */
 export const MAIL_SHA = "cdf3ca7881bfa68763a2c0be7436d35a65bea4dbd03f606e02eaec5c613632d7";
@@ -407,6 +407,35 @@ export async function imBrowser(ok, browser, BASIS) {
     ok("Stufe 2 E im Browser: das PDF meldet unsichtbaren Text (PDF-VERSTECKTER-TEXT) auf Seite 2", !!pz && pz.k.includes("PDF-VERSTECKTER-TEXT") && /weicht ab \(Seite 2\)/.test(pz.text), JSON.stringify(pz));
     ok("… Seite 1 (sichtbarer Text) wird nicht gemeldet", !!pz && !/weicht ab \(Seite 1\)/.test(pz.text), JSON.stringify(pz));
     ok("… und dabei ging nichts nach draußen", draussen.length === 0, JSON.stringify(draussen));
+  }
+  /* 🏷 Herkunftsnachweis (C2PA, Klaus 2026-10-14): eine ANGABE, kein Befund. Kurz in der
+     Zeile, Einzelheiten auf Knopfdruck, kein „Was jetzt tun". Gegenrichtung: ohne Nachweis
+     kein Details-Knopf. Alle Angaben in den Dateien sind erfunden (tests/anhang-muster.mjs). */
+  {
+    await page.click("#neu"); await page.waitForSelector("#text");
+    await page.fill("#text", "Hallo, anbei das Bild."); await page.waitForTimeout(600);
+    await page.setInputFiles("#anhang-datei", [
+      { name: "eule.jpg", mimeType: "image/jpeg", buffer: M.jpegC2pa() },
+      { name: "eule.pdf", mimeType: "application/pdf", buffer: M.pdfC2pa() },
+      { name: "ohne.pdf", mimeType: "application/pdf", buffer: M.pdfC2pa({ nachweis: false }) },
+    ]);
+    await page.waitForFunction(() => { const l = [...document.querySelectorAll("#anhang-liste > li")]; return l.length === 3 && l.every((x) => x.dataset.befunde != null); }, null, { timeout: 60000 }).catch(() => {});
+    const hk = await page.evaluate(() => [...document.querySelectorAll("#anhang-liste > li")].map((li) => {
+      const d = li.querySelector("[data-herkunft-details]");
+      return { name: li.querySelector(".anhang-name").textContent, k: [...li.querySelectorAll("[data-kennung]")].map((x) => x.dataset.kennung),
+        herkunft: +(li.dataset.herkunft || 0), befunde: +li.dataset.befunde, details: !!d, offen: !!(d && d.open),
+        dlSichtbar: !!(d && d.querySelector("dl") && d.querySelector("dl").checkVisibility()), tun: li.querySelectorAll("[data-was-tun]").length };
+    }));
+    const h = (n) => hk.find((x) => x.name === n) || { k: [] };
+    ok("Herkunft: das JPEG meldet BILD-HERKUNFT, das PDF PDF-HERKUNFT", h("eule.jpg").k.includes("BILD-HERKUNFT") && h("eule.pdf").k.includes("PDF-HERKUNFT"), JSON.stringify(hk));
+    ok("Herkunft: … als Angabe, nicht als Befund gezählt", h("eule.jpg").herkunft >= 1 && h("eule.pdf").herkunft >= 1 && h("eule.jpg").befunde === 0, JSON.stringify(hk));
+    ok("Herkunft: der Details-Knopf ist da und zuerst zu", h("eule.jpg").details && h("eule.pdf").details && !h("eule.jpg").offen && !h("eule.pdf").offen && !h("eule.jpg").dlSichtbar, JSON.stringify(hk));
+    ok("Herkunft: kein „Was jetzt tun“ für einen Nachweis", h("eule.jpg").tun === 0 && h("eule.pdf").tun === 0, JSON.stringify(hk));
+    await page.evaluate(() => document.querySelectorAll("#anhang-liste [data-herkunft-details] > summary").forEach((s) => s.click()));
+    const auf = await page.evaluate(() => [...document.querySelectorAll("#anhang-liste [data-herkunft-details]")].map((d) => ({ offen: d.open, sicht: !!d.querySelector("dl") && d.querySelector("dl").checkVisibility(), text: d.textContent })));
+    ok("Herkunft: aufgeklappt stehen Programm und Unterzeichner", auf.length >= 2 && auf.every((d) => d.offen && d.sicht && d.text.includes(M.C2PA_PROGRAMM) && d.text.includes(M.C2PA_UNTERSCHRIEBEN)), JSON.stringify(auf));
+    ok("Gegenrichtung: ein PDF ohne Nachweis hat keinen Details-Knopf", hk.length === 3 && !h("ohne.pdf").details && !h("ohne.pdf").k.includes("PDF-HERKUNFT"), JSON.stringify(h("ohne.pdf")));
+    for (let i = 0; i < 3; i++) await page.locator("#anhang-liste > li [data-weg]").first().click().catch(() => {});
   }
   /* 🧪 Beispiel-E-Mail mit Test-Anhängen (Klaus 2026-10-01): im Menü ein eigener Knopf,
      als erfunden benannt; die Mail trägt beide Test-Dateien, und beide melden ihren Befund. */

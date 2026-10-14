@@ -721,5 +721,16 @@ fall "PRIO: das Menü bleibt leer" $P \
 fall "PRIO: fehlt im Offline-Vorrat" sw.js \
   '"assets/prio.js"' '"assets/prio-weg.js"' 'Offline-Vorrat'
 
+A=assets/anhaenge.js
+# 🏷 Herkunftsnachweis (C2PA, 2026-10-14): eine Angabe, kein Befund, Einzelheiten auf Knopfdruck.
+fall "HERKUNFT: die Einzelheiten stehen schon offen da" $A \
+  'el("details", { "data-herkunft-details": "" }' 'el("details", { "data-herkunft-details": "", open: true }' 'zuerst zu'
+fall "HERKUNFT: aufgeklappt steht nichts (die Angaben fehlen)" $A \
+  'x.daten.forEach(function (paar) {' '[].forEach(function (paar) {' 'Programm und Unterzeichner'
+fall "HERKUNFT: der Nachweis zählt wieder als Befund" $A \
+  'var ANGABE = ["PDF-HERKUNFT", "BILD-HERKUNFT"];' 'var ANGABE = [];' 'als Angabe, nicht als Befund'
+fall "HERKUNFT: der Details-Knopf fehlt ganz" $A \
+  'if (x.daten && x.daten.length) {' 'if (false) {' 'Details-Knopf ist da'
+
 echo "$gefangen gefangen · $blind blind · $falsch aus falschem Grund · $tot tote Anker"
 [ $((blind+falsch+tot)) -eq 0 ]

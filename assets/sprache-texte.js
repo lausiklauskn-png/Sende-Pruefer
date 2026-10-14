@@ -326,6 +326,7 @@
     ["Kein Verdacht in den Bildpunkten.", "No suspicion in the pixels.", "Подозрений в пикселях нет."],
     ["Verdacht auf versteckte Daten in Bildpunkten.", "Suspicion of hidden data in pixels.", "Подозрение на скрытые данные в пикселях."],
     ["Nichts gefunden von dem, wonach gesucht wird.", "Nothing found of what is searched for.", "Ничего из искомого не найдено."],
+    ["Details anzeigen", "Show details", "Показать подробности"],
     ["nicht geprüft", "not checked", "не проверено"],
     ["NICHT GEPRÜFT", "NOT CHECKED", "НЕ ПРОВЕРЕНО"],
     ["⬇ Markierte Kopie speichern", "⬇ Save marked copy", "⬇ Сохранить отмеченную копию"],
