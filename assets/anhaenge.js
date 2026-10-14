@@ -170,6 +170,17 @@
         } }, "⬇ Markierte Kopie speichern")));
     }, function () {});
   }
+  var ANGABE = ["PDF-HERKUNFT", "BILD-HERKUNFT"];
+  function herkunftZeile(x) {
+    var z = el("li", { "data-kennung": x.kennung, "data-angabe": "herkunft", class: "gedaempft" },
+      el("span", { class: "sorte" }, "ANGABE"), x.satz);
+    if (x.daten && x.daten.length) {
+      var dl = el("dl", { "data-kein-ue": "", style: "margin:4px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:2px 10px" });
+      x.daten.forEach(function (paar) { dl.append(el("dt", { style: "font-weight:600" }, String(paar[0])), el("dd", { style: "margin:0" }, String(paar[1]))); });
+      z.append(el("details", { "data-herkunft-details": "" }, el("summary", null, "Details anzeigen"), dl));
+    }
+    return z;
+  }
   function zeile(m, a) {
     var li = el("li", { class: "anhang", "data-anhang": a.id },
       el("div", { class: "anhang-kopf" }, el("b", { class: "anhang-name" }, a.name),
@@ -182,12 +193,22 @@
     ergebnis(a).then(function (r) {
       var finde = g("finde"), mailNamen = g("mailNamen");
       var funde = r.text && finde ? finde(r.text, mailNamen ? mailNamen(m) : []) : [];
-      li.dataset.befunde = String(r.befunde.length); li.dataset.angaben = String(funde.length); li.dataset.art = r.art;
+      li.dataset.angaben = String(funde.length); li.dataset.art = r.art;
       li.querySelector("[data-anhang-art]").textContent = " · " + gross(a.groesse || 0) + " · " + r.artName;
-      r.befunde.forEach(function (x) { liste.append(el("li", { "data-kennung": x.kennung }, el("span", { class: "sorte" }, x.kennung), x.satz)); });
+      /* ══ HERKUNFT IST EINE ANGABE, KEIN BEFUND (Klaus 2026-10-14) ═════════
+         „kurz und verständlich für Nutzer … genauere Ausgabe auf Knopfdruck."
+         Ein Herkunftsnachweis (C2PA) ist die Aussage des Programms über die
+         Datei — kein Warnzeichen. Er steht ruhig da, ohne „Was jetzt tun",
+         und die Einzelheiten hinter „Details anzeigen", zuerst zu. Fremder
+         Text, nur als textContent (el() hängt Zeichenketten als Text an). */
+      var echte = r.befunde.filter(function (x) { return ANGABE.indexOf(x.kennung) < 0; });
+      var angaben = r.befunde.filter(function (x) { return ANGABE.indexOf(x.kennung) >= 0; });
+      li.dataset.befunde = String(echte.length); li.dataset.herkunft = String(angaben.length);
+      echte.forEach(function (x) { liste.append(el("li", { "data-kennung": x.kennung }, el("span", { class: "sorte" }, x.kennung), x.satz)); });
+      angaben.forEach(function (x) { liste.append(herkunftZeile(x)); });
       var schon = {};
-      ruhigAnhaengen(liste, r.befunde, schon);
-      markiertAnhaengen(liste, a, r.befunde);
+      ruhigAnhaengen(liste, echte, schon);
+      markiertAnhaengen(liste, a, echte);
       if (funde.length) {
         var z = {}; funde.forEach(function (f) { z[f.sorte] = (z[f.sorte] || []).concat(f.wert); });
         liste.append(el("li", { "data-kennung": "ANHANG-ANGABEN" }, el("span", { class: "sorte" }, "ANGABEN"),
@@ -195,7 +216,7 @@
           Object.keys(z).map(function (s) { return z[s].length + "× " + s + " (" + z[s].slice(0, 3).join(", ") + ")"; }).join(" · ") +
           ". In der Datei selbst bleiben sie stehen."));
       }
-      if (!r.befunde.length && !funde.length) liste.append(r.bildUngeprueft
+      if (!echte.length && !funde.length) liste.append(r.bildUngeprueft
         ? el("li", { "data-kennung": "UNGEPRUEFT" }, r.art === "html"
           ? "HTML-Seite ungeprüft — der HTML-Prüfer fehlt. Das heißt nicht, dass nichts darin steht."
           : "Text im Bild ungeprüft — die Texterkennung hat nichts sicher gelesen. Das heißt nicht, dass nichts darin steht.")

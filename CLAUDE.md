@@ -761,3 +761,17 @@ Das Relais `relay-intern.family-projekt.de` richtet `family-project/server/relai
 Gemessen: `npm test` 675 grün. Im Browser ist die Box da, und beim Laden geht kein ws hinaus.
 
 ⚠ Nicht gemessen: der Beitritt am Tablet und das echte interne Relais (es steht noch nicht).
+
+## 🏷 Herkunftsnachweis (C2PA, Klaus 2026-10-14)
+
+`pruefer-formate.js` und `pruefer-anhang.js` byte-1:1 aus dem Auslieferungsprüfer (Pins `FORMATE_SHA`,
+`ANHANG_SHA` nachgezogen). Trägt ein Anhang (JPEG, PNG, WebP, PDF) einen C2PA-Nachweis („Content Credentials“,
+z. B. von ChatGPT), steht er als **Angabe** in der Zeile (`data-angabe="herkunft"`, `li.dataset.herkunft`),
+**nicht** als Befund: er zählt nicht in `data-befunde`, hat kein „Was jetzt tun“ und hält weder vor der KI
+noch am Ausgang an (`aussen.js` und `prio.js` sehen ihn nicht). Einzelheiten (Programm, Werkzeug, Unterzeichner,
+Zeitpunkt …) stehen in `<details data-herkunft-details>` „Details anzeigen“, zuerst zu, nur `textContent`,
+mit `data-kein-ue` (die Werte werden nicht übersetzt). Die Unterschrift wird **nicht** geprüft.
+Testdateien werden in `tests/anhang-muster.mjs` gebaut (erfunden). Cache v68.
+Proben: `tests/anhaenge.mjs` (JPEG + PDF mit Nachweis, PDF ohne) · Gegenprobe `NUR_FALL="HERKUNFT:"` (4 Fälle).
+⚠ Kein Gegenprobe-Fall für „kein Was jetzt tun“: `wasTun` kennt die Art nicht, eine Sabotage in `anhaenge.js` bliebe wirkungslos.
+⚠ Nicht gemessen: Tablet, echte C2PA-Dateien außer Klaus' PDF (dort im Auslieferungsprüfer gelesen, nicht eingecheckt).
