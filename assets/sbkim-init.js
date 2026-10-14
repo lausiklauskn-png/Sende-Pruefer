@@ -102,6 +102,7 @@
     ["",       "modules/02_spore.js"],
     ["",       "modules/03_embedding.js"],
     ["",       "modules/04_match.js"],
+    ["",       "assets/pruefer-mail.js"],   // Prüfliste für den KI-Richter (Sage 04.J): ohne sie läuft er nicht
     ["",       "modules/05_anastomose.js"],
     ["",       "modules/07_apoptose.js"],
     ["",       "modules/15_membran.js"],
