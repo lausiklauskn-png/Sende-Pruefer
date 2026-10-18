@@ -39,15 +39,43 @@
       zu.addEventListener("click", function () { m.hidden = true; });
       m.appendChild(zu);
       var t = document.createElement("span"); t.id = "install-meldung-text"; m.appendChild(t);
-      document.body.appendChild(m);
     }
+    /* Liegt ein Dialog offen (Menü), steht er in der obersten Ebene — eine Meldung in body
+       läge dahinter und wäre unsichtbar. Darum dort hinein (Klaus 2026-10-18). */
+    var d = document.querySelector("dialog[open]");
+    if (m.parentNode !== (d || document.body)) (d || document.body).appendChild(m);
+    lesbar(m);
     document.getElementById("install-meldung-text").textContent = text;
     m.hidden = false;
   }
 
+  /* Lesbar machen (Klaus 2026-10-18, Handy: „helle Schrift auf hellem Hintergrund“).
+     color:inherit erbt die Schrift der Seite, --flaeche fehlt in manchen Apps → weiß.
+     Ist der Kontrast unter 4,5, steht die Meldung fest dunkel auf weiß. */
+  function farbe(c) {
+    var z = String(c).match(/[\d.]+/g); if (!z || z.length < 3) return null;
+    var a = z.length > 3 ? +z[3] : 1; return a < 0.5 ? null : [+z[0], +z[1], +z[2]];
+  }
+  function hell(f) {
+    var l = f.map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+  }
+  function kontrast(a, b) { var x = hell(a), y = hell(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function lesbar(m) {
+    try {
+      var s = getComputedStyle(m), g = farbe(s.backgroundColor), t = farbe(s.color);
+      if (!g || !t || kontrast(g, t) < 4.5) {
+        m.style.background = "#fff"; m.style.color = "#1a1a1a"; m.style.borderColor = "#bbb";
+        m.setAttribute("data-lesbar", "fest");
+      } else m.setAttribute("data-lesbar", "seite");
+    } catch (_e) { m.style.background = "#fff"; m.style.color = "#1a1a1a"; }
+  }
+
   function knopfZeichnen() {
-    var k = document.getElementById("installieren");
-    if (!k) return;
+    var alle = document.querySelectorAll("[data-install-knopf]");
+    for (var i = 0; i < alle.length; i++) zeichneEinen(alle[i]);
+  }
+  function zeichneEinen(k) {
     var app = alsApp();
     k.hidden = app; k.style.display = app ? "none" : "";   /* als App: weg, nicht „✓ App“ */
     k.dataset.lage = app ? "app" : (ereignis ? "angeboten" : "nicht-angeboten");
@@ -80,20 +108,40 @@
       "die App unter Android-Einstellungen → Apps deinstallieren, Chrome ganz schließen, diese Seite neu laden und noch einmal installieren. Bitte NICHT „Websitedaten löschen“: alle Apps unter dieser Adresse teilen sich einen Speicher, das löschte die Daten aller.");
   }
 
-  function einhaengen() {
-    if (document.getElementById("installieren")) return;
-    var hilfe = document.getElementById("hilfe");
-    if (!hilfe || !hilfe.parentNode) return;
+  function neuerKnopf(id, klasse) {
     var k = document.createElement("button");
-    k.type = "button"; k.className = "rund"; k.id = "installieren";
+    k.type = "button"; k.className = klasse; k.id = id; k.setAttribute("data-install-knopf", "");
     var z = document.createElement("span"); z.setAttribute("aria-hidden", "true"); z.setAttribute("data-z", "");
     var t = document.createElement("span"); t.className = "t";
     k.appendChild(z); k.appendChild(t);
     k.addEventListener("click", klick);
+    return k;
+  }
+
+  /* Zweiter Knopf HINTEN im Menü (⚙), in der Zeile von „Hell oder dunkel“ (Klaus 2026-10-18:
+     „Installieren-Button unter Einstellungen hinten, wie bei meinem Rezeptbuch“). Mechanik wie
+     Sage-Protokol #1153 (data-ort, data-install-knopf). Am schmalen Handy ist der Knopf oben
+     ausgeblendet — dort ist dieser der Weg. */
+  function einstellungenEinhaengen() {
+    var th = document.getElementById("thema-menue");
+    var b = th && th.parentNode;
+    if (!b || b.querySelector("[data-install-knopf]")) return;
+    var k = neuerKnopf("installieren-einstellungen", th.className || "knopf");
+    k.setAttribute("data-ort", "einstellungen");
+    b.appendChild(k);
+    zeichneEinen(k);
+  }
+
+  function einhaengen() {
+    einstellungenEinhaengen();
+    if (document.getElementById("installieren")) return;
+    var hilfe = document.getElementById("hilfe");
+    if (!hilfe || !hilfe.parentNode) return;
+    var k = neuerKnopf("installieren", "rund");
     var vor = document.getElementById("neuladen") || hilfe;   /* ⟳ steht immer direkt vor dem ? */
     hilfe.parentNode.insertBefore(k, vor);
     /* Am schmalen Handy fehlt der Platz (das Suchfeld braucht 60 px); dort geht
-       der Weg über Chrome ⋮ → „App installieren". */
+       der Weg über ⚙ → Installieren oder Chrome ⋮ → „App installieren". */
     var st = document.createElement("style");
     st.textContent = "@media (max-width:480px){#installieren{display:none}}";
     document.head.appendChild(st);
@@ -111,5 +159,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", einhaengen);
   else einhaengen();
 
-  window.SP_INSTALL = { alsApp: alsApp, lage: function () { var k = document.getElementById("installieren"); return k ? k.dataset.lage : null; } };
+  window.SP_INSTALL = { alsApp: alsApp, lage: function () { var k = document.getElementById("installieren") || document.querySelector("[data-install-knopf]"); return k ? k.dataset.lage : null; } };
 })();
