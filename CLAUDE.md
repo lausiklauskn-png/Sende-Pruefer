@@ -781,3 +781,7 @@ Proben: `tests/anhaenge.mjs` (JPEG + PDF mit Nachweis, PDF ohne) · Gegenprobe `
 
 Modul 04 kommt neu aus dem Kanon (Sage #1082). Der Richter prüft die Suchfrage und jede fremde Antwort mit der Prüfliste (`pruefer-mail.js`). Fehlt die Liste, läuft er nicht. Eine Antwort, in der eine Anweisung an eine KI steht, geht nicht an die KI. Sie bekommt „gefahr“ und `ausgeschlossen: "ki-anweisung"`.
 In der Kette steht `assets/pruefer-mail.js` direkt nach 04. Der Wächter in `tests/smoke.mjs` verlangt diese Stelle. Gemessen: `npm test` 681 grün; im Browser ist `prueflisteGeladen` true. Am Tablet nicht gemessen.
+
+## ⬇ Kein „Websitedaten löschen“ im Installieren-Rat (Klaus 2026-10-18)
+
+`assets/installieren.js` riet zuletzt „Chrome ⋮ → Websiteeinstellungen → Daten löschen“. Auf `lausiklauskn-png.github.io` teilen sich alle Apps einen Speicher — das löschte die Daten aller. Jetzt: App unter Android-Einstellungen → Apps deinstallieren, Chrome schließen, neu laden, neu installieren, mit Warnung vor „Websitedaten löschen“ (wie Sage #1151). `installieren.js?v=3`, Cache v80. `npm test` 667 grün · 0 ROT.
