@@ -791,3 +791,15 @@ In der Kette steht `assets/pruefer-mail.js` direkt nach 04. Der Wächter in `tes
 Klaus' Handy zeigte das Erklärfenster des Installieren-Knopfs hell auf weiß: `#install-meldung` setzte `background:var(--flaeche,#fff);color:inherit` — die Seite hat kein `--flaeche`, also weißer Grund, die Schrift erbt das helle Thema. Nachgemessen im Browser (headless, 380 px, Knopf getippt): dunkel 1,21 · hell 15,87. Jetzt misst `lesbar(m)` nach dem Einhängen den Kontrast (Logik wie Sage-Protokol #1152, von Hand eingebaut — die Datei bleibt die eigene Fassung); unter 4,5 steht die Meldung fest #1a1a1a auf #fff, Marke `data-lesbar="fest"|"seite"`. Danach: dunkel 17,40 (fest) · hell 15,87 (seite). Cache sende-pruefer-v81, `installieren.js?v=4` (gehört nicht zu den vier Dateien unter 96 KB). ⚠ Am Tablet nicht gemessen.
 
 **Zweiter Knopf im Menü (Klaus 2026-10-18: „Installieren-Button unter Einstellungen hinten, wie bei meinem Rezeptbuch … sobald installiert, verschwindet er“).** `#installieren-einstellungen` (`data-ort="einstellungen"`, `data-install-knopf`, Mechanik wie Sage-Protokol #1153) steht HINTEN in der Zeile von „☀ / 🌙 Hell oder dunkel“ im ⚙-Menü — dieselbe Klick-Logik, als App beide weg. Am Handy (≤ 480 px) ist der Knopf oben ausgeblendet, dort ist der im Menü der Weg. Die Meldung hängt sich in den offenen Dialog (sonst läge sie hinter der obersten Ebene, unsichtbar). Gemessen im Browser: letztes Element der Zeile, sichtbar, Meldung obenauf; als App (standalone gestellt) versteckt.
+
+## ⬇ Installieren oben auf jeder Breite (Klaus 2026-10-18)
+
+Klaus: *„da, wo der Installationsbutton in den Einstellungen zu finden ist, vermutet keiner, dass er die App installieren
+kann … setze den Installationsbutton oben in die Navi-Leiste zusätzlich … verschwinden, wenn die App installiert ist.“*
+⚠ **Tafel-Evolution, benannt:** bis hierher war `#installieren` ≤ 480 px ausgeblendet (nur ⚙-Menü). Jetzt steht er auf
+jeder Breite in der Kopfleiste; Platz schaffen schmalere runde Knöpfe (min. 32 px breit, Höhe bleibt 36 px) und kleinere
+Abstände (≤ 480 px 4 px, ≤ 340 px 3 px) — die Regeln setzt `assets/installieren.js`, nicht die Seite (96-KB-Grenze).
+Gemessen: Suchfeld 65 px bei 320, 83 bei 380, 39 bei 412 (vorher 34 ohne Knopf); Kopfleiste 57 px wie vorher, kein Überlauf.
+Auch **`start.html`** trägt den Knopf jetzt vor „Zur App“ (≤ 480 px nur ⬇). Der Knopf im ⚙-Menü bleibt. Als App beide weg.
+`installieren.js?v=5`, Cache v82. `npm test` 679 grün · 0 ROT; Gegenprobe `KOPF:` 3 gefangen.
+⚠ `NUR_ANKER` meldet auf main schon 3 tote Anker (OCR, zweimal WASTUN) — nicht hier behoben. Am Tablet nicht gemessen.

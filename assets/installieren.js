@@ -135,15 +135,25 @@
   function einhaengen() {
     einstellungenEinhaengen();
     if (document.getElementById("installieren")) return;
-    var hilfe = document.getElementById("hilfe");
-    if (!hilfe || !hilfe.parentNode) return;
-    var k = neuerKnopf("installieren", "rund");
-    var vor = document.getElementById("neuladen") || hilfe;   /* ⟳ steht immer direkt vor dem ? */
-    hilfe.parentNode.insertBefore(k, vor);
-    /* Am schmalen Handy fehlt der Platz (das Suchfeld braucht 60 px); dort geht
-       der Weg über ⚙ → Installieren oder Chrome ⋮ → „App installieren". */
     var st = document.createElement("style");
-    st.textContent = "@media (max-width:480px){#installieren{display:none}}";
+    var hilfe = document.getElementById("hilfe");
+    var zurApp = document.querySelector("header.kopf [data-zur-app]");   /* start.html */
+    if (hilfe && hilfe.parentNode) {
+      var k = neuerKnopf("installieren", "rund");
+      var vor = document.getElementById("neuladen") || hilfe;   /* ⟳ steht immer direkt vor dem ? */
+      hilfe.parentNode.insertBefore(k, vor);
+      /* Klaus 2026-10-18: „oben in die Navi-Leiste … man sieht nicht auf Anhieb, dass die App
+         installiert werden kann.“ Bis dahin war der Knopf ≤ 480 px ausgeblendet (nur im ⚙-Menü).
+         Jetzt steht er auf jeder Breite; Platz schaffen schmalere runde Knöpfe (Höhe bleibt 36 px)
+         und kleinere Abstände — das Suchfeld behält bei 320 px über 60 px (gemessen 65). */
+      st.textContent = "@media (max-width:480px){header.kopf{gap:4px}.kopf .rund{min-width:32px;padding:0 4px}}" +
+        "@media (max-width:340px){header.kopf{gap:3px}}";
+    } else if (zurApp) {
+      var ks = neuerKnopf("installieren", "knopf leise");
+      zurApp.parentNode.insertBefore(ks, zurApp);
+      st.textContent = "@media (max-width:480px){#installieren .t{display:none}#installieren{padding:0 12px}}" +
+        "@media (max-width:340px){#installieren{padding:0 8px}header.kopf [data-zur-app]{padding:0 10px}}";
+    } else return;
     document.head.appendChild(st);
     knopfZeichnen();
   }

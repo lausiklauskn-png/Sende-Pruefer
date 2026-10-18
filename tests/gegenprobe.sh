@@ -630,6 +630,12 @@ fall "NEULADEN: unter 360 px bleibt der Knopf stehen" assets/neuladen.js \
 fall "NEULADEN: der Knopf fehlt im Offline-Vorrat" sw.js \
   '"assets/neuladen.js?v=1", ' '' 'Neu-laden-Knopf steht im Offline'
 
+fall "KOPF: am Handy ist der Knopf wieder ausgeblendet" assets/installieren.js \
+  '"@media (max-width:340px){header.kopf{gap:3px}}";' '"@media (max-width:480px){#installieren{display:none}}";' 'steht sichtbar oben in der Kopfleiste'
+fall "KOPF: die Startseite bekommt keinen Knopf" start.html \
+  '<script src="assets/installieren.js?v=5" defer></script>' '' 'auch auf der Startseite'
+fall "KOPF: am Handy kein Platz geschaffen" assets/installieren.js \
+  '"@media (max-width:480px){header.kopf{gap:4px}.kopf .rund{min-width:32px;padding:0 4px}}" +' '"" +' 'Suchfeld beh'
 fall "APPWEG: als App steht wieder der Knopf da" assets/installieren.js \
   'k.hidden = app; k.style.display = app ? "none" : "";' 'k.hidden = false;' 'der Installieren-Knopf ist nicht zu sehen'
 fall "APPWEG: als App kommt wieder die Meldung" assets/installieren.js \
