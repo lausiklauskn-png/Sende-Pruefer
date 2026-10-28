@@ -117,6 +117,26 @@ Ein Knopf, immer sichtbar, schließt die App sofort:
 - Beim Bau prüfen, wie BookLedgerPro das macht, und es von dort übernehmen. Nichts neu
   erfinden.
 
+## Darstellung: immer Vollbild (Klaus 2026-10-28)
+
+Klaus: *„Achte bitte darauf, immer Vollbild zu machen. Auch beim Handy gedreht, keine
+abgeschnittenen Texte oder Zeilenumbrüche … gesamter Browser, Desktop oder Desktop-Ansicht.“*
+
+- **Die App füllt jedes Fenster ganz aus:** Browser, installierte App, Desktop, Handy hoch und
+  quer, Tablet. `100dvh`, keine Höchstbreite, auch keine Lesebreite (wie der Sende-Prüfer,
+  Klaus 2026-09-29). `manifest.json` bekommt `display: standalone`, nicht `fullscreen`, damit
+  die Fensterknöpfe bleiben.
+- **Nichts abgeschnitten, nichts läuft quer:** kein Text mit `…`, der seinen Inhalt verschluckt.
+  Kein Knopf, dessen Wort mitten im Wort umbricht. Kein waagerechtes Scrollen der Seite.
+- **Gemessen, nicht angenommen.** Eine Probe im echten Browser prüft das bei 320, 360, 412,
+  768 und 1280 px Breite, dazu das Handy quer (z. B. 740 × 360) und Desktop 1920 × 1080:
+  - die Seite ist nicht breiter als das Fenster;
+  - kein Element ragt über seinen Kasten hinaus;
+  - keine Beschriftung ist abgeschnitten (`scrollWidth > clientWidth`);
+  - die App füllt die Höhe.
+  Dazu kommt eine Gegenprobe: eine eingebaute zu breite Zeile muss rot werden.
+- Das gilt für **jede** Stufe, nicht erst am Ende.
+
 ## Sicherheit und Plattform
 
 - **Browser-App ist tragbar.** Fremder Inhalt wird nur gelesen und nie ausgeführt. Der Browser
