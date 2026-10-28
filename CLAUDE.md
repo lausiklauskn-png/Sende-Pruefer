@@ -803,3 +803,7 @@ Gemessen: Suchfeld 65 px bei 320, 83 bei 380, 39 bei 412 (vorher 34 ohne Knopf);
 Auch **`start.html`** trägt den Knopf jetzt vor „Zur App“ (≤ 480 px nur ⬇). Der Knopf im ⚙-Menü bleibt. Als App beide weg.
 `installieren.js?v=5`, Cache v82. `npm test` 679 grün · 0 ROT; Gegenprobe `KOPF:` 3 gefangen.
 ⚠ `NUR_ANKER` meldet auf main schon 3 tote Anker (OCR, zweimal WASTUN) — nicht hier behoben. Am Tablet nicht gemessen.
+
+## 🧽 Projekt-Reiniger Pro · Plan (Klaus 2026-10-28)
+
+Eigene App, noch nicht gebaut: fremde Projekte (ZIP/Ordner) vor KI und Git von persönlichen Daten säubern, Stellenplan statt Werte, Tresor auf Wunsch, Gäste-Sperre, später Teil der Familienakte. Brief: [`docs/BRIEF_2026-10-28_projekt-reiniger-pro.md`](docs/BRIEF_2026-10-28_projekt-reiniger-pro.md). Er nutzt die Prüfkerne von hier und aus dem Auslieferungsprüfer byte-1:1.
