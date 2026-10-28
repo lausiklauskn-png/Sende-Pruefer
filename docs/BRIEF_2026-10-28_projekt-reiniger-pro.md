@@ -1,5 +1,9 @@
 # Brief: Projekt-Reiniger Pro
 
+> ⚠ **Eingefroren (2026-10-28).** Stufe 1 ist gebaut. Der Brief lebt seitdem im Repo
+> `project-cleaner-pro` unter `docs/BRIEF_2026-10-28_projekt-reiniger-pro.md` und wird nur dort
+> nachgezogen. Diese Fassung ist der Plan vor dem Bau.
+
 Stand 2026-10-28. Das ist ein Plan, noch kein Code. Gebaut wird erst auf Klaus' Wort.
 
 ## Anlass
