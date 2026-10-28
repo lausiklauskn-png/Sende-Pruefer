@@ -144,6 +144,41 @@ Beispiel PDF, Word, Excel, Foto, Text oder eine `.eml`. Dafür gibt es denselben
 Inventur, Befunden, Entscheiden, sauberer Fassung und Stellenplan. Die Prüfkerne dafür gibt es
 schon im Auslieferungsprüfer (Eingang „Foto · Datei prüfen“).
 
+## Jeder Dateityp (Klaus 2026-10-28)
+
+Klaus: *„Es soll jeder Dateityp gereinigt werden können. Auch eine Corel-Datei … auch SVG, auch
+PNG … da werden aus den Bilddaten Sachen rausgereinigt. Ich weiß nicht, ob das funktioniert.“*
+
+**Prüfen geht bei jeder Datei. Wie weit Reinigen geht, hängt von der Dateiart ab.** Jede
+Datei bekommt eine der drei Stufen, und die App sagt sichtbar, welche:
+
+| Stufe | Dateiarten | was geht |
+|---|---|---|
+| **1 · voll reinigen** | Text, Code, HTML, JSON, CSV, Markdown, SVG, `.eml` | jede Stelle einzeln ersetzen oder entfernen |
+| **2 · neu bauen** | PNG, JPEG, WebP, GIF, PDF, Word, Excel, PowerPoint, ODT | die Datei wird neu erzeugt, ohne Metadaten, und mit grauen Kästen an den gefundenen Stellen |
+| **3 · nur prüfen** | Corel (`.cdr`), Photoshop, Datenbanken, Programme und alle unbekannten Formate | Texte und Metadaten werden gefunden und angezeigt; reinigen heißt hier: **entfernen** oder durch eine Datei aus der Mustermappe **ersetzen** |
+
+**PNG und andere Bilder:**
+- ✅ **Metadaten** (EXIF, GPS, Textfelder, Herkunftsnachweis) gehen beim Neuzeichnen weg.
+- ✅ **Sichtbarer Text im Bild** (z. B. ein Name auf einem Foto) wird mit der Texterkennung auf
+  dem Gerät gefunden und mit einem grauen Kasten zugedeckt. Das ist Tesseract, das schon im
+  Auslieferungsprüfer steckt.
+- ✅ **Versteckte Botschaften in den untersten Bits** überleben ein Neuzeichnen als PNG
+  (gemessen im Sende-Prüfer). Dagegen hilft ein leichtes Rauschen über die untersten Bits oder
+  das Speichern als JPEG. Die App macht das beim Neubau immer.
+- ⚠ Gesichter, Hausnummern oder Kennzeichen **ohne Schrift** findet die Texterkennung nicht.
+  Dafür gibt es einen Pinsel zum Abdecken von Hand.
+
+**Corel (`.cdr`):** Neuere CDR-Dateien sind innen ein ZIP-Archiv. Darin lassen sich Texte,
+Vorschaubild und Metadaten lesen. Zurückschreiben in Corels eigenes Format ist nicht
+zuverlässig möglich. Deshalb gilt Stufe 3: anzeigen, was drin ist, dann entfernen oder
+ersetzen. Der saubere Weg ist, die Grafik in Corel als SVG oder PDF zu speichern; die werden
+dann voll gereinigt.
+
+**Unbekannte Formate:** Die App liest lesbare Zeichenketten heraus (UTF-8 und UTF-16) und
+prüft sie wie Text. Reinigen heißt hier immer entfernen oder ersetzen. Ein Wort einfach in den
+Bytes zu überschreiben, kann die Datei zerstören.
+
 ## Aussehen: Familie (Klaus 2026-10-28)
 
 Klaus: *„Die Farbe soll angepasst sein an … Familienakte, damit man weiß, es ist eine Familie.
