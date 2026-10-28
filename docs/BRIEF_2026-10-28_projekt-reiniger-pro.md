@@ -294,6 +294,18 @@ ungereinigte ZIP, gilt:
 | 8 | APK, danach Windows |
 | 9 | Einbau in die Familienakte |
 
+## Am Ende jeder Sitzung: Kurzauftrag zum Kopieren (Klaus 2026-10-28)
+
+Jede Sitzung gibt **zum Schluss** einen kurzen Auftrag für die nächste Sitzung aus, als
+Copy-Paste-Block, damit er wenig Tokens kostet. Er nennt nur das Repo, den Branch, den Pfad des
+Briefs und den nächsten Schritt; alles andere steht im Brief. Muster:
+
+```
+Repo lausiklauskn-png/<repo>. Lies <pfad/zum/BRIEF>.md
+(und die CLAUDE.md) und setze den nächsten offenen Schritt um: <Stufe/Schritt>.
+Am Ende: Brief nachziehen und wieder so einen Kurzauftrag ausgeben.
+```
+
 ## Grenzen (vorab benannt)
 
 - Die Suche arbeitet mit Mustern und Listen. Sie findet viel, aber **nicht garantiert alles**.
