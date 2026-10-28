@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+ <clipPath id="r"><rect width="512" height="512" rx="112"/></clipPath>
+ <clipPath id="links"><rect width="256" height="512"/></clipPath>
+ <clipPath id="rechts"><rect x="256" width="256" height="512"/></clipPath>
+ <g id="ring">
+  <path d="M290 63 A196 196 0 1 1 86.3 158" fill="none" stroke-width="36" stroke-linecap="round"/>
+  <path d="M112 112 L50 146 L124 184 Z" stroke-width="8" stroke-linejoin="round"/>
+ </g>
+</defs>
+<g clip-path="url(#r)">
+ <rect width="256" height="512" fill="#0b3154"/>
+ <rect x="256" width="256" height="512" fill="#ffffff"/>
+</g>
+<rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="#c9d6e0" stroke-width="2"/>
+<g clip-path="url(#links)"><use href="#ring" stroke="#68C4FF" fill="#68C4FF"/></g>
+<g clip-path="url(#rechts)"><use href="#ring" stroke="#0b3154" fill="#0b3154"/></g>
+<g transform="translate(256 256) scale(11) translate(-12 -12)">
+ <path d="M22 19.27C22 20.78 20.78 22 19.27 22H14.73C13.22 22 12 20.78 12 19.27V12H19.27C20.78 12 22 13.22 22 14.73Z" fill="#2E9EFF"/>
+ <path d="M20 2C21.1 2 22 2.9 22 4V7C22 8.1 21.1 9 20 9H17C15.9 9 15 8.1 15 7V4C15 2.9 15.9 2 17 2Z" fill="#0C79D8"/>
+ <path d="M7 15C8.1 15 9 15.9 9 17V20C9 21.1 8.1 22 7 22H4C2.9 22 2 21.1 2 20V17C2 15.9 2.9 15 4 15Z" fill="#68C4FF"/>
+ <path d="M12 12H4.73C3.22 12 2 10.78 2 9.27V4.73C2 3.22 3.22 2 4.73 2H9.27C10.78 2 12 3.22 12 4.73Z" fill="#2E9EFF"/>
+</g>
+</svg>

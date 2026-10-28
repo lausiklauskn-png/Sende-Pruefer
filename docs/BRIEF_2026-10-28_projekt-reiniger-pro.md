@@ -199,8 +199,16 @@ Und das Icon so einfach wie das Familien-Icon, aber mit einem Cleaner-Zeichen.�
   - **B:** Kacheln in einem weißen Kreispfeil, Grund im Verlauf von Navy nach Hell
   - **C:** Verlauf, eine Kachel wird weiß mit Haken („ein Feld wird sauber“)
 
-  Klaus' Wahl steht noch aus. Gezeichnet wird als SVG; App-, Android- und Windows-Größen werden
-  daraus gebaut.
+  **Klaus wählt A (2026-10-28), mit größerem Innenteil**, damit es auch als Favicon und auf kleinen
+  Bildschirmen erkennbar bleibt. Der Entwurf liegt unter `docs/projekt-reiniger/icon-entwurf-a.svg`,
+  die Vorschau in fünf Größen unter `icon-entwurf-a-groessen.png`:
+  - Der Kreispfeil ist dick, fast bis zum Rand.
+  - Er ist zweifarbig: hellblau auf der dunklen Hälfte, navy auf der weißen.
+  - Die Pfeilspitze ist gefüllt.
+  - Die Kacheln sind groß.
+
+  Als Favicon und am Handy prüfen. Die Größen für App, Android und Windows werden aus der SVG
+  gebaut, nie von Hand.
 
 ## Sicherheit und Plattform
 
