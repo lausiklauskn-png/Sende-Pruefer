@@ -137,6 +137,36 @@ abgeschnittenen Texte oder Zeilenumbrüche … gesamter Browser, Desktop oder De
   Dazu kommt eine Gegenprobe: eine eingebaute zu breite Zeile muss rot werden.
 - Das gilt für **jede** Stufe, nicht erst am Ende.
 
+## Auch einzelne Dateien (Klaus 2026-10-28)
+
+Nicht nur ZIP und Ordner: Auch **einzelne Dateien** lassen sich prüfen und reinigen, zum
+Beispiel PDF, Word, Excel, Foto, Text oder eine `.eml`. Dafür gibt es denselben Weg mit
+Inventur, Befunden, Entscheiden, sauberer Fassung und Stellenplan. Die Prüfkerne dafür gibt es
+schon im Auslieferungsprüfer (Eingang „Foto · Datei prüfen“).
+
+## Aussehen: Familie (Klaus 2026-10-28)
+
+Klaus: *„Die Farbe soll angepasst sein an … Familienakte, damit man weiß, es ist eine Familie.
+Und das Icon so einfach wie das Familien-Icon, aber mit einem Cleaner-Zeichen.“*
+
+- **Farben aus der Familienakte** (`app/globals.css` dort):
+  - Navy `#0b3154` und `#164f7d`
+  - Schrift `#15283a`
+  - Grund `#f2f7fa`, Papier `#ffffff`
+  - Petrol `#087f7a`
+  - die Kacheln des Icons `#0C79D8`, `#2E9EFF`, `#68C4FF`
+  - `theme_color` `#0b3154`
+  - Kopfbereich als Verlauf Navy → `#124e7f` → `#0d7775`
+- **Icon:** dieselben vier abgerundeten Kacheln wie im Familien-Icon, dazu ein Zeichen fürs
+  Reinigen. Klaus' Richtung: der Grund halb dunkelblau, halb weiß, oder ein Verlauf von dunkel
+  nach hell. Drei grobe Entwürfe wurden Klaus am 2026-10-28 gezeigt:
+  - **A:** Kacheln in einem Kreispfeil, Grund halb Navy, halb Weiß
+  - **B:** Kacheln in einem weißen Kreispfeil, Grund im Verlauf von Navy nach Hell
+  - **C:** Verlauf, eine Kachel wird weiß mit Haken („ein Feld wird sauber“)
+
+  Klaus' Wahl steht noch aus. Gezeichnet wird als SVG; App-, Android- und Windows-Größen werden
+  daraus gebaut.
+
 ## Sicherheit und Plattform
 
 - **Browser-App ist tragbar.** Fremder Inhalt wird nur gelesen und nie ausgeführt. Der Browser
