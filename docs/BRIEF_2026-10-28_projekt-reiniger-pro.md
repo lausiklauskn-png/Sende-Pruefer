@@ -18,7 +18,7 @@ passiert.
 
 | | |
 |---|---|
-| Name | **Projekt-Reiniger Pro** |
+| Name | **Projekt-Reiniger Pro** (Repo `project-cleaner-pro`, Adresse https://lausiklauskn-png.github.io/project-cleaner-pro/) |
 | Plattformen | zuerst **PWA**, gleich danach **APK** (Android), dann **Windows**, gebaut wie Private Brain Pro und Workflow PDF Pro (eine Codebasis) |
 | Standard | **Stellenplan**, ohne die entfernten Werte (Erklärung unten) |
 | Tresor | eingebaut. Die Originale werden darin nur **auf Wunsch** aufbewahrt, verschlüsselt |
@@ -197,7 +197,15 @@ ungereinigte ZIP, gilt:
 - Die fremden Daten liegen in Klaus' GitHub. Das Repo ist privat, die Daten sind trotzdem dort.
 - Den Branch zu löschen reicht nicht. `refs/pull/1/head` bleibt bestehen, solange PR #1
   existiert. Ganz weg bekommt man solche Stände nur über den GitHub-Support.
-- Das ist der **erste echte Prüffall** für den Projekt-Reiniger. Entscheidung bei Klaus.
+- Das ist der **erste echte Prüffall** für den Projekt-Reiniger.
+
+**Stand (Klaus 2026-10-28):**
+- Klaus prüft den Branch selbst und löscht die ZIP selbst, falls sie dort liegt.
+- Der Antrag bei GitHub, die betroffenen Commits vollständig zu löschen, ist gestellt.
+- Diese und künftige Sitzungen öffnen, lesen und veröffentlichen den Inhalt **nicht**. Er wird
+  auch nicht in eine Sitzung geholt.
+- Zum Schluss wird gemeinsam getestet, ob nichts mehr da ist. Das macht der Projekt-Reiniger,
+  nicht ein Mensch, der hineinschaut.
 
 ## Stufen
 
@@ -223,5 +231,5 @@ ungereinigte ZIP, gilt:
 ## Offen
 
 - Eigene Adresse (Unterdomain) oder fürs Erste github.io?
-- Eigenes Repo `Projekt-Reiniger-Pro` anlegen? Klaus' Wort fehlt.
+- ✅ Das Repo gibt es: `project-cleaner-pro` (Klaus 2026-10-28). Diese Sitzung hat es nicht geöffnet.
 - Was geschieht mit dem Original-Branch in Meine-Familienakte (Fund oben)?
